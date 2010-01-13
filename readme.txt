@@ -7,6 +7,7 @@ Tested up to: 2.9.1
 bbPress, the core plugin (not stable yet, do not use!)
 
 == Description ==
+Don't download me yet. I'm in the beginning stages of development.
 
 bbPress is forum software with a twist from the creators of WordPress.
 
