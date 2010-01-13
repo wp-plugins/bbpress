@@ -1,22 +1,36 @@
-bbPress is free software; you can redistribute it and/or modify it under the
-terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
+=== bbPress ===
+Contributors: matt, sambauers, automattic, bbPress Community
+Tags: bbpress, core plugin,
+Requires at least: 2.9.1
+Tested up to: 2.9.1
 
-bbPress is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-A PARTICULAR PURPOSE. See the GNU General Public License version 2 for more
-details.
+bbPress, the core plugin (not stable yet, do not use!)
 
-You should have received a copy of the GNU General Public License in a file
-named "license.txt" along with this program; if not, you may request a copy by
-writing to:
+== Description ==
 
-	Free Software Foundation, Inc.
-	51 Franklin St, Fifth Floor
-	Boston, MA
-	02110-1301 USA
+bbPress is forum software with a twist from the creators of WordPress.
 
-The license is also available for viewing on the world wide web at:
+Have you ever been frustrated with forum or bulletin board software that was slow, bloated and always got your server hacked?
 
-	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+bbPress is focused on web standards, ease of use, ease of integration, and speed. We’re keeping things as small and light as possible while still allowing for great add on features through our extensive plugin system.
+
+What does all that mean? bbPress is lean, mean and ready to take on any job you throw at it.
+
+== Installation ==
+
+1. Don't install this, it isn't ready.
+
+== Frequently Asked Questions ==
+
+= Is this plugin ready? =
+1. No.
+1. Absolutely not.
+1. Uh uh.
+
+= Is this plugin stable? =
+Nope.
+
+== Changelog ==
+
+= 0.1 =
+* Initial upload of files to WP plugin repository
