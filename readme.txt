@@ -1,5 +1,5 @@
 === bbPress ===
-Contributors: matt, sambauers, automattic, bbPress Community
+Contributors: matt, sambauers, automattic, johnjamesjacoby, bbPress Community
 Tags: bbpress, core plugin,
 Requires at least: 2.9.1
 Tested up to: 2.9.1
