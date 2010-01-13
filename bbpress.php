@@ -3,7 +3,7 @@
 Plugin Name: bbPress
 Plugin URI: http://bbpress.org
 Description: BuddyPress will add social networking features to a new or existing WordPress MU installation.
-Author: matt, sambauers, bbpress community, john james jacoby
+Author: Matt Mullenweg, Sam Bauers, bbPress community, John James Jacoby
 Version: 1.1
 Author URI: http://bbpress.org
 */
