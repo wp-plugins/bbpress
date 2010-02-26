@@ -1,13 +1,13 @@
 === bbPress ===
 Contributors: matt, sambauers, automattic, johnjamesjacoby, bbPress Community
-Tags: bbpress, core plugin,
-Requires at least: 2.9.1
-Tested up to: 2.9.1
+Tags: bbpress
 
-bbPress, the core plugin (not stable yet, do not use!)
+If you want a stable version of bbPress, please download it from http://bbpress.org
+
+This is bbPress, the WordPress plugin. It isn't stable yet, so use at your own risk!
 
 == Description ==
-Don't download me yet. I'm in the beginning stages of development.
+This plugin is in the beginning stages of development. Download and use at your own risk.
 
 bbPress is forum software with a twist from the creators of WordPress.
 
@@ -19,19 +19,22 @@ What does all that mean? bbPress is lean, mean and ready to take on any job you 
 
 == Installation ==
 
-1. Don't install this, it isn't ready.
+1. We'd recommend not to install this, it isn't ready for prime time.
+1. If you choose to check it out, hopefully you're thinking of getting involved and helping out. :)
 
 == Frequently Asked Questions ==
 
 = Is this plugin ready? =
 1. No.
-1. Absolutely not.
-1. Uh uh.
 
 = Is this plugin stable? =
-Nope.
+Nope. But it will be.
 
 == Changelog ==
+
+= 0.2 =
+* Change location of files in includes. 
+* Add helper functions from BuddyPress to help with loading bbPress inside WordPress
 
 = 0.1 =
 * Initial upload of files to WP plugin repository
