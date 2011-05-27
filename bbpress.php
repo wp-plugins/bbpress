@@ -15,10 +15,10 @@
  * Description: bbPress is forum software with a twist from the creators of WordPress.
  * Author: The bbPress Community
  * Author URI: http://bbpress.org
- * Version: 2.0-beta-1
+ * Version: 2.0-beta-2
  */
 
-// Redirect if accessed directly
+// Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
 /**
@@ -30,7 +30,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
  * Note: Checking for defined( 'BBP_VERSION' ) in your code does NOT
  *       guarantee bbPress is initialized and listening.
  */
-define( 'BBP_VERSION', '2.0-beta-1' );
+define( 'BBP_VERSION', '2.0-beta-2' );
 
 if ( !class_exists( 'bbPress' ) ) :
 /**
@@ -147,6 +147,11 @@ class bbPress {
 	 * @var string Absolute path to the bbPress themes directory
 	 */
 	var $themes_dir;
+
+	/**
+	 * @var string Absolute path to the bbPress language directory
+	 */
+	var $lang_dir;
 
 	/** URLs ******************************************************************/
 
@@ -284,6 +289,9 @@ class bbPress {
 		// Themes
 		$this->themes_dir = WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) . '/bbp-themes';
 		$this->themes_url = $this->plugin_url . 'bbp-themes';
+
+		// Languages
+		$this->lang_dir   = $this->plugin_dir . 'bbp-languages';
 
 		/** Identifiers *******************************************************/
 
@@ -424,9 +432,13 @@ class bbPress {
 	/**
 	 * Register Textdomain
 	 *
-	 * Load the translation file for current language. Checks only the default
-	 * WordPress languages folder to avoid language files being wiped out
-	 * with plugin updates.
+	 * Load the translation file for current language. Checks the languages
+	 * folder inside the bbPress plugin first, and then the default WordPress
+	 * languages folder.
+	 *
+	 * Note that custom translation files inside the bbPress plugin folder
+	 * will be removed on bbPress updates. If you're creating custom
+	 * translation files, please use the global language folder.
 	 *
 	 * @since bbPress (r2596)
 	 *
@@ -443,11 +455,16 @@ class bbPress {
 		// Get mo file name
 		$mofile = sprintf( 'bbpress-%s.mo', $locale );
 
-		// Setup path to current locale file
+		// Setup paths to current locale file
+		$mofile_local  = $this->lang_dir . '/' . $mofile;
 		$mofile_global = WP_LANG_DIR . '/bbpress/' . $mofile;
 
+		// Look in local /wp-content/plugins/bbpress/bbp-languages/ folder
+		if ( file_exists( $mofile_local ) )
+			return load_textdomain( 'bbpress', $mofile_local );
+
 		// Look in global /wp-content/languages/ folder
-		if ( file_exists( $mofile_global ) )
+		elseif ( file_exists( $mofile_global ) )
 			return load_textdomain( 'bbpress', $mofile_global );
 
 		// Nothing found
@@ -520,7 +537,7 @@ class bbPress {
 			'capabilities'      => bbp_get_forum_caps(),
 			'capability_type'   => 'forum',
 			'menu_position'     => 56,
-			'has_archive'       => get_page_by_path( $this->root_slug ) ? false : $this->root_slug,
+			'has_archive'       => !empty( $this->root_slug ) ? $this->root_slug : false,
 			'show_in_nav_menus' => true,
 			'public'            => true,
 			'show_ui'           => true,
@@ -693,7 +710,7 @@ class bbPress {
 			'protected'                 => true,
 			'exclude_from_search'       => true,
 			'show_in_admin_status_list' => true,
-			'show_in_admin_all_list'    => false
+			'show_in_admin_all_list'    => true
 		) );
 		register_post_status( $this->hidden_status_id, $status );
 
@@ -883,8 +900,20 @@ class bbPress {
 			// Set the compat_theme global for help with loading template parts
 			bbp_set_theme_compat( $bbp->themes_dir . '/bbp-twentyten' );
 
-			// Load up the default bbPress CSS from bbp-twentyten
-			wp_enqueue_style ( 'bbpress-style', $bbp->themes_url . '/bbp-twentyten/css/bbpress.css' );
+			/** Default CSS ***************************************************/
+
+			// Do not enqueue CSS in admin
+			if ( !is_admin() ) {
+
+				// Right to left
+				if ( is_rtl() ) {
+					wp_enqueue_style( 'bbpress-style', $bbp->themes_url . '/bbp-twentyten/css/bbpress-rtl.css' );
+
+				// Left to right
+				} else {
+					wp_enqueue_style( 'bbpress-style', $bbp->themes_url . '/bbp-twentyten/css/bbpress.css' );
+				}
+			}
 		}
 	}
 }
