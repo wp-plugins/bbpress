@@ -3,7 +3,7 @@ Contributors: matt, johnjamesjacoby, mdawaffe
 Tags: bbpress, forums, discussion, post type, theme
 Requires at least: 3.1
 Tested up to: 3.2
-Stable tag: 2.0-beta-2b
+Stable tag: 2.0-beta-3
 
 bbPress is forum software with a twist from the creators of WordPress
 
@@ -24,7 +24,22 @@ We're keeping things as small and light as possible while still allowing for gre
 
 == Changelog ==
 
-= 2.0-beta-2b =
+= 2.0-beta-3 =
+* Akismet integration
+* Fixes replies within wp-admin
+* Fixes reply notification links
+* Fixes inconsistent breadcrumb behavior
+* Fixes theme compatibility issues
+* Fixes archive and page conflicts
+* Improvements to unpretty permalink support
+* Improvements to importer
+* Improvements to multisite support
+* Normalize theme, shortcodes, and template parts
+* Add humans.txt
+* Add empty index.php files to prevent snooping
+* Add max length to topic titles (default 80 chars)
+
+= 2.0-beta-2 =
 * GlotPress integration
 * Fixes Forum archive bug
 * Fixes and improvements to importer
