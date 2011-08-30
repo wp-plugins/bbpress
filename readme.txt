@@ -5,7 +5,7 @@ Requires at least: 3.2.1
 Tested up to: 3.2.1
 Stable tag: 2.0-rc-4
 
-bbPress is forum software with a twist from the creators of WordPress
+bbPress is forum software with a twist from the creators of WordPress.
 
 == Description ==
 
