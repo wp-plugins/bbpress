@@ -1,15 +1,15 @@
 === bbPress ===
 Contributors: matt, johnjamesjacoby
-Tags: bbpress, forums, discussion, post type, theme
-Requires at least: 3.2
-Tested up to: 3.2
-Stable tag: 2.0-rc-3
+Tags: bbpress, forums, discussion, support, theme, buddypress, akismet, multisite
+Requires at least: 3.2.1
+Tested up to: 3.2.1
+Stable tag: 2.0-rc-4
 
 bbPress is forum software with a twist from the creators of WordPress
 
 == Description ==
 
-Have you ever been frustrated with forum or bulletin board software that was slow, bloated and always got your server hacked? bbPress is focused on web standards, ease of use, ease of integration, and speed.
+Have you ever been frustrated with forum or bulletin board software that was slow, bloated and always got your server hacked? bbPress is focused on ease of integration, ease of use, web standards, and speed.
 
 We're keeping things as small and light as possible while still allowing for great add-on features through WordPress's extensive plugin system. What does all that mean? bbPress is lean, mean, and ready to take on any job you throw at it.
 
@@ -24,12 +24,21 @@ We're keeping things as small and light as possible while still allowing for gre
 
 == Changelog ==
 
+= 2.0-rc-4 =
+* BuddyPress @mention integration
+* Improved Akismet user agent handling
+* Added blacklist_keys support
+* Fixed spam/deleted user handling
+* Updated green admin color scheme for WordPress 3.2
+* Added actions to topic/reply forms
+* Improved support for future ajaxification
+
 = 2.0-rc-3 =
 * Fixed activation/deactivation
 * Added Forum Participant role for multisite use
 
 = 2.0-rc-2 =
-* BuddyPress integration
+* BuddyPress activity actionin tegration
 * Multisite integration
 * Fixed a bushel of bugs
 * Fixed tag pagination again
