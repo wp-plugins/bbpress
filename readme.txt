@@ -15,12 +15,12 @@ We're keeping things as small and light as possible while still allowing for gre
 
 == Installation ==
 
-1. Place the 'bbpress' folder in your '/wp-content/plugins/' directory.
-2. Activate bbPress.
-3. Visit 'Settings > Forums' and adjust your configuration.
-4. Create some forums.
-5. View your site.
-6. Adjust the CSS of your theme as needed, to make everything pretty.
+1. Place the 'bbpress' folder in your '/wp-content/plugins/' directory
+2. Activate bbPress
+3. Visit 'Settings > Forums' and adjust your configuration
+4. Create some forums
+5. View your site
+6. Adjust the CSS of your theme as needed, to make everything pretty
 
 == Changelog ==
 
