@@ -22,6 +22,15 @@ We're keeping things as small and light as possible while still allowing for gre
 5. View your site.
 6. Adjust the CSS of your theme as needed, to make everything pretty.
 
+== Screenshots ==
+1. Forums - Admin Interface
+2. Topics - Admin Interface
+3. Replies - Admin Interface
+4. Settings 1 - Admin Interface
+5. Settings 2 - Admin Interface
+6. Themes - Admin Interface
+7. Single Forum - Default Theme
+
 == Changelog ==
 
 = 2.0 =
