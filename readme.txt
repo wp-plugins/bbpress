@@ -3,7 +3,7 @@ Contributors: matt, johnjamesjacoby
 Tags: bbpress, forums, discussion, support, theme, buddypress, akismet, multisite
 Requires at least: 3.2.1
 Tested up to: 3.2.1
-Stable tag: 2.0-rc-5
+Stable tag: 2.0
 
 bbPress is forum software with a twist from the creators of WordPress
 
@@ -15,14 +15,26 @@ We're keeping things as small and light as possible while still allowing for gre
 
 == Installation ==
 
-1. Place the 'bbpress' folder in your '/wp-content/plugins/' directory
-2. Activate bbPress
-3. Visit 'Settings > Forums' and adjust your configuration
-4. Create some forums
-5. View your site
-6. Adjust the CSS of your theme as needed, to make everything pretty
+1. Place the 'bbpress' folder in your '/wp-content/plugins/' directory.
+2. Activate bbPress.
+3. Visit 'Settings > Forums' and adjust your configuration.
+4. Create some forums.
+5. View your site.
+6. Adjust the CSS of your theme as needed, to make everything pretty.
+
+== Screenshots ==
+1. Forums - Admin Interface
+2. Topics - Admin Interface
+3. Replies - Admin Interface
+4. Settings 1 - Admin Interface
+5. Settings 2 - Admin Interface
+6. Themes - Admin Interface
+7. Single Forum - Default Theme
 
 == Changelog ==
+
+= 2.0 =
+* Released on September 21, 2011
 
 = 2.0-rc-5 =
 * Fixed Genesis incompatibilities
