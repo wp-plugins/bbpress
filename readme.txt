@@ -1,9 +1,11 @@
 === bbPress ===
 Contributors: matt, johnjamesjacoby
 Tags: bbpress, forums, discussion, support, theme, buddypress, akismet, multisite
-Requires at least: 3.2.1
+Requires at least: 3.4
 Tested up to: 3.4
 Stable tag: 2.0.3
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 bbPress is forum software with a twist from the creators of WordPress
 
@@ -24,18 +26,22 @@ We're keeping things as small and light as possible while still allowing for gre
 
 == Changelog ==
 
-= 2.0.3 =
-* Confirmed WordPress 3.4 compatibility
-* Fix single forums not working when switching visibility
-* Fix hierarchical forum capability check
-
-= 2.0.2 =
-* Fix forum and topic freshness recount
-* Fix non-admin post editing
-* Fix topic closing
-
-= 2.0.1 =
-* Fix anonymous post editing bug
+= 2.1-beta-1 =
+* Improved BuddyPress integration
+* Improved Theme-Compatibility
+* Improved template coverage
+* Improved query performance
+* Improved breadcrumb behavior
+* Improved multisite integration
+* Improved coding clarity
+* WordPress 3.4 compatibility
+* Deprecate $bbp global, use bbpress() singleton
+* Private forums now visible to registered users
+* Updated converter
+* RTL fixes
+* Add fancy editor support
+* Add fallback theme picker
+* Add tools for importing, resetting, and uninstalling
 
 = 2.0 =
 * Released on September 21, 2011
