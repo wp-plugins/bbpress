@@ -26,6 +26,10 @@ We're keeping things as small and light as possible while still allowing for gre
 
 == Changelog ==
 
+= 2.1-rc-2 =
+* Fix settings screen regressions
+* Run topic and reply edits through Akismet
+
 = 2.1-rc-1 =
 * Improved post cache invalidation
 * Improved admin settings API
