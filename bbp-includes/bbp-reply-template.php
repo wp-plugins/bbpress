@@ -70,22 +70,15 @@ function bbp_has_replies( $args = '' ) {
 	$default_status = join( ',', array( bbp_get_public_status_id(), bbp_get_closed_status_id() ) );
 
 	// Skip topic_id if in the replies widget query
-	if ( !bbp_is_query_name( 'bbp_widget' ) ) {
-		$parent_args['meta_query'] = array( array(
-			'key'     => '_bbp_topic_id',
-			'value'   => bbp_get_topic_id(),
-			'compare' => '='
-		) );
+	$parent_args['meta_query'] = array( array(
+		'key'     => '_bbp_topic_id',
+		'value'   => bbp_get_topic_id(),
+		'compare' => '='
+	) );
 
-		// What are the default allowed statuses (based on user caps)
-		if ( bbp_get_view_all( 'edit_others_replies' ) ) {
-			$default_status = join( ',', array( bbp_get_public_status_id(), bbp_get_closed_status_id(), bbp_get_spam_status_id(), bbp_get_trash_status_id() ) );
-		}
-
-	// Prevent debug notice
-	} else {
-		$parent_args = array();
-	}
+	// What are the default allowed statuses (based on user caps)
+	if ( bbp_get_view_all( 'edit_others_replies' ) )
+		$default_status = join( ',', array( bbp_get_public_status_id(), bbp_get_closed_status_id(), bbp_get_spam_status_id(), bbp_get_trash_status_id() ) );
 
 	// Default query args
 	$default = array(
@@ -119,7 +112,7 @@ function bbp_has_replies( $args = '' ) {
 	$bbp->reply_query->paged          = $paged;
 
 	// Only add pagination if query returned results
-	if ( !bbp_is_query_name( 'bbp_widget' ) && (int) $bbp->reply_query->found_posts && (int) $bbp->reply_query->posts_per_page ) {
+	if ( (int) $bbp->reply_query->found_posts && (int) $bbp->reply_query->posts_per_page ) {
 
 		// If pretty permalinks are enabled, make our pagination pretty
 		if ( $wp_rewrite->using_permalinks() ) {
@@ -1285,7 +1278,8 @@ function bbp_reply_position( $reply_id = 0, $topic_id = 0 ) {
 	 * @uses bbp_get_reply_topic_id() Get the topic id of the reply id
 	 * @uses bbp_get_topic_reply_count() To get the topic reply count
 	 * @uses bbp_get_reply_post_type() To get the reply post type
-	 * @uses bbp_get_public_child_ids() To get the reply ids of the topic id
+	 * @uses bbp_get_reply_position_raw() To get calculate the reply position
+	 * @uses bbp_update_reply_position() To update the reply position
 	 * @uses bbp_show_lead_topic() Bump the count if lead topic is included
 	 * @uses apply_filters() Calls 'bbp_get_reply_position' with the reply
 	 *                        position, reply id and topic id
@@ -1883,7 +1877,7 @@ function bbp_topic_pagination_links() {
 /**
  * Output the value of reply content field
  *
- * @since bbPress {unknown}
+ * @since bbPress (r31301)
  *
  * @uses bbp_get_form_reply_content() To get value of reply content field
  */
@@ -1893,7 +1887,7 @@ function bbp_form_reply_content() {
 	/**
 	 * Return the value of reply content field
 	 *
-	 * @since bbPress {unknown}
+	 * @since bbPress (r31301)
 	 *
 	 * @uses bbp_is_reply_edit() To check if it's the reply edit page
 	 * @uses apply_filters() Calls 'bbp_get_form_reply_content' with the content
@@ -1919,7 +1913,7 @@ function bbp_form_reply_content() {
 /**
  * Output checked value of reply log edit field
  *
- * @since bbPress {unknown}
+ * @since bbPress (r31301)
  *
  * @uses bbp_get_form_reply_log_edit() To get the reply log edit value
  */
@@ -1929,7 +1923,7 @@ function bbp_form_reply_log_edit() {
 	/**
 	 * Return checked value of reply log edit field
 	 *
-	 * @since bbPress {unknown}
+	 * @since bbPress (r31301)
 	 *
 	 * @uses apply_filters() Calls 'bbp_get_form_reply_log_edit' with the
 	 *                        log edit value
@@ -1951,7 +1945,7 @@ function bbp_form_reply_log_edit() {
 /**
  * Output the value of the reply edit reason
  *
- * @since bbPress {unknown}
+ * @since bbPress (r31301)
  *
  * @uses bbp_get_form_reply_edit_reason() To get the reply edit reason value
  */
@@ -1961,7 +1955,7 @@ function bbp_form_reply_edit_reason() {
 	/**
 	 * Return the value of the reply edit reason
 	 *
-	 * @since bbPress {unknown}
+	 * @since bbPress (r31301)
 	 *
 	 * @uses apply_filters() Calls 'bbp_get_form_reply_edit_reason' with the
 	 *                        reply edit reason value

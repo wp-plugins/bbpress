@@ -291,23 +291,18 @@ function bbp_get_view_all( $cap = 'moderate' ) {
 function bbp_get_paged() {
 	global $wp_query;
 
-	// Make sure to not paginate widget queries
-	if ( !bbp_is_query_name( 'bbp_widget' ) ) {
+	// Check the query var
+	if ( get_query_var( 'paged' ) ) {
+		$paged = get_query_var( 'paged' );
 
-		// Check the query var
-		if ( get_query_var( 'paged' ) ) {
-			$paged = get_query_var( 'paged' );
-
-		// Check query paged
-		} elseif ( !empty( $wp_query->query['paged'] ) ) {
-			$paged = $wp_query->query['paged'];
-		}
-
-		// Paged found
-		if ( !empty( $paged ) ) {
-			return (int) $paged;
-		}
+	// Check query paged
+	} elseif ( !empty( $wp_query->query['paged'] ) ) {
+		$paged = $wp_query->query['paged'];
 	}
+
+	// Paged found
+	if ( !empty( $paged ) )
+		return (int) $paged;
 
 	// Default to first page
 	return 1;
@@ -1660,7 +1655,7 @@ function bbp_set_404() {
 	global $wp_query;
 
 	if ( ! isset( $wp_query ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '3.1' );
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.', 'bbpress' ), '3.1' );
 		return false;
 	}
 

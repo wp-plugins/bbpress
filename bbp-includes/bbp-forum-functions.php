@@ -228,7 +228,7 @@ function bbp_new_forum_handler() {
 
 	/** Additional Actions (Before Save) **************************************/
 
-	do_action( 'bbp_new_forum_pre_extras' );
+	do_action( 'bbp_new_forum_pre_extras', $forum_parent_id );
 
 	// Bail if errors
 	if ( bbp_has_errors() )

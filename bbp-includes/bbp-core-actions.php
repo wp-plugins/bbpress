@@ -68,6 +68,7 @@ add_action( 'bbp_loaded', 'bbp_setup_option_filters',      10 );
 add_action( 'bbp_loaded', 'bbp_setup_user_option_filters', 12 );
 add_action( 'bbp_loaded', 'bbp_register_theme_directory',  14 );
 add_action( 'bbp_loaded', 'bbp_register_theme_packages',   16 );
+add_action( 'bbp_loaded', 'bbp_load_textdomain',           18 );
 
 /**
  * bbp_init - Attached to 'init' above
@@ -76,7 +77,6 @@ add_action( 'bbp_loaded', 'bbp_register_theme_packages',   16 );
  * The load order helps to execute code at the correct time.
  *                                                    v---Load order
  */
-add_action( 'bbp_init', 'bbp_load_textdomain',         2   );
 add_action( 'bbp_init', 'bbp_register_post_types',     10  );
 add_action( 'bbp_init', 'bbp_register_post_statuses',  12  );
 add_action( 'bbp_init', 'bbp_register_taxonomies',     14  );
@@ -217,6 +217,14 @@ add_action( 'make_spam_user', 'bbp_make_spam_user' );
 // User role
 add_action( 'bbp_new_topic', 'bbp_global_access_auto_role' );
 add_action( 'bbp_new_reply', 'bbp_global_access_auto_role' );
+
+// Caches
+add_action( 'bbp_new_forum_pre_extras',  'bbp_clean_post_cache' );
+add_action( 'bbp_new_forum_post_extras', 'bbp_clean_post_cache' );
+add_action( 'bbp_new_topic_pre_extras',  'bbp_clean_post_cache' );
+add_action( 'bbp_new_topic_post_extras', 'bbp_clean_post_cache' );
+add_action( 'bbp_new_reply_pre_extras',  'bbp_clean_post_cache' );
+add_action( 'bbp_new_reply_post_extras', 'bbp_clean_post_cache' );
 
 /**
  * bbPress needs to redirect the user around in a few different circumstances:
