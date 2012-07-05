@@ -366,7 +366,7 @@ function bbp_admin_setting_callback_main_section() {
 function bbp_admin_setting_callback_editlock() {
 ?>
 
-	<input name="_bbp_edit_lock" type="text" id="_bbp_edit_lock" value="<?php bbp_form_option( '_bbp_edit_lock', '5' ); ?>" class="small-text" />
+	<input name="_bbp_edit_lock" type="number" min="0" step="1" id="_bbp_edit_lock" value="<?php bbp_form_option( '_bbp_edit_lock', '5' ); ?>" class="small-text" />
 	<label for="_bbp_edit_lock"><?php _e( 'minutes', 'bbpress' ); ?></label>
 
 <?php
@@ -382,7 +382,7 @@ function bbp_admin_setting_callback_editlock() {
 function bbp_admin_setting_callback_throttle() {
 ?>
 
-	<input name="_bbp_throttle_time" type="text" id="_bbp_throttle_time" value="<?php bbp_form_option( '_bbp_throttle_time', '10' ); ?>" class="small-text" />
+	<input name="_bbp_throttle_time" type="number" min="0" step="1" id="_bbp_throttle_time" value="<?php bbp_form_option( '_bbp_throttle_time', '10' ); ?>" class="small-text" />
 	<label for="_bbp_throttle_time"><?php _e( 'seconds', 'bbpress' ); ?></label>
 
 <?php
@@ -573,7 +573,7 @@ function bbp_admin_setting_callback_per_page_section() {
 function bbp_admin_setting_callback_topics_per_page() {
 ?>
 
-	<input name="_bbp_topics_per_page" type="text" id="_bbp_topics_per_page" value="<?php bbp_form_option( '_bbp_topics_per_page', '15' ); ?>" class="small-text" />
+	<input name="_bbp_topics_per_page" type="number" min="1" step="1" id="_bbp_topics_per_page" value="<?php bbp_form_option( '_bbp_topics_per_page', '15' ); ?>" class="small-text" />
 	<label for="_bbp_topics_per_page"><?php _e( 'per page', 'bbpress' ); ?></label>
 
 <?php
@@ -589,7 +589,7 @@ function bbp_admin_setting_callback_topics_per_page() {
 function bbp_admin_setting_callback_replies_per_page() {
 ?>
 
-	<input name="_bbp_replies_per_page" type="text" id="_bbp_replies_per_page" value="<?php bbp_form_option( '_bbp_replies_per_page', '15' ); ?>" class="small-text" />
+	<input name="_bbp_replies_per_page" type="number" min="1" step="1" id="_bbp_replies_per_page" value="<?php bbp_form_option( '_bbp_replies_per_page', '15' ); ?>" class="small-text" />
 	<label for="_bbp_replies_per_page"><?php _e( 'per page', 'bbpress' ); ?></label>
 
 <?php
@@ -620,7 +620,7 @@ function bbp_admin_setting_callback_per_rss_page_section() {
 function bbp_admin_setting_callback_topics_per_rss_page() {
 ?>
 
-	<input name="_bbp_topics_per_rss_page" type="text" id="_bbp_topics_per_rss_page" value="<?php bbp_form_option( '_bbp_topics_per_rss_page', '25' ); ?>" class="small-text" />
+	<input name="_bbp_topics_per_rss_page" type="number" min="1" step="1" id="_bbp_topics_per_rss_page" value="<?php bbp_form_option( '_bbp_topics_per_rss_page', '25' ); ?>" class="small-text" />
 	<label for="_bbp_topics_per_rss_page"><?php _e( 'per page', 'bbpress' ); ?></label>
 
 <?php
@@ -636,7 +636,7 @@ function bbp_admin_setting_callback_topics_per_rss_page() {
 function bbp_admin_setting_callback_replies_per_rss_page() {
 ?>
 
-	<input name="_bbp_replies_per_rss_page" type="text" id="_bbp_replies_per_rss_page" value="<?php bbp_form_option( '_bbp_replies_per_rss_page', '25' ); ?>" class="small-text" />
+	<input name="_bbp_replies_per_rss_page" type="number" min="1" step="1" id="_bbp_replies_per_rss_page" value="<?php bbp_form_option( '_bbp_replies_per_rss_page', '25' ); ?>" class="small-text" />
 	<label for="_bbp_replies_per_rss_page"><?php _e( 'per page', 'bbpress' ); ?></label>
 
 <?php
@@ -1030,7 +1030,7 @@ function bbp_converter_setting_callback_dbport() {
 function bbp_converter_setting_callback_dbuser() {
 ?>
 
-	<input name="_bbp_converter_db_user" type="text" id="_bbp_converter_db_user" value="<?php bbp_form_option( '_bbp_converter_db_user', DB_USER ); ?>" class="medium-text" />
+	<input name="_bbp_converter_db_user" type="text" id="_bbp_converter_db_user" value="<?php bbp_form_option( '_bbp_converter_db_user' ); ?>" class="medium-text" />
 	<label for="_bbp_converter_db_user"><?php _e( 'User for your database connection', 'bbpress' ); ?></label>
 
 <?php
@@ -1044,7 +1044,7 @@ function bbp_converter_setting_callback_dbuser() {
 function bbp_converter_setting_callback_dbpass() {
 ?>
 
-	<input name="_bbp_converter_db_pass" type="password" id="_bbp_converter_db_pass" value="<?php bbp_form_option( '_bbp_converter_db_pass', DB_PASSWORD ); ?>" class="medium-text" />
+	<input name="_bbp_converter_db_pass" type="password" id="_bbp_converter_db_pass" value="<?php bbp_form_option( '_bbp_converter_db_pass' ); ?>" class="medium-text" />
 	<label for="_bbp_converter_db_pass"><?php _e( 'Password to access the database', 'bbpress' ); ?></label>
 
 <?php
@@ -1058,7 +1058,7 @@ function bbp_converter_setting_callback_dbpass() {
 function bbp_converter_setting_callback_dbname() {
 ?>
 
-	<input name="_bbp_converter_db_name" type="text" id="_bbp_converter_db_name" value="<?php bbp_form_option( '_bbp_converter_db_name', DB_NAME ); ?>" class="medium-text" />
+	<input name="_bbp_converter_db_name" type="text" id="_bbp_converter_db_name" value="<?php bbp_form_option( '_bbp_converter_db_name' ); ?>" class="medium-text" />
 	<label for="_bbp_converter_db_name"><?php _e( 'Name of the database with your old forum data', 'bbpress' ); ?></label>
 
 <?php
@@ -1072,7 +1072,7 @@ function bbp_converter_setting_callback_dbname() {
 function bbp_converter_setting_callback_options_section() {
 ?>
 
-	<p><?php _e( 'Some optional parameters to help tune the convertion process.', 'bbpress' ); ?></p>
+	<p><?php _e( 'Some optional parameters to help tune the conversion process.', 'bbpress' ); ?></p>
 
 <?php
 }
@@ -1122,6 +1122,21 @@ function bbp_converter_setting_callback_delay_time() {
 }
 
 /**
+ * Edit Restart setting field
+ *
+ * @since bbPress (r3813)
+ */
+function bbp_converter_setting_callback_restart() {
+?>
+
+	<input id="_bbp_converter_restart" name="_bbp_converter_restart" type="checkbox" id="_bbp_converter_restart" value="1" <?php checked( get_option( '_bbp_converter_restart', false ) ); ?> />
+	<label for="_bbp_converter_restart"><?php _e( 'Start a fresh conversion from the beginning', 'bbpress' ); ?></label>
+	<p class="description"><?php _e( 'You should clean old conversion information before starting over.', 'bbpress' ); ?></p>
+
+<?php
+}
+
+/**
  * Edit Clean setting field
  *
  * @since bbPress (r3813)
@@ -1131,22 +1146,7 @@ function bbp_converter_setting_callback_clean() {
 
 	<input id="_bbp_converter_clean" name="_bbp_converter_clean" type="checkbox" id="_bbp_converter_clean" value="1" <?php checked( get_option( '_bbp_converter_clean', false ) ); ?> />
 	<label for="_bbp_converter_clean"><?php _e( 'Purge all information from a previously attempted import', 'bbpress' ); ?></label>
-	<p class="description"><?php _e( 'Use this if an import failed and you want to start over from scratch.', 'bbpress' ); ?></p>
-
-<?php
-}
-
-/**
- * Edit Restart setting field
- *
- * @since bbPress (r3813)
- */
-function bbp_converter_setting_callback_restart() {
-?>
-
-	<input id="_bbp_converter_restart" name="_bbp_converter_restart" type="checkbox" id="_bbp_converter_restart" value="1" <?php checked( get_option( '_bbp_converter_restart', false ) ); ?> />
-	<label for="_bbp_converter_restart"><?php _e( 'Restart the conversion process', 'bbpress' ); ?></label>
-	<p class="description"><?php _e( 'The importer keeps track of where it left off in the event of failure.', 'bbpress' ); ?></p>
+	<p class="description"><?php _e( 'Use this if an import failed and you want to remove that incomplete data.', 'bbpress' ); ?></p>
 
 <?php
 }
