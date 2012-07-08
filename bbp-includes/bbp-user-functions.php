@@ -819,7 +819,7 @@ function bbp_subscriptions_handler() {
 		// Redirect back from whence we came
 		if ( bbp_is_subscriptions() ) {
 			$redirect = bbp_get_subscriptions_permalink( $user_id );
-		} elseif( bbp_is_single_user() ) {
+		} elseif ( bbp_is_single_user() ) {
 			$redirect = bbp_get_user_profile_url();
 		} elseif ( is_singular( bbp_get_topic_post_type() ) ) {
 			$redirect = bbp_get_topic_permalink( $topic_id );
@@ -1434,5 +1434,40 @@ function bbp_check_user_edit() {
 	if ( true === $redirect ) {
 		wp_safe_redirect( bbp_get_user_profile_url( bbp_get_displayed_user_id() ) );
 		exit();
+	}
+}
+
+/** Converter *****************************************************************/
+
+/**
+ * Convert passwords from previous platfrom encryption to WordPress encryption.
+ *
+ * @since bbPress (r3813)
+ * @global WPDB $wpdb
+ */
+function bbp_user_maybe_convert_pass() {
+
+	// Bail if no username
+	$username = !empty( $_POST['log'] ) ? $_POST['log'] : '';
+	if ( empty( $username ) )
+		return;
+
+	global $wpdb;
+
+	// Bail if no user password to convert
+	$row = $wpdb->get_row( "SELECT * FROM {$wpdb->users} INNER JOIN {$wpdb->usermeta} ON user_id = ID WHERE meta_key = '_bbp_converter_class' AND user_login = '{$username}' LIMIT 1" );
+	if ( empty( $row ) || is_wp_error( $row ) )
+		return;
+
+	// Convert password
+	require_once( bbpress()->admin->admin_dir . 'bbp-converter.php' );
+	require_once( bbpress()->admin->admin_dir . 'converters/' . $row->meta_value . '.php' );
+
+	// Create the converter
+	$converter = bbp_new_converter( $row->meta_value );
+
+	// Try to call the conversion method
+	if ( is_a( $converter, 'BBP_Converter_Base' ) && method_exists( $converter, 'callback_pass' ) ) {
+		$converter->callback_pass( $username, $_POST['pwd'] );
 	}
 }
