@@ -528,7 +528,7 @@ function bbp_get_caps_for_role( $role = '' ) {
  */
 function bbp_global_access_auto_role() {
 
-	// Bail if not multisite or forum is not global
+	// Bail if forum is not global
 	if ( ! bbp_allow_global_access() )
 		return;
 
@@ -613,7 +613,7 @@ function bbp_get_moderator_role() {
  */
 function bbp_global_access_role_mask() {
 
-	// Bail if not multisite or forum is not global
+	// Bail if forum is not global
 	if ( ! bbp_allow_global_access() )
 		return;
 

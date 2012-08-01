@@ -94,7 +94,7 @@ function bbp_admin_get_settings_fields() {
 
 			// Allow topic and reply revisions
 			'_bbp_allow_revisions' => array(
-				'title'             => __( 'Allow Revisions', 'bbpress' ),
+				'title'             => __( 'Revisions', 'bbpress' ),
 				'callback'          => 'bbp_admin_setting_callback_revisions',
 				'sanitize_callback' => 'intval',
 				'args'              => array()
@@ -102,7 +102,7 @@ function bbp_admin_get_settings_fields() {
 
 			// Allow favorites setting
 			'_bbp_enable_favorites' => array(
-				'title'             => __( 'Allow Favorites', 'bbpress' ),
+				'title'             => __( 'Favorites', 'bbpress' ),
 				'callback'          => 'bbp_admin_setting_callback_favorites',
 				'sanitize_callback' => 'intval',
 				'args'              => array()
@@ -110,15 +110,23 @@ function bbp_admin_get_settings_fields() {
 
 			// Allow subscriptions setting
 			'_bbp_enable_subscriptions' => array(
-				'title'             => __( 'Allow Subscriptions', 'bbpress' ),
+				'title'             => __( 'Subscriptions', 'bbpress' ),
 				'callback'          => 'bbp_admin_setting_callback_subscriptions',
+				'sanitize_callback' => 'intval',
+				'args'              => array()
+			),
+
+			// Allow topic tags
+			'_bbp_allow_topic_tags' => array(
+				'title'             => __( 'Topic Tags', 'bbpress' ),
+				'callback'          => 'bbp_admin_setting_callback_topic_tags',
 				'sanitize_callback' => 'intval',
 				'args'              => array()
 			),
 
 			// Allow anonymous posting setting
 			'_bbp_allow_anonymous' => array(
-				'title'             => __( 'Allow Anonymous Posting', 'bbpress' ),
+				'title'             => __( 'Anonymous Posting', 'bbpress' ),
 				'callback'          => 'bbp_admin_setting_callback_anonymous',
 				'sanitize_callback' => 'intval',
 				'args'              => array()
@@ -126,7 +134,7 @@ function bbp_admin_get_settings_fields() {
 
 			// Allow global access (on multisite)
 			'_bbp_allow_global_access' => array(
-				'title'             => __( 'Allow Global Access', 'bbpress' ),
+				'title'             => __( 'Global Access', 'bbpress' ),
 				'callback'          => 'bbp_admin_setting_callback_global_access',
 				'sanitize_callback' => 'intval',
 				'args'              => array()
@@ -421,6 +429,22 @@ function bbp_admin_setting_callback_subscriptions() {
 }
 
 /**
+ * Allow topic tags setting field
+ *
+ * @since bbPress (r####)
+ *
+ * @uses checked() To display the checked attribute
+ */
+function bbp_admin_setting_callback_topic_tags() {
+?>
+
+	<input id="_bbp_allow_topic_tags" name="_bbp_allow_topic_tags" type="checkbox" id="_bbp_allow_topic_tags" value="1" <?php checked( bbp_allow_topic_tags( true ) ); ?> />
+	<label for="_bbp_allow_topic_tags"><?php _e( 'Allow topics to have tags', 'bbpress' ); ?></label>
+
+<?php
+}
+
+/**
  * Allow topic and reply revisions
  *
  * @since bbPress (r3412)
@@ -463,7 +487,7 @@ function bbp_admin_setting_callback_global_access() {
 ?>
 
 	<input id="_bbp_allow_global_access" name="_bbp_allow_global_access" type="checkbox" id="_bbp_allow_global_access" value="1" <?php checked( bbp_allow_global_access( false ) ); ?> />
-	<label for="_bbp_allow_global_access"><?php _e( 'Allow all users of your multisite installation to create topics and replies', 'bbpress' ); ?></label>
+	<label for="_bbp_allow_global_access"><?php _e( 'Allow all registered users to create topics and replies', 'bbpress' ); ?></label>
 
 <?php
 }
@@ -543,7 +567,7 @@ function bbp_admin_setting_callback_use_autoembed() {
 ?>
 
 	<input id="_bbp_use_autoembed" name="_bbp_use_autoembed" type="checkbox" id="_bbp_use_autoembed" value="1" <?php checked( bbp_use_autoembed( true ) ); ?> />
-	<label for="_bbp_use_autoembed"><?php _e( 'Embed media (YouTube, Twitter, Flickr, etc...) directly into topics and replies.', 'bbpress' ); ?></label>
+	<label for="_bbp_use_autoembed"><?php _e( 'Embed media (YouTube, Twitter, Flickr, etc...) directly into topics and replies', 'bbpress' ); ?></label>
 
 <?php
 }
@@ -1238,6 +1262,7 @@ function bbp_admin_settings_help() {
 							'<li>' . __( '"Throttle time" is the amount of time required between posts from a single author. The higher the throttle time, the longer a user will need to wait between posting to the forum.', 'bbpress' ) . '</li>' .
 							'<li>' . __( 'Favorites are a way for users to save and later return to topics they favor. This is enabled by default.',                                                                           'bbpress' ) . '</li>' .
 							'<li>' . __( 'Subscriptions allow users to subscribe for notifications to topics that interest them. This is enabled by default.',                                                                 'bbpress' ) . '</li>' .
+							'<li>' . __( 'Topic-Tags allow users to filter topics between forums. This is enabled by default.',                                                                                                'bbpress' ) . '</li>' .
 							'<li>' . __( '"Anonymous Posting" allows guest users who do not have accounts on your site to both create topics as well as replies.',                                                             'bbpress' ) . '</li>' .
 							'<li>' . __( 'The Fancy Editor brings the luxury of the Visual editor and HTML editor from the traditional WordPress dashboard into your theme.',                                                  'bbpress' ) . '</li>' .
 							'<li>' . __( 'Auto-embed will embed the media content from a URL directly into the replies. For example: links to Flickr and YouTube.',                                                            'bbpress' ) . '</li>' .
@@ -1268,8 +1293,8 @@ function bbp_admin_settings_help() {
 	// Help Sidebar
 	$current_screen->set_help_sidebar(
 		'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="http://bbpress.org/documentation/" target="_blank">bbPress Documentation</a>', 'bbpress' ) . '</p>' .
-		'<p>' . __( '<a href="http://bbpress.org/forums/" target="_blank">bbPress Support Forums</a>',       'bbpress' ) . '</p>'
+		'<p>' . __( '<a href="http://codex.bbpress.org" target="_blank">bbPress Documentation</a>',    'bbpress' ) . '</p>' .
+		'<p>' . __( '<a href="http://bbpress.org/forums/" target="_blank">bbPress Support Forums</a>', 'bbpress' ) . '</p>'
 	);
 }
 
