@@ -21,7 +21,7 @@
  * @uses apply_filters() Filter mapped results
  * @return array Actual capabilities for meta capability
  */
-function bbp_map_primary_meta_caps( $caps, $cap, $user_id, $args ) {
+function bbp_map_primary_meta_caps( $caps = array(), $cap = '', $user_id = 0, $args = array() ) {
 
 	// What capability is being checked?
 	switch ( $cap ) {
@@ -80,7 +80,9 @@ function bbp_set_user_role( $user_id = 0, $new_role = '' ) {
 			}
 
 			// Add the new role
-			$user->add_role( $new_role );
+			if ( !empty( $new_role ) ) {
+				$user->add_role( $new_role );
+			}
 		}
 
 	// User does don exist so return false
