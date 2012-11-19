@@ -946,4 +946,4 @@ if ( defined( 'BBPRESS_LATE_LOAD' ) ) {
 }
 
 endif; // class_exists check
-exists check
+
