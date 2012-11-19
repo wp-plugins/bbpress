@@ -3,7 +3,7 @@ Contributors: matt, johnjamesjacoby
 Tags: forums, discussion, support, theme, akismet, multisite
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 2.1.3
+Stable tag: 2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -149,3 +149,4 @@ We're keeping things as small and light as possible while still allowing for gre
 
 = 2.0-beta-1 =
 * In development
+t
