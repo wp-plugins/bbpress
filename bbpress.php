@@ -29,7 +29,7 @@ if ( !class_exists( 'bbPress' ) ) :
 /**
  * Main bbPress Class
  *
- * Tap tap tap... Is this thing on?
+ * How doth the little busy bee, improve each shining hour...
  *
  * @since bbPress (r2464)
  */
