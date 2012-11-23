@@ -531,7 +531,9 @@ class BBP_Admin {
 		// Top level menu classes
 		$forum_class = sanitize_html_class( bbp_get_forum_post_type() );
 		$topic_class = sanitize_html_class( bbp_get_topic_post_type() );
-		$reply_class = sanitize_html_class( bbp_get_reply_post_type() ); ?>
+		$reply_class = sanitize_html_class( bbp_get_reply_post_type() );
+
+		if ( ( 'post' == get_current_screen()->base ) && ( bbp_get_reply_post_type() == get_current_screen()->post_type ) ) : ?>
 
 		<script type="text/javascript">
 			jQuery(document).ready(function() {
@@ -546,6 +548,8 @@ class BBP_Admin {
 				} );
 			});
 		</script>
+
+		<?php endif; ?>
 
 		<style type="text/css" media="screen">
 		/*<![CDATA[*/
@@ -576,6 +580,10 @@ class BBP_Admin {
 				top: 0;
 				right: 0;
 			}
+				body.rtl .about-wrap .bbp-badge {
+					right: auto;
+					left: 0;
+				}
 
 			#bbp-dashboard-right-now p.sub,
 			#bbp-dashboard-right-now .table,
@@ -1473,7 +1481,7 @@ class BBP_Admin {
 				<a href="http://profiles.wordpress.org/chexee">chexee</a>,
 				<a href="http://profiles.wordpress.org/cnorris23">cnorris23</a>,
 				<a href="http://profiles.wordpress.org/DanielJuhl">DanielJuhl</a>,
-				<a href="http://profiles.wordpress.org/DanielJuhl">daveshine</a>,
+				<a href="http://profiles.wordpress.org/daveshine">daveshine</a>,
 				<a href="http://profiles.wordpress.org/dimadin">dimadin</a>,
 				<a href="http://profiles.wordpress.org/DJPaul">DJPaul</a>,
 				<a href="http://profiles.wordpress.org/duck_">duck_</a>,
