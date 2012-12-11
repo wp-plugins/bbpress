@@ -1463,7 +1463,7 @@ function bbp_reply_form_fields() {
 
 	if ( bbp_is_reply_edit() ) : ?>
 
-		<input type="hidden" name="bbp_reply_title" id="bbp_reply_title" value="<?php printf( __( 'Reply To: %s', 'bbpress' ), bbp_get_topic_title() ); ?>" />
+		<input type="hidden" name="bbp_reply_title" id="bbp_reply_title" value="<?php bbp_reply_title(); ?>" />
 		<input type="hidden" name="bbp_reply_id"    id="bbp_reply_id"    value="<?php bbp_reply_id(); ?>" />
 		<input type="hidden" name="action"          id="bbp_post_action" value="bbp-edit-reply" />
 
@@ -2002,7 +2002,7 @@ function bbp_breadcrumb( $args = array() ) {
 		/** Ancestors *********************************************************/
 
 		// Get post ancestors
-		if ( is_page() || is_single() || bbp_is_forum_edit() || bbp_is_topic_edit() || bbp_is_reply_edit() )
+		if ( is_singular() || bbp_is_forum_edit() || bbp_is_topic_edit() || bbp_is_reply_edit() )
 			$ancestors = array_reverse( (array) get_post_ancestors( get_the_ID() ) );
 
 		// Do we want to include a link to home?
