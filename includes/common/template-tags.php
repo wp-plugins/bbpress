@@ -479,6 +479,24 @@ function bbp_is_reply_edit() {
 }
 
 /**
+ * Check if current page is a reply move page
+ *
+ * @uses bbp_is_reply_move() To check if it's a reply move page
+ * @return bool True if it's the reply move page, false if not
+ */
+function bbp_is_reply_move() {
+
+	// Assume false
+	$retval = false;
+
+	// Check reply edit and GET params
+	if ( bbp_is_reply_edit() && !empty( $_GET['action'] ) && ( 'move' == $_GET['action'] ) )
+		$retval = true;
+
+	return (bool) apply_filters( 'bbp_is_reply_move', $retval );
+}
+
+/**
  * Viewing a single reply
  *
  * @since bbPress (r3344)
@@ -800,7 +818,7 @@ function bbp_is_edit() {
  * @uses bbp_is_topic_split()
  * @uses bbp_is_single_reply()
  * @uses bbp_is_reply_edit()
- * @uses bbp_is_reply_edit()
+ * @uses bbp_is_reply_move()
  * @uses bbp_is_single_view()
  * @uses bbp_is_single_user_edit()
  * @uses bbp_is_single_user()
@@ -865,6 +883,9 @@ function bbp_body_class( $wp_classes, $custom_classes = false ) {
 
 	if ( bbp_is_reply_edit() )
 		$bbp_classes[] = bbp_get_reply_post_type() . '-edit';
+		
+	if ( bbp_is_reply_move() )
+		$bbp_classes[] = bbp_get_reply_post_type() . '-move';
 
 	if ( bbp_is_single_view() )
 		$bbp_classes[] = 'bbp-view';
@@ -937,7 +958,7 @@ function bbp_body_class( $wp_classes, $custom_classes = false ) {
  * @uses bbp_is_topic_split()
  * @uses bbp_is_single_reply()
  * @uses bbp_is_reply_edit()
- * @uses bbp_is_reply_edit()
+ * @uses bbp_is_reply_move()
  * @uses bbp_is_single_view()
  * @uses bbp_is_single_user_edit()
  * @uses bbp_is_single_user()
@@ -991,6 +1012,9 @@ function is_bbpress() {
 	elseif ( bbp_is_reply_edit() )
 		$retval = true;
 
+	elseif ( bbp_is_reply_move() )
+		$retval = true;
+
 	elseif ( bbp_is_single_view() )
 		$retval = true;
 
@@ -1035,19 +1059,23 @@ function is_bbpress() {
  * @uses apply_filters() Calls 'bbp_wp_login_action' with the url and args
  */
 function bbp_wp_login_action( $args = '' ) {
-	$defaults = array (
+
+	// Parse arguments against default values
+	$r = bbp_parse_args( $args, array(
 		'action'  => '',
 		'context' => ''
-	);
-	$r = bbp_parse_args( $args, $defaults, 'login_action' );
-	extract( $r );
+	), 'login_action' );
 
-	if ( !empty( $action ) )
-		$login_url = add_query_arg( array( 'action' => $action ), 'wp-login.php' );
-	else
+	// Add action as query arg
+	if ( !empty( $r['action'] ) ) {
+		$login_url = add_query_arg( array( 'action' => $r['action'] ), 'wp-login.php' );
+
+	// No query arg
+	} else {
 		$login_url = 'wp-login.php';
+	}
 
-	$login_url = site_url( $login_url, $context );
+	$login_url = site_url( $login_url, $r['context'] );
 
 	echo apply_filters( 'bbp_wp_login_action', $login_url, $args );
 }
@@ -1056,25 +1084,21 @@ function bbp_wp_login_action( $args = '' ) {
  * Output hidden request URI field for user forms.
  *
  * The referer link is the current Request URI from the server super global. The
- * input name is '_wp_http_referer', in case you wanted to check manually.
+ * input name is 'redirect_to', in case you wanted to check manually.
  *
  * @since bbPress (r2815)
  *
- * @param string $url Pass a URL to redirect to
+ * @param string $redirect_to Pass a URL to redirect to
+ *
  * @uses wp_get_referer() To get the referer
  * @uses esc_attr() To escape the url
- * @uses apply_filters() Calls 'bbp_redirect_to_field' with the referer field
- *                        and url
+ * @uses apply_filters() Calls 'bbp_redirect_to_field', passes field and to
  */
 function bbp_redirect_to_field( $redirect_to = '' ) {
 
-	// Rejig the $redirect_to
-	if ( !isset( $_SERVER['REDIRECT_URL'] ) || ( !$redirect_to == home_url( $_SERVER['REDIRECT_URL'] ) ) )
-		$redirect_to = wp_get_referer();
-
 	// Make sure we are directing somewhere
 	if ( empty( $redirect_to ) )
-		$redirect_to = home_url( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '' );
+		$redirect_to = home_url( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : wp_get_referer() );
 
 	// Remove loggedout query arg if it's there
 	$redirect_to    = (string) esc_attr( remove_query_arg( 'loggedout', $redirect_to ) );
@@ -1208,7 +1232,7 @@ function bbp_dropdown( $args = '' ) {
 	 *               box, the first value would of course be selected -
 	 *               though you can have that as none (pass 'show_none' arg))
 	 *  - sort_column: Sort by? Defaults to 'menu_order, post_title'
-	 *  - child_of: Child of. Defaults to 0
+	 *  - post_parent: Post parent. Defaults to 0
 	 *  - post_status: Which all post_statuses to find in? Can be an array
 	 *                  or CSV of publish, category, closed, private, spam,
 	 *                  trash (based on post type) - if not set, these are
@@ -1243,11 +1267,13 @@ function bbp_dropdown( $args = '' ) {
 
 		/** Arguments *********************************************************/
 
-		$defaults = array (
+		// Parse arguments against default values
+		$r = bbp_parse_args( $args, array(
 			'post_type'          => bbp_get_forum_post_type(),
 			'selected'           => 0,
 			'sort_column'        => 'menu_order',
-			'child_of'           => '0',
+			'post_parent'        => 0,
+			'exclude'            => array(),
 			'numberposts'        => -1,
 			'orderby'            => 'menu_order',
 			'order'              => 'ASC',
@@ -1261,8 +1287,7 @@ function bbp_dropdown( $args = '' ) {
 			'none_found'         => false,
 			'disable_categories' => true,
 			'disabled'           => ''
-		);
-		$r = bbp_parse_args( $args, $defaults, 'get_dropdown' );
+		), 'get_dropdown' );
 
 		if ( empty( $r['walker'] ) ) {
 			$r['walker']            = new BBP_Walker_Dropdown();
@@ -1270,14 +1295,14 @@ function bbp_dropdown( $args = '' ) {
 		}
 
 		// Force 0
-		if ( is_numeric( $r['selected'] ) && $r['selected'] < 0 )
+		if ( is_numeric( $r['selected'] ) && $r['selected'] < 0 ) {
 			$r['selected'] = 0;
+		}
 
-		extract( $r );
-
-		// Unset the args not needed for WP_Query to avoid any possible conflicts.
-		// Note: walker and disable_categories are not unset
-		unset( $r['select_id'], $r['tab'], $r['options_only'], $r['show_none'], $r['none_found'] );
+		// Force array
+		if ( !empty( $r['exclude'] ) && !is_array( $r['exclude'] ) ) {
+			$r['exclude'] = explode( ',', $r['exclude'] );
+		}
 
 		/** Post Status *******************************************************/
 
@@ -1288,7 +1313,7 @@ function bbp_dropdown( $args = '' ) {
 		$post_stati[] = bbp_get_public_status_id();
 
 		// Forums
-		if ( bbp_get_forum_post_type() == $post_type ) {
+		if ( bbp_get_forum_post_type() == $r['post_type'] ) {
 
 			// Private forums
 			if ( current_user_can( 'read_private_forums' ) ) {
@@ -1306,33 +1331,43 @@ function bbp_dropdown( $args = '' ) {
 
 		/** Setup variables ***************************************************/
 
-		$name      = esc_attr( $select_id );
+		$name      = esc_attr( $r['select_id'] );
 		$select_id = $name;
-		$tab       = (int) $tab;
+		$tab       = (int) $r['tab'];
 		$retval    = '';
-		$posts     = get_posts( $r );
-		$disabled  = disabled( isset( bbpress()->options[$disabled] ), true, false );
+		$disabled  = disabled( isset( bbpress()->options[$r['disabled']] ), true, false );
+		$posts     = get_posts( array(
+			'post_type'   => $r['post_type'],
+			'post_status' => $r['post_status'],
+			'sort_column' => $r['sort_column'],
+			'post_parent' => $r['post_parent'],
+			'exclude'     => $r['exclude'],
+			'numberposts' => $r['numberposts'],
+			'orderby'     => $r['orderby'],
+			'order'       => $r['order'],
+		) );
 
 		/** Drop Down *********************************************************/
 
 		// Items found
 		if ( !empty( $posts ) ) {
-			if ( empty( $options_only ) ) {
+			if ( empty( $r['options_only'] ) ) {
 				$tab     = !empty( $tab ) ? ' tabindex="' . $tab . '"' : '';
 				$retval .= '<select name="' . $name . '" id="' . $select_id . '"' . $tab  . $disabled . '>' . "\n";
 			}
 
-			$retval .= !empty( $show_none ) ? "\t<option value=\"\" class=\"level-0\">" . $show_none . '</option>' : '';
+			$retval .= !empty( $r['show_none'] ) ? "\t<option value=\"\" class=\"level-0\">" . $r['show_none'] . '</option>' : '';
 			$retval .= walk_page_dropdown_tree( $posts, 0, $r );
 
-			if ( empty( $options_only ) )
+			if ( empty( $r['options_only'] ) ) {
 				$retval .= '</select>';
+			}
 
 		// No items found - Display feedback if no custom message was passed
-		} elseif ( empty( $none_found ) ) {
+		} elseif ( empty( $r['none_found'] ) ) {
 
 			// Switch the response based on post type
-			switch ( $post_type ) {
+			switch ( $r['post_type'] ) {
 
 				// Topics
 				case bbp_get_topic_post_type() :
@@ -1463,7 +1498,7 @@ function bbp_reply_form_fields() {
 
 	if ( bbp_is_reply_edit() ) : ?>
 
-		<input type="hidden" name="bbp_reply_title" id="bbp_reply_title" value="<?php printf( __( 'Reply To: %s', 'bbpress' ), bbp_get_topic_title() ); ?>" />
+		<input type="hidden" name="bbp_reply_title" id="bbp_reply_title" value="<?php bbp_reply_title(); ?>" />
 		<input type="hidden" name="bbp_reply_id"    id="bbp_reply_id"    value="<?php bbp_reply_id(); ?>" />
 		<input type="hidden" name="action"          id="bbp_post_action" value="bbp-edit-reply" />
 
@@ -1535,7 +1570,7 @@ function bbp_merge_topic_form_fields() {
  *
  * @since bbPress (r2756)
  *
- * @uses wp_nonce_field() To generete a hidden nonce field
+ * @uses wp_nonce_field() To generate a hidden nonce field
  */
 function bbp_split_topic_form_fields() {
 ?>
@@ -1544,6 +1579,22 @@ function bbp_split_topic_form_fields() {
 	<input type="hidden" name="bbp_reply_id" id="bbp_reply_id"    value="<?php echo absint( $_GET['reply_id'] ); ?>" />
 
 	<?php wp_nonce_field( 'bbp-split-topic_' . bbp_get_topic_id() );
+}
+
+/**
+ * Move reply form fields
+ *
+ * Output the required hidden fields when moving a reply
+ *
+ * @uses wp_nonce_field() To generate a hidden nonce field
+ */
+function bbp_move_reply_form_fields() {
+?>
+
+	<input type="hidden" name="action"       id="bbp_post_action" value="bbp-move-reply" />
+	<input type="hidden" name="bbp_reply_id" id="bbp_reply_id"    value="<?php echo absint( $_GET['reply_id'] ); ?>" />
+
+	<?php wp_nonce_field( 'bbp-move-reply_' . bbp_get_reply_id() );
 }
 
 /**
@@ -1574,8 +1625,8 @@ function bbp_the_content( $args = array() ) {
 	 */
 	function bbp_get_the_content( $args = array() ) {
 
-		// Default arguments
-		$defaults = array(
+		// Parse arguments against default values
+		$r = bbp_parse_args( $args, array(
 			'context'       => 'topic',
 			'before'        => '<div class="bbp-the-content-wrapper">',
 			'after'         => '</div>',
@@ -1587,35 +1638,30 @@ function bbp_the_content( $args = array() ) {
 			'tinymce'       => true,
 			'teeny'         => true,
 			'quicktags'     => true
-		);
-		$r = bbp_parse_args( $args, $defaults, 'get_the_content' );
-		extract( $r );
+		), 'get_the_content' );
 
 		// Assume we are not editing
-		$post_content = '';
+		$post_content = call_user_func( 'bbp_get_form_' . $r['context'] . '_content' );
 
 		// Start an output buffor
 		ob_start();
 
 		// Output something before the editor
-		if ( !empty( $before ) )
-			echo $before;
-
-		// Get sanitized content
-		if ( bbp_is_edit() )
-			$post_content = call_user_func( 'bbp_get_form_' . $context . '_content' );
+		if ( !empty( $r['before'] ) ) {
+			echo $r['before'];
+		}
 
 		// Use TinyMCE if available
 		if ( bbp_use_wp_editor() ) :
-			wp_editor( htmlspecialchars_decode( $post_content, ENT_QUOTES ), 'bbp_' . $context . '_content', array(
-				'wpautop'       => $wpautop,
-				'media_buttons' => $media_buttons,
-				'textarea_rows' => $textarea_rows,
-				'tabindex'      => $tabindex,
-				'editor_class'  => $editor_class,
-				'tinymce'       => $tinymce,
-				'teeny'         => $teeny,
-				'quicktags'     => $quicktags
+			wp_editor( htmlspecialchars_decode( $post_content, ENT_QUOTES ), 'bbp_' . $r['context'] . '_content', array(
+				'wpautop'       => $r['wpautop'],
+				'media_buttons' => $r['media_buttons'],
+				'textarea_rows' => $r['textarea_rows'],
+				'tabindex'      => $r['tabindex'],
+				'editor_class'  => $r['editor_class'],
+				'tinymce'       => $r['tinymce'],
+				'teeny'         => $r['teeny'],
+				'quicktags'     => $r['quicktags']
 			) );
 
 		/**
@@ -1626,13 +1672,14 @@ function bbp_the_content( $args = array() ) {
 		 */
 		else : ?>
 
-			<textarea id="bbp_<?php echo esc_attr( $context ); ?>_content" class="<?php echo esc_attr( $editor_class ); ?>" name="bbp_<?php echo esc_attr( $context ); ?>_content" cols="60" rows="<?php echo esc_attr( $textarea_rows ); ?>" tabindex="<?php echo esc_attr( $tabindex ); ?>"><?php echo $post_content; ?></textarea>
+			<textarea id="bbp_<?php echo esc_attr( $r['context'] ); ?>_content" class="<?php echo esc_attr( $r['editor_class'] ); ?>" name="bbp_<?php echo esc_attr( $r['context'] ); ?>_content" cols="60" rows="<?php echo esc_attr( $r['textarea_rows'] ); ?>" tabindex="<?php echo esc_attr( $r['tabindex'] ); ?>"><?php echo $post_content; ?></textarea>
 
 		<?php endif;
 
 		// Output something after the editor
-		if ( !empty( $after ) )
-			echo $after;
+		if ( !empty( $r['after'] ) ) {
+			echo $r['after'];
+		}
 
 		// Put the output into a usable variable
 		$output = ob_get_contents();
@@ -1878,8 +1925,9 @@ function bbp_breadcrumb( $args = array() ) {
 		// No custom home text
 		if ( empty( $args['home_text'] ) ) {
 
-			// Set home text to page title
 			$front_id = get_option( 'page_on_front' );
+
+			// Set home text to page title			
 			if ( !empty( $front_id ) ) {
 				$pre_front_text = get_the_title( $front_id );
 
@@ -1903,16 +1951,19 @@ function bbp_breadcrumb( $args = array() ) {
 		/** Includes **********************************************************/
 
 		// Root slug is also the front page
-		if ( !empty( $front_id ) && ( $front_id == $root_id ) )
+		if ( !empty( $front_id ) && ( $front_id == $root_id ) ) {
 			$pre_include_root = false;
+		}
 
 		// Don't show root if viewing forum archive
-		if ( bbp_is_forum_archive() )
+		if ( bbp_is_forum_archive() ) {
 			$pre_include_root = false;
+		}
 
 		// Don't show root if viewing page in place of forum archive
-		if ( !empty( $root_id ) && ( ( is_single() || is_page() ) && ( $root_id == get_the_ID() ) ) )
+		if ( !empty( $root_id ) && ( ( is_single() || is_page() ) && ( $root_id == get_the_ID() ) ) ) {
 			$pre_include_root = false;
+		}
 
 		/** Current Text ******************************************************/
 
@@ -1966,7 +2017,7 @@ function bbp_breadcrumb( $args = array() ) {
 		/** Parse Args ********************************************************/
 
 		// Parse args
-		$defaults = array(
+		$r = bbp_parse_args( $args, array(
 
 			// HTML
 			'before'          => '<div class="bbp-breadcrumb"><p>',
@@ -1995,22 +2046,22 @@ function bbp_breadcrumb( $args = array() ) {
 			'current_text'    => $pre_current_text,
 			'current_before'  => '<span class="bbp-breadcrumb-current">',
 			'current_after'   => '</span>',
-		);
-		$r = bbp_parse_args( $args, $defaults, 'get_breadcrumb' );
-		extract( $r );
+		), 'get_breadcrumb' );
 
 		/** Ancestors *********************************************************/
 
 		// Get post ancestors
-		if ( is_page() || is_single() || bbp_is_forum_edit() || bbp_is_topic_edit() || bbp_is_reply_edit() )
+		if ( is_singular() || bbp_is_forum_edit() || bbp_is_topic_edit() || bbp_is_reply_edit() ) {
 			$ancestors = array_reverse( (array) get_post_ancestors( get_the_ID() ) );
+		}
 
 		// Do we want to include a link to home?
-		if ( !empty( $include_home ) || empty( $home_text ) )
-			$crumbs[] = '<a href="' . trailingslashit( home_url() ) . '" class="bbp-breadcrumb-home">' . $home_text . '</a>';
+		if ( !empty( $r['include_home'] ) || empty( $r['home_text'] ) ) {
+			$crumbs[] = '<a href="' . trailingslashit( home_url() ) . '" class="bbp-breadcrumb-home">' . $r['home_text'] . '</a>';
+		}
 
 		// Do we want to include a link to the forum root?
-		if ( !empty( $include_root ) || empty( $root_text ) ) {
+		if ( !empty( $r['include_root'] ) || empty( $r['root_text'] ) ) {
 
 			// Page exists at root slug path, so use its permalink
 			$page = bbp_get_page_by_path( bbp_get_root_slug() );
@@ -2023,7 +2074,7 @@ function bbp_breadcrumb( $args = array() ) {
 			}
 
 			// Add the breadcrumb
-			$crumbs[] = '<a href="' . $root_url . '" class="bbp-breadcrumb-root">' . $root_text . '</a>';
+			$crumbs[] = '<a href="' . $root_url . '" class="bbp-breadcrumb-root">' . $r['root_text'] . '</a>';
 		}
 
 		// Ancestors exist
@@ -2068,18 +2119,21 @@ function bbp_breadcrumb( $args = array() ) {
 		/** Current ***********************************************************/
 
 		// Add current page to breadcrumb
-		if ( !empty( $include_current ) || empty( $pre_current_text ) )
-			$crumbs[] = $current_before . $current_text . $current_after;
+		if ( !empty( $r['include_current'] ) || empty( $r['pre_current_text'] ) ) {
+			$crumbs[] = $r['current_before'] . $r['current_text'] . $r['current_after'];
+		}
 
 		/** Separator *********************************************************/
 
 		// Wrap the separator in before/after before padding and filter
-		if ( ! empty( $sep ) )
-			$sep = $sep_before . $sep . $sep_after;
+		if ( ! empty( $r['sep'] ) ) {
+			$sep = $r['sep_before'] . $r['sep'] . $r['sep_after'];
+		}
 
 		// Pad the separator
-		if ( !empty( $pad_sep ) )
-			$sep = str_pad( $sep, strlen( $sep ) + ( (int) $pad_sep * 2 ), ' ', STR_PAD_BOTH );
+		if ( !empty( $r['pad_sep'] ) ) {
+			$sep = str_pad( $sep, strlen( $sep ) + ( (int) $r['pad_sep'] * 2 ), ' ', STR_PAD_BOTH );
+		}
 
 		/** Finish Up *********************************************************/
 
@@ -2088,7 +2142,7 @@ function bbp_breadcrumb( $args = array() ) {
 		$crumbs = apply_filters( 'bbp_breadcrumbs',          $crumbs );
 
 		// Build the trail
-		$trail = !empty( $crumbs ) ? ( $before . $crumb_before . implode( $sep . $crumb_after . $crumb_before , $crumbs ) . $crumb_after . $after ) : '';
+		$trail = !empty( $crumbs ) ? ( $r['before'] . $r['crumb_before'] . implode( $sep . $r['crumb_after'] . $r['crumb_before'] , $crumbs ) . $r['crumb_after'] . $r['after'] ) : '';
 
 		return apply_filters( 'bbp_get_breadcrumb', $trail, $crumbs, $r );
 	}

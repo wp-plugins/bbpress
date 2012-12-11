@@ -77,6 +77,7 @@ function bbp_insert_reply( $reply_data = array(), $reply_meta = array() ) {
  *
  * @since bbPress (r2574)
  *
+ * @param string $action The requested action to compare this function to
  * @uses bbp_add_error() To add an error message
  * @uses bbp_verify_nonce_request() To verify the nonce and check the request
  * @uses bbp_is_anonymous() To check if an anonymous post is being made
@@ -102,14 +103,10 @@ function bbp_insert_reply( $reply_data = array(), $reply_meta = array() ) {
  * @uses bbPress::errors::get_error_message() To get the {@link WP_Error} error
  *                                              message
  */
-function bbp_new_reply_handler() {
-
-	// Bail if not a POST action
-	if ( 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) )
-		return;
+function bbp_new_reply_handler( $action = '' ) {
 
 	// Bail if action is not bbp-new-reply
-	if ( empty( $_POST['action'] ) || ( 'bbp-new-reply' !== $_POST['action'] ) )
+	if ( 'bbp-new-reply' !== $action )
 		return;
 
 	// Nonce check
@@ -348,6 +345,7 @@ function bbp_new_reply_handler() {
 /**
  * Handles the front end edit reply submission
  *
+ * @param string $action The requested action to compare this function to
  * @uses bbp_add_error() To add an error message
  * @uses bbp_get_reply() To get the reply
  * @uses bbp_verify_nonce_request() To verify the nonce and check the request
@@ -375,14 +373,10 @@ function bbp_new_reply_handler() {
  * @uses bbPress::errors::get_error_message() To get the {@link WP_Error} error
  *                                             message
  */
-function bbp_edit_reply_handler() {
-
-	// Bail if not a POST action
-	if ( 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) )
-		return;
+function bbp_edit_reply_handler( $action = '' ) {
 
 	// Bail if action is not bbp-edit-reply
-	if ( empty( $_POST['action'] ) || ( 'bbp-edit-reply' !== $_POST['action'] ) )
+	if ( 'bbp-edit-reply' !== $action )
 		return;
 
 	// Define local variable(s)
@@ -639,8 +633,7 @@ function bbp_edit_reply_handler() {
  * @param int $reply_id Optional. Reply id
  * @param int $topic_id Optional. Topic id
  * @param int $forum_id Optional. Forum id
- * @param bool|array $anonymous_data Optional. If it is an array, it is
- *                    extracted and anonymous user info is saved
+ * @param bool|array $anonymous_data Optional logged-out user data.
  * @param int $author_id Author id
  * @param bool $is_edit Optional. Is the post being edited? Defaults to false.
  * @uses bbp_get_reply_id() To get the reply id
@@ -689,13 +682,12 @@ function bbp_update_reply( $reply_id = 0, $topic_id = 0, $forum_id = 0, $anonymo
 	// Check bbp_filter_anonymous_post_data() for sanitization.
 	if ( !empty( $anonymous_data ) && is_array( $anonymous_data ) ) {
 
-		// Always set at least these three values to empty
-		$defaults = array(
+		// Parse arguments against default values
+		$r = bbp_parse_args( $anonymous_data, array(
 			'bbp_anonymous_name'    => '',
 			'bbp_anonymous_email'   => '',
 			'bbp_anonymous_website' => '',
-		);
-		$r = bbp_parse_args( $anonymous_data, $defaults, 'update_reply' );
+		), 'update_reply' );
 
 		// Update all anonymous metas
 		foreach( $r as $anon_key => $anon_value ) {
@@ -986,30 +978,321 @@ function bbp_update_reply_topic_id( $reply_id = 0, $topic_id = 0 ) {
  * @return mixed False on failure, true on success
  */
 function bbp_update_reply_revision_log( $args = '' ) {
-	$defaults = array (
+
+	// Parse arguments against default values
+	$r = bbp_parse_args( $args, array(
 		'reason'      => '',
 		'reply_id'    => 0,
 		'author_id'   => 0,
 		'revision_id' => 0
-	);
-
-	$r = bbp_parse_args( $args, $defaults, 'update_reply_revision_log' );
-	extract( $r );
+	), 'update_reply_revision_log' );
 
 	// Populate the variables
-	$reason      = bbp_format_revision_reason( $reason );
-	$reply_id    = bbp_get_reply_id( $reply_id );
-	$author_id   = bbp_get_user_id ( $author_id, false, true );
-	$revision_id = (int) $revision_id;
+	$r['reason']      = bbp_format_revision_reason( $r['reason'] );
+	$r['reply_id']    = bbp_get_reply_id( $r['reply_id'] );
+	$r['author_id']   = bbp_get_user_id ( $r['author_id'], false, true );
+	$r['revision_id'] = (int) $r['revision_id'];
 
 	// Get the logs and append the new one to those
-	$revision_log               = bbp_get_reply_raw_revision_log( $reply_id );
-	$revision_log[$revision_id] = array( 'author' => $author_id, 'reason' => $reason );
+	$revision_log                      = bbp_get_reply_raw_revision_log( $r['reply_id'] );
+	$revision_log[ $r['revision_id'] ] = array( 'author' => $r['author_id'], 'reason' => $r['reason'] );
 
 	// Finally, update
-	update_post_meta( $reply_id, '_bbp_revision_log', $revision_log );
+	update_post_meta( $r['reply_id'], '_bbp_revision_log', $revision_log );
 
-	return apply_filters( 'bbp_update_reply_revision_log', $revision_log, $reply_id );
+	return apply_filters( 'bbp_update_reply_revision_log', $revision_log, $r['reply_id'] );
+}
+
+/**
+ * Move reply handler
+ *
+ * Handles the front end move reply submission
+ *
+ * @since bbPress (r4521)
+ *
+ * @param string $action The requested action to compare this function to
+ * @uses bbPress:errors::add() To log various error messages
+ * @uses bbp_get_reply() To get the reply
+ * @uses bbp_get_topic() To get the topics
+ * @uses bbp_verify_nonce_request() To verify the nonce and check the request
+ * @uses current_user_can() To check if the current user can edit the reply and topics
+ * @uses bbp_get_topic_post_type() To get the topic post type
+ * @uses is_wp_error() To check if the value retrieved is a {@link WP_Error}
+ * @uses do_action() Calls 'bbp_pre_move_reply' with the from reply id, source
+ *                    and destination topic ids
+ * @uses bbp_get_reply_post_type() To get the reply post type
+ * @uses wpdb::prepare() To prepare our sql query
+ * @uses wpdb::get_results() To execute the sql query and get results
+ * @uses wp_update_post() To update the replies
+ * @uses bbp_update_reply_topic_id() To update the reply topic id
+ * @uses bbp_get_topic_forum_id() To get the topic forum id
+ * @uses bbp_update_reply_forum_id() To update the reply forum id
+ * @uses do_action() Calls 'bbp_split_topic_reply' with the reply id and
+ *                    destination topic id
+ * @uses bbp_update_topic_last_reply_id() To update the topic last reply id
+ * @uses bbp_update_topic_last_active_time() To update the topic last active meta
+ * @uses do_action() Calls 'bbp_post_split_topic' with the destination and
+ *                    source topic ids and source topic's forum id
+ * @uses bbp_get_topic_permalink() To get the topic permalink
+ * @uses wp_safe_redirect() To redirect to the topic link
+ */
+function bbp_move_reply_handler( $action = '' ) {
+
+	// Bail if action is not 'bbp-move-reply'
+	if ( 'bbp-move-reply' !== $action )
+		return;
+
+	// Prevent debug notices
+	$move_reply_id = $destination_topic_id = 0;
+	$destination_topic_title = '';
+	$destination_topic = $move_reply = $source_topic = '';
+
+	/** Move Reply ***********************************************************/
+
+	if ( empty( $_POST['bbp_reply_id'] ) ) {
+		bbp_add_error( 'bbp_move_reply_reply_id', __( '<strong>ERROR</strong>: Reply ID to move not found!', 'bbpress' ) );
+	} else {
+		$move_reply_id = (int) $_POST['bbp_reply_id'];
+	}
+
+	$move_reply = bbp_get_reply( $move_reply_id );
+
+	// Reply exists
+	if ( empty( $move_reply ) )
+		bbp_add_error( 'bbp_mover_reply_r_not_found', __( '<strong>ERROR</strong>: The reply you want to move was not found.', 'bbpress' ) );
+
+	/** Topic to Move From ***************************************************/
+
+	// Get the reply's current topic
+	$source_topic = bbp_get_topic( $move_reply->post_parent );
+
+	// No topic
+	if ( empty( $source_topic ) ) {
+		bbp_add_error( 'bbp_move_reply_source_not_found', __( '<strong>ERROR</strong>: The topic you want to move from was not found.', 'bbpress' ) );
+	}
+
+	// Nonce check failed
+	if ( ! bbp_verify_nonce_request( 'bbp-move-reply_' . $move_reply->ID ) ) {
+		bbp_add_error( 'bbp_move_reply_nonce', __( '<strong>ERROR</strong>: Are you sure you wanted to do that?', 'bbpress' ) );
+		return;
+	}
+
+	// Use cannot edit topic
+	if ( !current_user_can( 'edit_topic', $source_topic->ID ) ) {
+		bbp_add_error( 'bbp_move_reply_source_permission', __( '<strong>ERROR</strong>: You do not have the permissions to edit the source topic.', 'bbpress' ) );
+	}
+
+	// How to move
+	if ( !empty( $_POST['bbp_reply_move_option'] ) ) {
+		$move_option = (string) trim( $_POST['bbp_reply_move_option'] );
+	}
+
+	// Invalid move option
+	if ( empty( $move_option ) || !in_array( $move_option, array( 'existing', 'topic' ) ) ) {
+		bbp_add_error( 'bbp_move_reply_option', __( '<strong>ERROR</strong>: You need to choose a valid move option.', 'bbpress' ) );
+
+	// Valid move option
+	} else {
+
+		// What kind of move
+		switch ( $move_option ) {
+
+			// Into an existing topic
+			case 'existing' :
+
+				// Get destination topic id
+				if ( empty( $_POST['bbp_destination_topic'] ) ) {
+					bbp_add_error( 'bbp_move_reply_destination_id', __( '<strong>ERROR</strong>: Destination topic ID not found!', 'bbpress' ) );
+				} else {
+					$destination_topic_id = (int) $_POST['bbp_destination_topic'];
+				}
+
+				// Get the destination topic
+				$destination_topic = bbp_get_topic( $destination_topic_id );
+
+				// No destination topic
+				if ( empty( $destination_topic ) ) {
+					bbp_add_error( 'bbp_move_reply_destination_not_found', __( '<strong>ERROR</strong>: The topic you want to move to was not found!', 'bbpress' ) );
+				}
+
+				// User cannot edit the destination topic
+				if ( !current_user_can( 'edit_topic', $destination_topic->ID ) ) {
+					bbp_add_error( 'bbp_move_reply_destination_permission', __( '<strong>ERROR</strong>: You do not have the permissions to edit the destination topic!', 'bbpress' ) );
+				}
+
+				// Reply position
+				$reply_position = bbp_get_topic_reply_count( $destination_topic->ID ) + 1;
+
+				// New reply data
+				$postarr = array(
+					'ID'            => $move_reply->ID,
+					'post_title'    => sprintf( __( 'Reply To: %s', 'bbpress' ), $destination_topic->post_title ),
+					'post_name'     => false, // will be automatically generated
+					'post_parent'   => $destination_topic->ID,
+					'post_position' => $reply_position,
+					'guid'          => ''
+				);
+
+				// Update the reply
+				wp_update_post( $postarr );
+
+				// Adjust reply meta values
+				bbp_update_reply_topic_id( $move_reply->ID, $destination_topic->ID );
+				bbp_update_reply_forum_id( $move_reply->ID, bbp_get_topic_forum_id( $destination_topic->ID ) );
+
+				break;
+
+			// Move reply to a new topic
+			case 'topic' :
+			default :
+
+				// User needs to be able to publish topics
+				if ( current_user_can( 'publish_topics' ) ) {
+
+					// Use the new title that was passed
+					if ( !empty( $_POST['bbp_reply_move_destination_title'] ) ) {
+						$destination_topic_title = esc_attr( strip_tags( $_POST['bbp_reply_move_destination_title'] ) );
+
+					// Use the source topic title
+					} else {
+						$destination_topic_title = $source_topic->post_title;
+					}
+
+					// Setup the updated topic parameters
+					$postarr = array(
+						'ID'          => $move_reply->ID,
+						'post_title'  => $destination_topic_title,
+						'post_name'   => false,
+						'post_type'   => bbp_get_topic_post_type(),
+						'post_parent' => $source_topic->post_parent,
+						'guid'        => ''
+					);
+
+					// Update the topic
+					$destination_topic_id = wp_update_post( $postarr );
+					$destination_topic    = bbp_get_topic( $destination_topic_id );
+
+					// Make sure the new topic knows its a topic
+					bbp_update_topic_topic_id( $move_reply->ID );
+
+					// Shouldn't happen
+					if ( false == $destination_topic_id || is_wp_error( $destination_topic_id ) || empty( $destination_topic ) ) {
+						bbp_add_error( 'bbp_move_reply_destination_reply', __( '<strong>ERROR</strong>: There was a problem converting the reply into the topic. Please try again.', 'bbpress' ) );
+					}
+
+				// User cannot publish posts
+				} else {
+					bbp_add_error( 'bbp_move_reply_destination_permission', __( '<strong>ERROR</strong>: You do not have the permissions to create new topics. The reply could not be converted into a topic.', 'bbpress' ) );
+				}
+
+				break;
+		}
+	}
+
+	// Bail if there are errors
+	if ( bbp_has_errors() ) {
+		return;
+	}
+
+	/** No Errors - Clean Up **************************************************/
+
+	// Update counts, etc...
+	do_action( 'bbp_pre_move_reply', $move_reply->ID, $source_topic->ID, $destination_topic->ID );
+
+	/** Date Check ************************************************************/
+
+	// Check if the destination topic is older than the move reply
+	if ( strtotime( $move_reply->post_date ) < strtotime( $destination_topic->post_date ) ) {
+
+		// Set destination topic post_date to 1 second before from reply
+		$destination_post_date = date( 'Y-m-d H:i:s', strtotime( $move_reply->post_date ) - 1 );
+
+		$postarr = array(
+			'ID'            => $destination_topic_id,
+			'post_date'     => $destination_post_date,
+			'post_date_gmt' => get_gmt_from_date( $destination_post_date )
+		);
+	
+		// Update destination topic
+		wp_update_post( $postarr );
+	}
+	
+	// Set the last reply ID and freshness to the move_reply
+	$last_reply_id = $move_reply->ID;
+	$freshness     = $move_reply->post_date;
+	
+	// It is a new topic and we need to set some default metas to make
+	// the topic display in bbp_has_topics() list
+	if ( 'topic' == $move_option ) {
+		bbp_update_topic_last_reply_id   ( $destination_topic->ID, $last_reply_id );
+		bbp_update_topic_last_active_id  ( $destination_topic->ID, $last_reply_id );
+		bbp_update_topic_last_active_time( $destination_topic->ID, $freshness     );
+
+	// Otherwise update the existing destination topic
+	} else {
+		bbp_update_topic_last_reply_id   ( $destination_topic->ID );
+		bbp_update_topic_last_active_id  ( $destination_topic->ID );
+		bbp_update_topic_last_active_time( $destination_topic->ID );
+	}
+
+	// Update source topic ID last active
+	bbp_update_topic_last_reply_id   ( $source_topic->ID );
+	bbp_update_topic_last_active_id  ( $source_topic->ID );
+	bbp_update_topic_last_active_time( $source_topic->ID );
+	
+	/** Successful Move ******************************************************/
+
+	// Update counts, etc...
+	do_action( 'bbp_post_move_reply', $move_reply->ID, $source_topic->ID, $destination_topic->ID );
+
+	// Redirect back to the topic
+	wp_safe_redirect( bbp_get_topic_permalink( $destination_topic->ID ) );
+
+	// For good measure
+	exit();
+}
+
+/**
+ * Fix counts on reply move
+ *
+ * When a reply is moved, update the counts of source and destination topic
+ * and their forums.
+ *
+ * @since bbPress (r4521)
+ *
+ * @param int $move_reply_id Move reply id
+ * @param int $source_topic_id Source topic id
+ * @param int $destination_topic_id Destination topic id
+ * @uses bbp_update_forum_topic_count() To update the forum topic counts
+ * @uses bbp_update_forum_reply_count() To update the forum reply counts
+ * @uses bbp_update_topic_reply_count() To update the topic reply counts
+ * @uses bbp_update_topic_voice_count() To update the topic voice counts
+ * @uses bbp_update_topic_reply_count_hidden() To update the topic hidden reply
+ *                                              count
+ * @uses do_action() Calls 'bbp_move_reply_count' with the move reply id,
+ *                    source topic id & destination topic id
+ */
+function bbp_move_reply_count( $move_reply_id, $source_topic_id, $destination_topic_id ) {
+
+	// Forum topic counts
+	bbp_update_forum_topic_count( bbp_get_topic_forum_id( $destination_topic_id ) );
+
+	// Forum reply counts
+	bbp_update_forum_reply_count( bbp_get_topic_forum_id( $destination_topic_id ) );
+
+	// Topic reply counts
+	bbp_update_topic_reply_count( $source_topic_id      );
+	bbp_update_topic_reply_count( $destination_topic_id );
+
+	// Topic hidden reply counts
+	bbp_update_topic_reply_count_hidden( $source_topic_id      );
+	bbp_update_topic_reply_count_hidden( $destination_topic_id );
+
+	// Topic voice counts
+	bbp_update_topic_voice_count( $source_topic_id      );
+	bbp_update_topic_voice_count( $destination_topic_id );
+
+	do_action( 'bbp_move_reply_count', $move_reply_id, $source_topic_id, $destination_topic_id );
 }
 
 /** Reply Actions *************************************************************/
@@ -1020,6 +1303,7 @@ function bbp_update_reply_revision_log( $args = '' ) {
  *
  * @since bbPress (r2740)
  *
+ * @param string $action The requested action to compare this function to
  * @uses bbp_get_reply() To get the reply
  * @uses current_user_can() To check if the user is capable of editing or
  *                           deleting the reply
@@ -1038,14 +1322,10 @@ function bbp_update_reply_revision_log( $args = '' ) {
  * @uses wp_safe_redirect() To redirect to the reply
  * @uses bbPress::errors:add() To log the error messages
  */
-function bbp_toggle_reply_handler() {
-
-	// Bail if not a GET action
-	if ( 'GET' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) )
-		return;
+function bbp_toggle_reply_handler( $action = '' ) {
 
 	// Bail if required GET actions aren't passed
-	if ( empty( $_GET['reply_id'] ) || empty( $_GET['action'] ) )
+	if ( empty( $_GET['reply_id'] ) )
 		return;
 
 	// Setup possible get actions
@@ -1055,12 +1335,11 @@ function bbp_toggle_reply_handler() {
 	);
 
 	// Bail if actions aren't meant for this function
-	if ( !in_array( $_GET['action'], $possible_actions ) )
+	if ( !in_array( $action, $possible_actions ) )
 		return;
 
 	$failure   = '';                         // Empty failure string
 	$view_all  = false;                      // Assume not viewing all
-	$action    = $_GET['action'];            // What action is taking place?
 	$reply_id  = (int) $_GET['reply_id'];    // What's the reply id?
 	$success   = false;                      // Flag
 	$post_data = array( 'ID' => $reply_id ); // Prelim array
@@ -1534,7 +1813,7 @@ function bbp_display_replies_feed_rss2( $replies_query = array() ) {
 		<description><?php //?></description>
 		<pubDate><?php echo mysql2date( 'D, d M Y H:i:s O', current_time( 'mysql' ), false ); ?></pubDate>
 		<generator>http://bbpress.org/?v=<?php bbp_version(); ?></generator>
-		<language><?php echo get_option( 'rss_language' ); ?></language>
+		<language><?php bloginfo_rss( 'language' ); ?></language>
 
 		<?php do_action( 'bbp_feed_head' ); ?>
 

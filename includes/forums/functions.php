@@ -77,6 +77,7 @@ function bbp_insert_forum( $forum_data = array(), $forum_meta = array() ) {
 /**
  * Handles the front end forum submission
  *
+ * @param string $action The requested action to compare this function to
  * @uses bbPress:errors::add() To log various error messages
  * @uses bbp_verify_nonce_request() To verify the nonce and check the request
  * @uses bbp_is_anonymous() To check if an anonymous post is being made
@@ -106,14 +107,10 @@ function bbp_insert_forum( $forum_data = array(), $forum_meta = array() ) {
  * @uses bbPress::errors::get_error_messages() To get the {@link WP_Error} error
  *                                              messages
  */
-function bbp_new_forum_handler() {
-
-	// Bail if not a POST action
-	if ( 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) )
-		return;
+function bbp_new_forum_handler( $action = '' ) {
 
 	// Bail if action is not bbp-new-forum
-	if ( empty( $_POST['action'] ) || ( 'bbp-new-forum' !== $_POST['action'] ) )
+	if ( 'bbp-new-forum' !== $action )
 		return;
 
 	// Nonce check
@@ -338,6 +335,7 @@ function bbp_new_forum_handler() {
 /**
  * Handles the front end edit forum submission
  *
+ * @param string $action The requested action to compare this function to
  * @uses bbPress:errors::add() To log various error messages
  * @uses bbp_get_forum() To get the forum
  * @uses bbp_verify_nonce_request() To verify the nonce and check the request
@@ -367,14 +365,10 @@ function bbp_new_forum_handler() {
  * @uses bbPress::errors::get_error_messages() To get the {@link WP_Error} error
  *                                              messages
  */
-function bbp_edit_forum_handler() {
-
-	// Bail if not a POST action
-	if ( 'POST' !== strtoupper( $_SERVER['REQUEST_METHOD'] ) )
-		return;
+function bbp_edit_forum_handler( $action = '' ) {
 
 	// Bail if action is not bbp-edit-forum
-	if ( empty( $_POST['action'] ) || ( 'bbp-edit-forum' !== $_POST['action'] ) )
+	if ( 'bbp-edit-forum' !== $action )
 		return;
 
 	// Define local variable(s)
@@ -661,25 +655,6 @@ function bbp_save_forum_extras( $forum_id = 0 ) {
 				break;
 		}
 	}
-}
-
-/** Walk **********************************************************************/
-
-/**
- * Walk the forum tree
- *
- * @param object $forums Forums
- * @param int $depth Depth
- * @param int $current Current forum
- * @param array $r Parsed arguments, supported by the walker. If you want to
- *                  use your own walker, pass the 'walker' arg with the walker.
- *                  The walker defaults to {@link BBP_Walker_Forum}
- * @return object Walked forum tree
- */
-function bbp_walk_forum( $forums, $depth, $current, $r ) {
-	$walker = empty( $r['walker'] ) ? new BBP_Walker_Forum : $r['walker'];
-	$args   = array( $forums, $depth, $r, $current );
-	return call_user_func_array( array( &$walker, 'walk' ), $args );
 }
 
 /** Forum Actions *************************************************************/
@@ -1431,10 +1406,11 @@ function bbp_update_forum_reply_count( $forum_id = 0 ) {
 
 	// Don't count replies if the forum is a category
 	$topic_ids = bbp_forum_query_topic_ids( $forum_id );
-	if ( !empty( $topic_ids ) )
+	if ( !empty( $topic_ids ) ) {
 		$reply_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_parent IN ( " . join( ',', $topic_ids ) . " ) AND post_status = '%s' AND post_type = '%s';", bbp_get_public_status_id(), bbp_get_reply_post_type() ) );
-	else
+	} else {
 		$reply_count = 0;
+	}
 
 	// Calculate total replies in this forum
 	$total_replies = (int) $reply_count + $children_reply_count;
@@ -1472,7 +1448,9 @@ function bbp_update_forum_reply_count( $forum_id = 0 ) {
  * @uses bbp_update_forum_topic_count_hidden() To update the hidden topic count
  */
 function bbp_update_forum( $args = '' ) {
-	$defaults = array(
+
+	// Parse arguments against default values
+	$r = bbp_parse_args( $args, array(
 		'forum_id'           => 0,
 		'post_parent'        => 0,
 		'last_topic_id'      => 0,
@@ -1480,36 +1458,35 @@ function bbp_update_forum( $args = '' ) {
 		'last_active_id'     => 0,
 		'last_active_time'   => 0,
 		'last_active_status' => bbp_get_public_status_id()
-	);
-	$r = bbp_parse_args( $args, $defaults, 'update_forum' );
-	extract( $r );
+	), 'update_forum' );
 
 	// Last topic and reply ID's
-	bbp_update_forum_last_topic_id( $forum_id, $last_topic_id );
-	bbp_update_forum_last_reply_id( $forum_id, $last_reply_id );
+	bbp_update_forum_last_topic_id( $r['forum_id'], $r['last_topic_id'] );
+	bbp_update_forum_last_reply_id( $r['forum_id'], $r['last_reply_id'] );
 
 	// Active dance
-	$last_active_id = bbp_update_forum_last_active_id( $forum_id, $last_active_id );
+	$r['last_active_id'] = bbp_update_forum_last_active_id( $r['forum_id'], $r['last_active_id'] );
 
 	// If no active time was passed, get it from the last_active_id
-	if ( empty( $last_active_time ) )
-		$last_active_time = get_post_field( 'post_date', $last_active_id );
+	if ( empty( $r['last_active_time'] ) ) {
+		$r['last_active_time'] = get_post_field( 'post_date', $r['last_active_id'] );
+	}
 
-	if ( bbp_get_public_status_id() == $last_active_status ) {
-		bbp_update_forum_last_active_time( $forum_id, $last_active_time );
+	if ( bbp_get_public_status_id() == $r['last_active_status'] ) {
+		bbp_update_forum_last_active_time( $r['forum_id'], $r['last_active_time'] );
 	}
 
 	// Counts
-	bbp_update_forum_subforum_count    ( $forum_id );
-	bbp_update_forum_reply_count       ( $forum_id );
-	bbp_update_forum_topic_count       ( $forum_id );
-	bbp_update_forum_topic_count_hidden( $forum_id );
+	bbp_update_forum_subforum_count    ( $r['forum_id'] );
+	bbp_update_forum_reply_count       ( $r['forum_id'] );
+	bbp_update_forum_topic_count       ( $r['forum_id'] );
+	bbp_update_forum_topic_count_hidden( $r['forum_id'] );
 
 	// Update the parent forum if one was passed
-	if ( !empty( $post_parent ) && is_numeric( $post_parent ) ) {
+	if ( !empty( $r['post_parent'] ) && is_numeric( $r['post_parent'] ) ) {
 		bbp_update_forum( array(
-			'forum_id'    => $post_parent,
-			'post_parent' => get_post_field( 'post_parent', $post_parent )
+			'forum_id'    => $r['post_parent'],
+			'post_parent' => get_post_field( 'post_parent', $r['post_parent'] )
 		) );
 	}
 }
@@ -1960,16 +1937,21 @@ function bbp_delete_forum_topics( $forum_id = 0 ) {
 	if ( empty( $forum_id ) )
 		return;
 
-	// Forum is being permanently deleted, so its topics gotta go too
-	if ( $topics = new WP_Query( array(
+	// Forum is being permanently deleted, so its content has go too
+	// Note that we get all post statuses here
+	$topics = new WP_Query( array(
 		'suppress_filters' => true,
 		'post_type'        => bbp_get_topic_post_type(),
 		'post_parent'      => $forum_id,
-		'post_status'      => 'any',
+		'post_status'      => array_keys( get_post_stati() ),
 		'posts_per_page'   => -1,
 		'nopaging'         => true,
 		'fields'           => 'id=>parent'
-	) ) ) {
+	) );
+
+	// Loop through and delete child topics. Topic replies will get deleted by
+	// the bbp_delete_topic() action.
+	if ( !empty( $topics->posts ) ) {
 		foreach ( $topics->posts as $topic ) {
 			wp_delete_post( $topic->ID, true );
 		}
@@ -1977,6 +1959,9 @@ function bbp_delete_forum_topics( $forum_id = 0 ) {
 		// Reset the $post global
 		wp_reset_postdata();
 	}
+
+	// Cleanup
+	unset( $topics );
 }
 
 /**
@@ -2009,8 +1994,8 @@ function bbp_trash_forum_topics( $forum_id = 0 ) {
 		bbp_get_pending_status_id()
 	) );
 
-	// Forum is being trashed, so its topics are trashed too
-	if ( $topics = new WP_Query( array(
+	// Forum is being trashed, so its topics and replies are trashed too
+	$topics = new WP_Query( array(
 		'suppress_filters' => true,
 		'post_type'        => bbp_get_topic_post_type(),
 		'post_parent'      => $forum_id,
@@ -2018,7 +2003,11 @@ function bbp_trash_forum_topics( $forum_id = 0 ) {
 		'posts_per_page'   => -1,
 		'nopaging'         => true,
 		'fields'           => 'id=>parent'
-	) ) ) {
+	) );
+
+	// Loop through and trash child topics. Topic replies will get trashed by
+	// the bbp_trash_topic() action.
+	if ( !empty( $topics->posts ) ) {
 
 		// Prevent debug notices
 		$pre_trashed_topics = array();
@@ -2037,6 +2026,9 @@ function bbp_trash_forum_topics( $forum_id = 0 ) {
 		// Reset the $post global
 		wp_reset_postdata();
 	}
+
+	// Cleanup
+	unset( $topics );
 }
 
 /**

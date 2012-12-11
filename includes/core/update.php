@@ -50,17 +50,19 @@ function bbp_is_update() {
  * @return bool True if activating bbPress, false if not
  */
 function bbp_is_activation( $basename = '' ) {
-	$bbp = bbpress();
-
+	$bbp    = bbpress();
 	$action = false;
-	if ( ! empty( $_REQUEST['action'] ) && ( '-1' != $_REQUEST['action'] ) )
+
+	if ( ! empty( $_REQUEST['action'] ) && ( '-1' != $_REQUEST['action'] ) ) {
 		$action = $_REQUEST['action'];
-	elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' != $_REQUEST['action2'] ) )
+	} elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' != $_REQUEST['action2'] ) ) {
 		$action = $_REQUEST['action2'];
+	}
 
 	// Bail if not activating
-	if ( empty( $action ) || !in_array( $action, array( 'activate', 'activate-selected' ) ) )
+	if ( empty( $action ) || !in_array( $action, array( 'activate', 'activate-selected' ) ) ) {
 		return false;
+	}
 
 	// The plugin(s) being activated
 	if ( $action == 'activate' ) {
@@ -70,12 +72,14 @@ function bbp_is_activation( $basename = '' ) {
 	}
 
 	// Set basename if empty
-	if ( empty( $basename ) && !empty( $bbp->basename ) )
+	if ( empty( $basename ) && !empty( $bbp->basename ) ) {
 		$basename = $bbp->basename;
+	}
 
 	// Bail if no basename
-	if ( empty( $basename ) )
+	if ( empty( $basename ) ) {
 		return false;
+	}
 
 	// Is bbPress being activated?
 	return in_array( $basename, $plugins );
@@ -88,17 +92,19 @@ function bbp_is_activation( $basename = '' ) {
  * @return bool True if deactivating bbPress, false if not
  */
 function bbp_is_deactivation( $basename = '' ) {
-	$bbp = bbpress();
-
+	$bbp    = bbpress();
 	$action = false;
-	if ( ! empty( $_REQUEST['action'] ) && ( '-1' != $_REQUEST['action'] ) )
+	
+	if ( ! empty( $_REQUEST['action'] ) && ( '-1' != $_REQUEST['action'] ) ) {
 		$action = $_REQUEST['action'];
-	elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' != $_REQUEST['action2'] ) )
+	} elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' != $_REQUEST['action2'] ) ) {
 		$action = $_REQUEST['action2'];
+	}
 
 	// Bail if not deactivating
-	if ( empty( $action ) || !in_array( $action, array( 'deactivate', 'deactivate-selected' ) ) )
+	if ( empty( $action ) || !in_array( $action, array( 'deactivate', 'deactivate-selected' ) ) ) {
 		return false;
+	}
 
 	// The plugin(s) being deactivated
 	if ( $action == 'deactivate' ) {
@@ -108,12 +114,14 @@ function bbp_is_deactivation( $basename = '' ) {
 	}
 
 	// Set basename if empty
-	if ( empty( $basename ) && !empty( $bbp->basename ) )
+	if ( empty( $basename ) && !empty( $bbp->basename ) ) {
 		$basename = $bbp->basename;
+	}
 
 	// Bail if no basename
-	if ( empty( $basename ) )
+	if ( empty( $basename ) ) {
 		return false;
+	}
 
 	// Is bbPress being deactivated?
 	return in_array( $basename, $plugins );
@@ -127,8 +135,7 @@ function bbp_is_deactivation( $basename = '' ) {
  * @uses bbp_get_db_version() To get bbPress's database version
  */
 function bbp_version_bump() {
-	$db_version = bbp_get_db_version();
-	update_option( '_bbp_db_version', $db_version );
+	update_option( '_bbp_db_version', bbp_get_db_version() );
 }
 
 /**
@@ -158,7 +165,8 @@ function bbp_setup_updater() {
  */
 function bbp_create_initial_content( $args = array() ) {
 
-	$defaults = array(
+	// Parse arguments against default values
+	$r = bbp_parse_args( $args, array(
 		'forum_parent'  => 0,
 		'forum_status'  => 'publish',
 		'forum_title'   => __( 'General',                                  'bbpress' ),
@@ -167,24 +175,22 @@ function bbp_create_initial_content( $args = array() ) {
 		'topic_content' => __( 'I am the first topic in your new forums.', 'bbpress' ),
 		'reply_title'   => __( 'Re: Hello World!',                         'bbpress' ),
 		'reply_content' => __( 'Oh, and this is what a reply looks like.', 'bbpress' ),
-	);
-	$r = bbp_parse_args( $args, $defaults, 'create_initial_content' );
-	extract( $r );
+	), 'create_initial_content' );
 
 	// Create the initial forum
 	$forum_id = bbp_insert_forum( array(
-		'post_parent'  => $forum_parent,
-		'post_status'  => $forum_status,
-		'post_title'   => $forum_title,
-		'post_content' => $forum_content
+		'post_parent'  => $r['forum_parent'],
+		'post_status'  => $r['forum_status'],
+		'post_title'   => $r['forum_title'],
+		'post_content' => $r['forum_content']
 	) );
 
 	// Create the initial topic
 	$topic_id = bbp_insert_topic(
 		array(
-			'post_parent'  => $forum_id,
-			'post_title'   => $topic_title,
-			'post_content' => $topic_content
+			'post_parent'  => forum_id,
+			'post_title'   => $r['topic_title'],
+			'post_content' => $r['topic_content']
 		),
 		array( 'forum_id'  => $forum_id )
 	);
@@ -193,8 +199,8 @@ function bbp_create_initial_content( $args = array() ) {
 	$reply_id = bbp_insert_reply(
 		array(
 			'post_parent'  => $topic_id,
-			'post_title'   => $reply_title,
-			'post_content' => $reply_content
+			'post_title'   => $r['reply_title'],
+			'post_content' => $r['reply_content']
 		),
 		array(
 			'forum_id'     => $forum_id,
@@ -248,14 +254,13 @@ function bbp_version_updater() {
 	// 2.2
 	if ( $raw_db_version < 220 ) {
 
-		// Remove bbPress 1.1 roles (BuddyPress)
-		remove_role( 'member'    );
-		remove_role( 'inactive'  );
-		remove_role( 'blocked'   );
-		remove_role( 'moderator' );
-		remove_role( 'keymaster' );
+		// Remove the Moderator role from the database
+		remove_role( bbp_get_moderator_role() );
 
-		// Refresh capabilities
+		// Remove the Participant role from the database
+		remove_role( bbp_get_participant_role() );
+
+		// Remove capabilities
 		bbp_remove_caps();
 	}
 
