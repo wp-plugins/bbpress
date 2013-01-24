@@ -299,6 +299,14 @@ function bbp_admin_get_settings_fields() {
 				'callback'          => 'bbp_admin_setting_callback_view_slug',
 				'sanitize_callback' => 'sanitize_title',
 				'args'              => array()
+			),
+
+			// Search slug setting
+			'_bbp_search_slug' => array(
+				'title'             => __( 'Search slug', 'bbpress' ),
+				'callback'          => 'bbp_admin_setting_callback_search_slug',
+				'sanitize_callback' => 'sanitize_title',
+				'args'              => array()
 			)
 		),
 
@@ -494,7 +502,7 @@ function bbp_admin_setting_callback_anonymous() {
 function bbp_admin_setting_callback_global_access() {
 ?>
 
-	<input id="_bbp_allow_global_access" name="_bbp_allow_global_access" type="checkbox" id="_bbp_allow_global_access" value="1" <?php checked( bbp_allow_global_access( false ) ); bbp_maybe_admin_setting_disabled( '_bbp_allow_global_access' ); ?> />
+	<input id="_bbp_allow_global_access" name="_bbp_allow_global_access" type="checkbox" id="_bbp_allow_global_access" value="1" <?php checked( bbp_allow_global_access( true ) ); bbp_maybe_admin_setting_disabled( '_bbp_allow_global_access' ); ?> />
 	<label for="_bbp_allow_global_access"><?php _e( 'Automatically assign default role to new, registered users upon visiting the site.', 'bbpress' ); ?></label>
 
 <?php
@@ -881,6 +889,23 @@ function bbp_admin_setting_callback_view_slug() {
 <?php
 	// Slug Check
 	bbp_form_slug_conflict_check( '_bbp_view_slug', 'view' );
+}
+
+/**
+ * Search slug setting field
+ *
+ * @since bbPress (r4579)
+ *
+ * @uses bbp_form_option() To output the option value
+ */
+function bbp_admin_setting_callback_search_slug() {
+?>
+
+	<input name="_bbp_search_slug" type="text" id="_bbp_search_slug" class="regular-text code" value="<?php bbp_form_option( '_bbp_search_slug', 'search', true ); ?>"<?php bbp_maybe_admin_setting_disabled( '_bbp_search_slug' ); ?> />
+
+<?php
+	// Slug Check
+	bbp_form_slug_conflict_check( '_bbp_search_slug', 'search' );
 }
 
 /** BuddyPress ****************************************************************/

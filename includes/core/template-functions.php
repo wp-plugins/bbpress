@@ -116,7 +116,26 @@ function bbp_register_template_stack( $location_callback = '', $priority = 10 ) 
 		return false;
 
 	// Add location callback to template stack
-	add_filter( 'bbp_template_stack', $location_callback, (int) $priority );
+	return add_filter( 'bbp_template_stack', $location_callback, (int) $priority );
+}
+
+/**
+ * Deregisters a previously registered template stack location.
+ *
+ * @since bbPress (r4652)
+ *
+ * @param string $location Callback function that returns the
+ * @param int $priority
+ * @see bbp_register_template_stack()
+ */
+function bbp_deregister_template_stack( $location_callback = '', $priority = 10 ) {
+
+	// Bail if no location, or function does not exist
+	if ( empty( $location_callback ) || ! function_exists( $location_callback ) )
+		return false;
+
+	// Remove location callback to template stack
+	return remove_filter( 'bbp_template_stack', $location_callback, (int) $priority );
 }
 
 /**
@@ -257,6 +276,7 @@ function bbp_add_template_locations( $templates = array() ) {
  * If it's a reply edit, WP_Query::bbp_is_reply_edit is set to true.
  *
  * If it's a view page, WP_Query::bbp_is_view is set to true
+ * If it's a search page, WP_Query::bbp_is_search is set to true
  *
  * @since bbPress (r2688)
  *
@@ -299,7 +319,7 @@ function bbp_parse_query( $posts_query ) {
 	if ( !empty( $bbp_user ) ) {
 
 		// Not a user_id so try email and slug
-		if ( !is_numeric( $bbp_user ) ) {
+		if ( get_option( 'permalink_structure' ) || ! is_numeric( $bbp_user ) ) {
 
 			// Email was passed
 			if ( is_email( $bbp_user ) ) {
@@ -420,6 +440,20 @@ function bbp_parse_query( $posts_query ) {
 
 		// We are in a custom topic view
 		$posts_query->bbp_is_view = true;
+
+	// Search Page
+	} elseif ( isset( $posts_query->query_vars[ bbp_get_search_rewrite_id() ] ) ) {
+
+		// Check if there are search query args set
+		$search_terms = bbp_get_search_terms();
+		if ( !empty( $search_terms ) )
+			$posts_query->bbp_search_terms = $search_terms;
+
+		// Correct is_home variable
+		$posts_query->is_home = false;
+
+		// We are in a search query
+		$posts_query->bbp_is_search = true;
 
 	// Forum/Topic/Reply Edit Page
 	} elseif ( !empty( $is_edit ) ) {

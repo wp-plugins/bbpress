@@ -174,6 +174,11 @@ class BBP_Default extends BBP_Theme_Compat {
 	 */
 	public function enqueue_scripts() {
 
+		// Always pull in jQuery for TinyMCE shortcode usage
+		if ( bbp_use_wp_editor() ) {
+			wp_enqueue_script( 'jquery' );
+		}
+
 		// Topic favorite/subscribe
 		if ( bbp_is_single_topic() ) {
 			wp_enqueue_script( 'bbpress-topic', $this->url . 'js/topic.js', array( 'jquery' ), $this->version );
@@ -210,11 +215,34 @@ class BBP_Default extends BBP_Theme_Compat {
 
 			<?php if ( bbp_use_wp_editor() ) : ?>
 			jQuery(document).ready( function() {
+
+				/* Tab from topic title */
 				jQuery( '#bbp_topic_title' ).bind( 'keydown.editor-focus', function(e) {
 					if ( e.which != 9 )
 						return;
 
 					if ( !e.ctrlKey && !e.altKey && !e.shiftKey ) {
+						if ( typeof( tinymce ) != 'undefined' ) {
+							if ( ! tinymce.activeEditor.isHidden() ) {
+								var editor = tinymce.activeEditor.editorContainer;
+								jQuery( '#' + editor + ' td.mceToolbar > a' ).focus();
+							} else {
+								jQuery( 'textarea.bbp-the-content' ).focus();
+							}
+						} else {
+							jQuery( 'textarea.bbp-the-content' ).focus();
+						}
+
+						e.preventDefault();
+					}
+				});
+
+				/* Shift + tab from topic tags */
+				jQuery( '#bbp_topic_tags' ).bind( 'keydown.editor-focus', function(e) {
+					if ( e.which != 9 )
+						return;
+
+					if ( e.shiftKey && !e.ctrlKey && !e.altKey ) {
 						if ( typeof( tinymce ) != 'undefined' ) {
 							if ( ! tinymce.activeEditor.isHidden() ) {
 								var editor = tinymce.activeEditor.editorContainer;
@@ -326,8 +354,14 @@ class BBP_Default extends BBP_Theme_Compat {
 			bbp_ajax_response( false, __( 'The request was unsuccessful. Please try again.', 'bbpress' ), 305 );
 		}
 
+		// Put subscription attributes in convenient array
+		$attrs = array(
+			'topic_id' => $topic->ID,
+			'user_id'  => $user_id
+		);
+
 		// Action succeeded
-		bbp_ajax_response( true, bbp_get_user_favorites_link( array(), array(), $user_id, $id, false ), 200 );
+		bbp_ajax_response( true, bbp_get_user_favorites_link( $attrs, $user_id, false ), 200 );
 	}
 
 	/**

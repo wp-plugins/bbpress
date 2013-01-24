@@ -88,7 +88,7 @@ function bbp_convert_date( $time, $d = 'U', $translate = false ) {
  * @uses bbp_get_time_since() To get the formatted time
  */
 function bbp_time_since( $older_date, $newer_date = false ) {
-	echo bbp_get_time_since( $older_date, $newer_date = false );
+	echo bbp_get_time_since( $older_date, $newer_date );
 }
 	/**
 	 * Return formatted time to display human readable time difference.
@@ -105,7 +105,7 @@ function bbp_time_since( $older_date, $newer_date = false ) {
 	 * @return string Formatted time
 	 */
 	function bbp_get_time_since( $older_date, $newer_date = false ) {
-		
+
 		// Setup the strings
 		$unknown_text   = apply_filters( 'bbp_core_time_since_unknown_text',   __( 'sometime',  'bbpress' ) );
 		$right_now_text = apply_filters( 'bbp_core_time_since_right_now_text', __( 'right now', 'bbpress' ) );
@@ -227,6 +227,19 @@ function bbp_format_revision_reason( $reason = '' ) {
 }
 
 /** Misc **********************************************************************/
+
+/**
+ * Return the unescaped redirect_to request value
+ *
+ * @bbPress (r4655)
+ *
+ * @return string The URL to redirect to, if set
+ */
+function bbp_get_redirect_to() {
+	$retval = !empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+
+	return apply_filters( 'bbp_get_redirect_to', $retval );
+}
 
 /**
  * Append 'view=all' to query string if it's already there from referer
@@ -559,7 +572,7 @@ function bbp_get_statistics( $args = '' ) {
 		'topic_tag_count',
 		'empty_topic_tag_count'
 	) ) );
-	
+
 	// Add the hidden (topic/reply) count title attribute strings because we
 	// don't need to run the math functions on these (see above)
 	$statistics['hidden_topic_title'] = isset( $hidden_topic_title ) ? $hidden_topic_title : '';
@@ -723,7 +736,7 @@ function bbp_check_for_flood( $anonymous_data = false, $author_id = 0 ) {
 		if ( !empty( $last_posted ) && time() < $last_posted + $throttle_time ) {
 			return false;
 		}
-		
+
 	// User is logged in, so check their last posted time
 	} elseif ( !empty( $author_id ) ) {
 		$author_id   = (int) $author_id;
@@ -754,6 +767,10 @@ function bbp_check_for_flood( $anonymous_data = false, $author_id = 0 ) {
  * @return bool True if test is passed, false if fail
  */
 function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $title = '', $content = '' ) {
+
+	// Allow for moderation check to be skipped
+	if ( apply_filters( 'bbp_bypass_check_for_moderation', false, $anonymous_data, $author_id, $title, $content ) )
+		return true;
 
 	// Bail if super admin is author
 	if ( is_super_admin( $author_id ) )
@@ -869,6 +886,10 @@ function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $tit
  * @return bool True if test is passed, false if fail
  */
 function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $title = '', $content = '' ) {
+
+	// Allow for blacklist check to be skipped
+	if ( apply_filters( 'bbp_bypass_check_for_blacklist', false, $anonymous_data, $author_id, $title, $content ) )
+		return true;
 
 	// Bail if super admin is author
 	if ( is_super_admin( $author_id ) )
@@ -1029,7 +1050,7 @@ function bbp_notify_subscribers( $reply_id = 0, $topic_id = 0, $forum_id = 0, $a
 	$topic_title   = strip_tags( bbp_get_topic_title( $topic_id ) );
 	$reply_content = strip_tags( bbp_get_reply_content( $reply_id ) );
 	$reply_url     = bbp_get_reply_url( $reply_id );
-	$blog_name     = get_option( 'blogname' );
+	$blog_name     = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 
 	// Loop through users
 	foreach ( (array) $user_ids as $user_id ) {
@@ -1042,7 +1063,7 @@ function bbp_notify_subscribers( $reply_id = 0, $topic_id = 0, $forum_id = 0, $a
 		$message = sprintf( __( '%1$s wrote:
 
 %2$s
-			
+
 Post Link: %3$s
 
 -----------
@@ -1050,7 +1071,7 @@ Post Link: %3$s
 You are receiving this email because you subscribed to a forum topic.
 
 Login and visit the topic to unsubscribe from these emails.', 'bbpress' ),
-				
+
 			$reply_author_name,
 			$reply_content,
 			$reply_url
@@ -1424,7 +1445,7 @@ function bbp_get_global_post_field( $field = 'ID', $context = 'edit' ) {
  */
 function bbp_verify_nonce_request( $action = '', $query_arg = '_wpnonce' ) {
 
-	// Parse home_url() into pieces to remove query-strings, strange characters, 
+	// Parse home_url() into pieces to remove query-strings, strange characters,
 	// and other funny things that plugins might to do to it.
 	$parsed_home   = parse_url( home_url( '/', ( is_ssl() ? 'https://' : 'http://' ) ) );
 	$home_url      = trim( strtolower( $parsed_home['scheme'] . '://' . $parsed_home['host'] . $parsed_home['path'] ), '/' );
@@ -1481,21 +1502,17 @@ function bbp_request_feed_trap( $query_vars = array() ) {
 					// Single forum
 					if ( isset( $query_vars[bbp_get_forum_post_type()] ) ) {
 
-						// Get the forum by the path
-						$forum    = get_page_by_path( $query_vars[bbp_get_forum_post_type()], OBJECT, bbp_get_forum_post_type() );
-						$forum_id = $forum->ID;
-
 						// Load up our own query
 						query_posts( array(
 							'post_type' => bbp_get_forum_post_type(),
-							'ID'        => $forum_id,
+							'name'      => $query_vars[bbp_get_forum_post_type()],
 							'feed'      => true
 						) );
 
 						// Restrict to specific forum ID
 						$meta_query = array( array(
 							'key'     => '_bbp_forum_id',
-							'value'   => $forum_id,
+							'value'   => bbp_get_forum_id(),
 							'type'    => 'numeric',
 							'compare' => '='
 						) );
@@ -1527,7 +1544,7 @@ function bbp_request_feed_trap( $query_vars = array() ) {
 							'author'         => 0,
 							'feed'           => true,
 							'post_type'      => bbp_get_topic_post_type(),
-							'post_parent'    => $forum_id,
+							'post_parent'    => bbp_get_forum_id(),
 							'post_status'    => join( ',', array( bbp_get_public_status_id(), bbp_get_closed_status_id() ) ),
 							'posts_per_page' => bbp_get_topics_per_rss_page(),
 							'order'          => 'DESC'

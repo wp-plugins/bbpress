@@ -49,7 +49,7 @@ class BBP_Admin {
 	/**
 	 * @var bool Minimum capability to access Tools and Settings
 	 */
-	public $minimum_capability = 'manage_options';
+	public $minimum_capability = 'keep_gate';
 
 	/** Functions *************************************************************/
 
@@ -141,6 +141,9 @@ class BBP_Admin {
 
 		// Hide the theme compat package selection
 		add_filter( 'bbp_admin_get_settings_sections', array( $this, 'hide_theme_compat_packages' ) );
+
+		// Allow keymasters to save forums settings
+		add_filter( 'option_page_capability_bbpress',  array( $this, 'option_page_capability_bbpress' ) );
 
 		/** Network Admin *****************************************************/
 
@@ -361,7 +364,7 @@ class BBP_Admin {
 
 			// BuddyPress
 			case 'bbp_settings_buddypress' :
-				if ( ( is_plugin_active( 'buddypress/bp-loader.php' ) && defined( 'BP_VERSION' ) ) && is_super_admin() ) {
+				if ( ( is_plugin_active( 'buddypress/bp-loader.php' ) && defined( 'BP_VERSION' ) && bp_is_root_blog() ) && is_super_admin() ) {
 					$caps = array( bbpress()->admin->minimum_capability );
 				} else {
 					$caps = array( 'do_not_allow' );
@@ -390,8 +393,8 @@ class BBP_Admin {
 			case 'bbp_settings_theme_compat' : // Settings - Theme compat
 			case 'bbp_settings_root_slugs'   : // Settings - Root slugs
 			case 'bbp_settings_single_slugs' : // Settings - Single slugs
-			case 'bbp_settings_per_page'     : // Settings - Single slugs
-			case 'bbp_settings_per_page_rss' : // Settings - Single slugs
+			case 'bbp_settings_per_page'     : // Settings - Per page
+			case 'bbp_settings_per_rss_page' : // Settings - Per RSS page
 				$caps = array( bbpress()->admin->minimum_capability );
 				break;
 		}
@@ -1260,6 +1263,19 @@ class BBP_Admin {
 		return $sections;
 	}
 
+	/**
+	 * Allow keymaster role to save Forums settings
+	 *
+	 * @since bbPress (r4678)
+	 *
+	 * @param string $capability
+	 * @return string Return 'keep_gate' capability
+	 */
+	public function option_page_capability_bbpress( $capability = 'manage_options' ) {
+		$capability = 'keep_gate';
+		return $capability;
+	}
+
 	/** Ajax ******************************************************************/
 
 	/**
@@ -1326,7 +1342,7 @@ class BBP_Admin {
 			</div>
 
 			<div class="changelog">
-				<h3><?php _e( 'Theme Compatability', 'bbpress' ); ?></h3>
+				<h3><?php _e( 'Theme Compatibility', 'bbpress' ); ?></h3>
 
 				<div class="feature-section">
 					<h4><?php _e( 'Twenty Twelve', 'bbpress' ); ?></h4>
@@ -1361,7 +1377,7 @@ class BBP_Admin {
 			<div class="changelog">
 				<h3><?php _e( 'Under the Hood', 'bbpress' ); ?></h3>
 
-				<div class="feature-section three-col">
+				<div class="feature-section col three-col">
 					<div>
 						<h4><?php _e( 'Template Logic', 'bbpress' ); ?></h4>
 						<p><?php _e( 'New functions and template stacks are in place to help plugin developers extend bbPress further.', 'bbpress' ); ?></p> 

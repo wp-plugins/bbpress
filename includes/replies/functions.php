@@ -291,21 +291,38 @@ function bbp_new_reply_handler( $action = '' ) {
 			// Trash the reply
 			wp_trash_post( $reply_id );
 
-			// Get pre_trashed_replies for topic
-			$pre_trashed_replies = get_post_meta( $topic_id, '_bbp_pre_trashed_replies', true );
+			// Only add to pre-trashed array if topic is trashed
+			if ( bbp_is_topic_trash( $topic_id ) ) {
 
-			// Add this reply to the end of the existing replies
-			$pre_trashed_replies[] = $reply_id;
+				// Get pre_trashed_replies for topic
+				$pre_trashed_replies = get_post_meta( $topic_id, '_bbp_pre_trashed_replies', true );
 
-			// Update the pre_trashed_reply post meta
-			update_post_meta( $topic_id, '_bbp_pre_trashed_replies', $pre_trashed_replies );
-		}
+				// Add this reply to the end of the existing replies
+				$pre_trashed_replies[] = $reply_id;
+
+				// Update the pre_trashed_reply post meta
+				update_post_meta( $topic_id, '_bbp_pre_trashed_replies', $pre_trashed_replies );
+			}
 
 		/** Spam Check ********************************************************/
 
 		// If reply or topic are spam, officially spam this reply
-		if ( bbp_is_topic_spam( $topic_id ) || ( $reply_data['post_status'] == bbp_get_spam_status_id() ) )
+		} elseif ( bbp_is_topic_spam( $topic_id ) || ( $reply_data['post_status'] == bbp_get_spam_status_id() ) ) {
 			add_post_meta( $reply_id, '_bbp_spam_meta_status', bbp_get_public_status_id() );
+
+			// Only add to pre-spammed array if topic is spam
+			if ( bbp_is_topic_spam( $topic_id ) ) {
+
+				// Get pre_spammed_replies for topic
+				$pre_spammed_replies = get_post_meta( $topic_id, '_bbp_pre_spammed_replies', true );
+
+				// Add this reply to the end of the existing replies
+				$pre_spammed_replies[] = $reply_id;
+
+				// Update the pre_spammed_replies post meta
+				update_post_meta( $topic_id, '_bbp_pre_spammed_replies', $pre_spammed_replies );
+			}
+		}
 
 		/** Update counts, etc... *********************************************/
 
@@ -318,7 +335,7 @@ function bbp_new_reply_handler( $action = '' ) {
 		/** Redirect **********************************************************/
 
 		// Redirect to
-		$redirect_to = !empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+		$redirect_to = bbp_get_redirect_to();
 
 		// Get the reply URL
 		$reply_url = bbp_get_reply_url( $reply_id, $redirect_to );
@@ -553,7 +570,7 @@ function bbp_edit_reply_handler( $action = '' ) {
 
 	// Toggle revisions back on
 	if ( true === $revisions_removed ) {
-		$revisions_removed = true;
+		$revisions_removed = false;
 		add_post_type_support( bbp_get_reply_post_type(), 'revisions' );
 	}
 
@@ -578,7 +595,7 @@ function bbp_edit_reply_handler( $action = '' ) {
 
 	// Update revision log
 	if ( !empty( $_POST['bbp_log_reply_edit'] ) && ( 1 == $_POST['bbp_log_reply_edit'] ) ) {
-		$revision_id = wp_is_post_revision( $reply_id );
+		$revision_id = wp_save_post_revision( $reply_id );
 		if ( !empty( $revision_id ) ) {
 			bbp_update_reply_revision_log( array(
 				'reply_id'    => $reply_id,
@@ -603,7 +620,7 @@ function bbp_edit_reply_handler( $action = '' ) {
 		/** Redirect **********************************************************/
 
 		// Redirect to
-		$redirect_to = !empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+		$redirect_to = bbp_get_redirect_to();
 
 		// Get the reply URL
 		$reply_url = bbp_get_reply_url( $reply_id, $redirect_to );
@@ -1416,7 +1433,7 @@ function bbp_toggle_reply_handler( $action = '' ) {
 		/** Redirect **********************************************************/
 
 		// Redirect to
-		$redirect_to = !empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
+		$redirect_to = bbp_get_redirect_to();
 
 		// Get the reply URL
 		$reply_url = bbp_get_reply_url( $reply_id, $redirect_to );

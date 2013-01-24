@@ -119,6 +119,10 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 		// No subforums yet, so suppress them for now
 		add_filter( 'bbp_get_forum_subforum_count_int', array( $this, 'no_subforums_yet' ) );
+
+		// Group member permissions to view the topic and reply forms
+		add_filter( 'bbp_current_user_can_access_create_topic_form', array( $this, 'form_permissions' ) );
+		add_filter( 'bbp_current_user_can_access_create_reply_form', array( $this, 'form_permissions' ) );
 	}
 
 	/**
@@ -156,10 +160,10 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			return;
 
 		// Are forums enabled for this group?
-		$checked = (bool) ( bp_get_new_group_enable_forum() );
+		$checked = bp_get_new_group_enable_forum() || groups_get_groupmeta( bp_get_new_group_id(), 'forum_id' );
 
 		// Tweak the nav item variable based on if group has forum or not
-		$this->enable_nav_item = $checked;
+		$this->enable_nav_item = (bool) $checked;
 	}
 
 	/**
@@ -187,7 +191,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			case 'publish_topics'      :
 			case 'read_hidden_forums'  :
 			case 'read_private_forums' :
-				if ( bp_group_is_member() || bp_group_is_mod() || bp_group_is_admin() ) {
+				if ( bbp_group_is_member() || bbp_group_is_mod() || bbp_group_is_admin() ) {
 					$caps = array( 'participate' );
 				}
 				break;
@@ -199,7 +203,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			case 'view_trash'   :
 			case 'edit_others_replies' :
 			case 'edit_others_topics'  :
-				if ( bp_group_is_mod() || bp_group_is_admin() ) {
+				if ( bbp_group_is_mod() || bbp_group_is_admin() ) {
 					$caps = array( 'participate' );
 				}
 				break;
@@ -207,7 +211,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			// If user is a group admin, allow them to delete topics and replies.
 			case 'delete_topic' :
 			case 'delete_reply' :
-				if ( bp_group_is_admin() ) {
+				if ( bbp_group_is_admin() ) {
 					$caps = array( 'participate' );
 				}
 				break;
@@ -297,9 +301,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		}
 
 		// Update the group forum setting
-		$group               = new BP_Groups_Group( $group_id );
-		$group->enable_forum = $edit_forum;
-		$group->save();
+		$group = $this->toggle_group_forum( $group_id, $edit_forum );
 
 		// Create a new forum
 		if ( empty( $forum_id ) && ( true === $edit_forum ) ) {
@@ -375,6 +377,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$create_forum = !empty( $_POST['bbp-create-group-forum'] ) ? true : false;
 		$forum_id     = 0;
 		$forum_ids    = bbp_get_group_forum_ids( bp_get_new_group_id() );
+
 		if ( !empty( $forum_ids ) )
 			$forum_id = (int) is_array( $forum_ids ) ? $forum_ids[0] : $forum_ids;
 
@@ -414,14 +417,24 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 				// Update forum active
 				groups_update_groupmeta( bp_get_new_group_id(), '_bbp_forum_enabled_' . $forum_id, true );
 
+				// Toggle forum on
+				$this->toggle_group_forum( bp_get_new_group_id(), true );
+
 				break;
 			case false :
 
 				// Forum was created but is now being undone
 				if ( !empty( $forum_id ) ) {
+
+					// Delete the forum
 					wp_delete_post( $forum_id, true );
+
+					// Delete meta values
 					groups_delete_groupmeta( bp_get_new_group_id(), 'forum_id' );
 					groups_delete_groupmeta( bp_get_new_group_id(), '_bbp_forum_enabled_' . $forum_id );
+
+					// Toggle forum off
+					$this->toggle_group_forum( bp_get_new_group_id(), false );
 				}
 
 				break;
@@ -490,6 +503,35 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 		bbp_remove_forum_id_from_group( $group_id, $forum_id );
 		bbp_remove_group_id_from_forum( $forum_id, $group_id );
+	}
+
+	/**
+	 * Toggle the enable_forum group setting on or off
+	 *
+	 * @since bbPress (r4612)
+	 *
+	 * @param int $group_id The group to toggle
+	 * @param bool $enabled True for on, false for off
+	 * @uses groups_get_group() To get the group to toggle
+	 * @return False if group is not found, otherwise return the group
+	 */
+	public function toggle_group_forum( $group_id = 0, $enabled = false ) {
+
+		// Get the group
+		$group = groups_get_group( array( 'group_id' => $group_id ) );
+
+		// Bail if group cannot be found
+		if ( empty( $group ) )
+			return false;
+
+		// Set forum enabled status
+		$group->enable_forum = (int) $enabled;
+
+		// Save the group
+		$group->save();
+
+		// Return the group
+		return $group;
 	}
 
 	/** Display Methods *******************************************************/
@@ -908,6 +950,43 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		</p>
 
 	<?php
+	}
+
+	/**
+	 * Permissions to view the 'New Topic'/'Reply To' form in a BuddyPress group.
+	 *
+	 * @since bbPress (r4608)
+	 *
+	 * @param bool $retval Are we allowed to view the reply form?
+	 * @uses bp_is_group() To determine if we're on a group page
+	 * @uses bp_loggedin_user_id() To determine if a user is logged in.
+	 * @uses bp_group_is_member() Is the current user a member of the group?
+	 * @uses bp_group_is_user_banned() Is the current user banned from the group?
+	 *
+	 * @return bool
+	 */
+	public function form_permissions( $retval = false ) {
+
+		// Bail if not a group
+		if ( ! bp_is_group() ) {
+			return $retval;
+		}
+
+		// Bail if user is not logged in
+		if ( ! is_user_logged_in() ) {
+			return $retval;
+		}
+
+		// Non-members cannot see forms
+		if ( ! bbp_group_is_member() ) {
+			$retval = false;
+
+		// Banned users cannot see forms
+		} elseif ( bbp_group_is_banned() ) {
+			$retval = false;
+		}
+
+		return $retval;
 	}
 
 	/** Permalink Mappers *****************************************************/

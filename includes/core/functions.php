@@ -281,6 +281,8 @@ function bbp_has_errors() {
 	return apply_filters( 'bbp_has_errors', $has_errors, bbpress()->errors );
 }
 
+/** Mentions ******************************************************************/
+
 /**
  * Searches through the content to locate usernames, designated by an @ sign.
  *
@@ -320,12 +322,12 @@ function bbp_mention_filter( $content = '' ) {
 	foreach( (array) $usernames as $username ) {
 
 		// Skip if username does not exist or user is not active
-		$user_id = username_exists( $username );
-		if ( empty( $user_id ) || bbp_is_user_inactive( $user_id ) )
+		$user = get_user_by( 'slug', $username );
+		if ( empty( $user->ID ) || bbp_is_user_inactive( $user->ID ) )
 			continue;
 
 		// Replace name in content
-		$content = preg_replace( '/(@' . $username . '\b)/', "<a href='" . bbp_get_user_profile_url( $user_id ) . "' rel='nofollow' class='bbp-mention-link $username'>@$username</a>", $content );
+		$content = preg_replace( '/(@' . $username . '\b)/', "<a href='" . bbp_get_user_profile_url( $user->ID ) . "' rel='nofollow' class='bbp-mention-link {$username}'>@{$username}</a>", $content );
 	}
 
 	// Return modified content
@@ -435,13 +437,24 @@ function bbp_get_user_rewrite_id() {
 }
 
 /**
- * Return the enique ID for all edit rewrite rules (forum|topic|reply|tag|user)
+ * Return the unique ID for all edit rewrite rules (forum|topic|reply|tag|user)
  *
  * @since bbPress (r3762)
  * @return string
  */
 function bbp_get_edit_rewrite_id() {
 	return bbpress()->edit_id;
+}
+
+/**
+ * Return the unique ID for all search rewrite rules
+ *
+ * @since bbPress (r4579)
+ *
+ * @return string
+ */
+function bbp_get_search_rewrite_id() {
+	return bbpress()->search_id;
 }
 
 /**

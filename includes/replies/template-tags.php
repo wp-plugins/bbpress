@@ -68,34 +68,45 @@ function bbp_has_replies( $args = '' ) {
 
 	/** Defaults **************************************************************/
 
-	// What are the default allowed statuses (based on user caps)
-	if ( bbp_get_view_all( 'edit_others_replies' ) ) {
-		$post_statuses = array( bbp_get_public_status_id(), bbp_get_closed_status_id(), bbp_get_spam_status_id(), bbp_get_trash_status_id() );
-	} else {
-		$post_statuses = array( bbp_get_public_status_id(), bbp_get_closed_status_id() );
-	}
-
-	// Add support for private status
-	if ( current_user_can( 'read_private_replies' ) ) {
-		$post_statuses[] = bbp_get_private_status_id();
-	}
-
+	// Other defaults
 	$default_reply_search = !empty( $_REQUEST['rs'] ) ? $_REQUEST['rs'] : false;
 	$default_post_parent  = ( bbp_is_single_topic() ) ? bbp_get_topic_id() : 'any';
 	$default_post_type    = ( bbp_is_single_topic() && bbp_show_lead_topic() ) ? bbp_get_reply_post_type() : array( bbp_get_topic_post_type(), bbp_get_reply_post_type() );
-	$default_post_status  = join( ',', $post_statuses );
 
 	// Default query args
 	$default = array(
 		'post_type'      => $default_post_type,         // Only replies
 		'post_parent'    => $default_post_parent,       // Of this topic
-		'post_status'    => $default_post_status,       // Of this status
 		'posts_per_page' => bbp_get_replies_per_page(), // This many
 		'paged'          => bbp_get_paged(),            // On this page
 		'orderby'        => 'date',                     // Sorted by date
 		'order'          => 'ASC',                      // Oldest to newest
 		's'              => $default_reply_search,      // Maybe search
 	);
+
+	// What are the default allowed statuses (based on user caps)
+	if ( bbp_get_view_all() ) {
+
+		// Default view=all statuses
+		$post_statuses = array(
+			bbp_get_public_status_id(),
+			bbp_get_closed_status_id(),
+			bbp_get_spam_status_id(),
+			bbp_get_trash_status_id()
+		);
+
+		// Add support for private status
+		if ( current_user_can( 'read_private_replies' ) ) {
+			$post_statuses[] = bbp_get_private_status_id();
+		}
+
+		// Join post statuses together
+		$default['post_status'] = join( ',', $post_statuses );
+
+	// Lean on the 'perm' query var value of 'readable' to provide statuses
+	} else {
+		$default['perm'] = 'readable';
+	}
 
 	/** Setup *****************************************************************/
 
@@ -153,8 +164,8 @@ function bbp_has_replies( $args = '' ) {
 				'format'    => '',
 				'total'     => ceil( (int) $bbp->reply_query->found_posts / (int) $r['posts_per_page'] ),
 				'current'   => (int) $bbp->reply_query->paged,
-				'prev_text' => '&larr;',
-				'next_text' => '&rarr;',
+				'prev_text' => is_rtl() ? '&rarr;' : '&larr;',
+				'next_text' => is_rtl() ? '&larr;' : '&rarr;',
 				'mid_size'  => 1,
 				'add_args'  => ( bbp_get_view_all() ) ? array( 'view' => 'all' ) : false
 			) )
@@ -223,7 +234,8 @@ function bbp_reply_id( $reply_id = 0 ) {
 	 *
 	 * @param $reply_id Optional. Used to check emptiness
 	 * @uses bbPress::reply_query::post::ID To get the reply id
-	 * @uses bbp_is_reply() To check if it's a reply page
+	 * @uses bbp_is_reply() To check if the search result is a reply
+	 * @uses bbp_is_single_reply() To check if it's a reply page
 	 * @uses bbp_is_reply_edit() To check if it's a reply edit page
 	 * @uses get_post_field() To get the post's post type
 	 * @uses WP_Query::post::ID To get the reply id
@@ -244,6 +256,10 @@ function bbp_reply_id( $reply_id = 0 ) {
 		// Currently inside a replies loop
 		} elseif ( !empty( $bbp->reply_query->in_the_loop ) && isset( $bbp->reply_query->post->ID ) ) {
 			$bbp_reply_id = $bbp->reply_query->post->ID;
+
+		// Currently inside a search loop
+		} elseif ( !empty( $bbp->search_query->in_the_loop ) && isset( $bbp->search_query->post->ID ) && bbp_is_reply( $bbp->search_query->post->ID ) ) {
+			$bbp_reply_id = $bbp->search_query->post->ID;
 
 		// Currently viewing a forum
 		} elseif ( ( bbp_is_single_reply() || bbp_is_reply_edit() ) && !empty( $bbp->current_reply_id ) ) {
@@ -531,7 +547,7 @@ function bbp_reply_post_date( $reply_id = 0, $humanize = false, $gmt = false ) {
 	 * @param bool $gmt Optional. Use GMT
 	 * @uses bbp_get_reply_id() To get the reply id
 	 * @uses get_post_time() to get the reply post time
-	 * @uses bbp_time_since() to maybe humanize the reply post time
+	 * @uses bbp_get_time_since() to maybe humanize the reply post time
 	 * @return string
 	 */
 	function bbp_get_reply_post_date( $reply_id = 0, $humanize = false, $gmt = false ) {
@@ -539,10 +555,10 @@ function bbp_reply_post_date( $reply_id = 0, $humanize = false, $gmt = false ) {
 
 		// 4 days, 4 hours ago
 		if ( !empty( $humanize ) ) {
-			$gmt    = !empty( $gmt ) ? 'G' : 'U';
-			$date   = get_post_time( $gmt, $reply_id );
+			$gmt_s  = !empty( $gmt ) ? 'G' : 'U';
+			$date   = get_post_time( $gmt_s, $gmt, $reply_id );
 			$time   = false; // For filter below
-			$result = bbp_time_since( $date );
+			$result = bbp_get_time_since( $date );
 
 		// August 4, 2012 at 2:37 pm
 		} else {
@@ -936,7 +952,11 @@ function bbp_reply_author_display_name( $reply_id = 0 ) {
 		if ( empty( $author_name ) )
 			$author_name = __( 'Anonymous', 'bbpress' );
 
-		return apply_filters( 'bbp_get_reply_author_display_name', esc_attr( $author_name ), $reply_id );
+		// Encode possible UTF8 display names
+		if ( seems_utf8( $author_name ) === false )
+			$author_name = utf8_encode( $author_name );
+
+		return apply_filters( 'bbp_get_reply_author_display_name', $author_name, $reply_id );
 	}
 
 /**
@@ -1034,14 +1054,22 @@ function bbp_reply_author_link( $args = '' ) {
 			$reply_id = bbp_get_reply_id( $r['post_id'] );
 		}
 
+		// Reply ID is good
 		if ( !empty( $reply_id ) ) {
+
+			// Tweak link title if empty
 			if ( empty( $$r['link_title'] ) ) {
 				$link_title = sprintf( !bbp_is_reply_anonymous( $reply_id ) ? __( 'View %s\'s profile', 'bbpress' ) : __( 'Visit %s\'s website', 'bbpress' ), bbp_get_reply_author_display_name( $reply_id ) );
+
+			// Use what was passed if not
+			} else {
+				$link_title = $r['link_title'];
 			}
 
-			$link_title = !empty( $r['link_title'] ) ? ' title="' . $r['link_title'] . '"' : '';
-			$author_url = bbp_get_reply_author_url( $reply_id );
-			$anonymous  = bbp_is_reply_anonymous( $reply_id );
+			$link_title   = !empty( $link_title ) ? ' title="' . $link_title . '"' : '';
+			$author_url   = bbp_get_reply_author_url( $reply_id );
+			$anonymous    = bbp_is_reply_anonymous( $reply_id );
+			$author_links = array();
 
 			// Get avatar
 			if ( 'avatar' == $r['type'] || 'both' == $r['type'] ) {
@@ -1053,8 +1081,13 @@ function bbp_reply_author_link( $args = '' ) {
 				$author_links['name'] = bbp_get_reply_author_display_name( $reply_id );
 			}
 
+			// Link class
+			$link_class = ' class="bbp-author-' . $r['type'] . '"';
+
 			// Add links if not anonymous
 			if ( empty( $anonymous ) && bbp_user_has_profile( bbp_get_reply_author_id( $reply_id ) ) ) {
+
+				// Assemble the links
 				foreach ( $author_links as $link => $link_text ) {
 					$link_class = ' class="bbp-author-' . $link . '"';
 					$author_link[] = sprintf( '<a href="%1$s"%2$s%3$s>%4$s</a>', $author_url, $link_title, $link_class, $link_text );

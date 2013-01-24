@@ -1009,7 +1009,7 @@ function bbp_get_user_replies_created( $user_id = 0 ) {
 
 	// Try to get the topics
 	$query = bbp_has_replies( array(
-		'post_type'      => array( bbp_get_topic_post_type(), bbp_get_reply_post_type() ),
+		'post_type'      => bbp_get_reply_post_type(),
 		'post_parent'    => 'any',
 		'posts_per_page' => bbp_get_replies_per_page(),
 		'paged'          => bbp_get_paged(),
@@ -1026,9 +1026,7 @@ function bbp_get_user_replies_created( $user_id = 0 ) {
  * Get the total number of users on the forums
  *
  * @since bbPress (r2769)
- * @uses wp_cache_get() Check if query is in cache
- * @uses get_users() To execute our query and get the var back
- * @uses wp_cache_set() Set the query in the cache
+ * @uses count_users() To execute our query and get the var back
  * @uses apply_filters() Calls 'bbp_get_total_users' with number of users
  * @return int Total number of users
  */
@@ -1126,7 +1124,7 @@ function bbp_user_maybe_convert_pass() {
 	global $wpdb;
 
 	// Bail if no user password to convert
-	$row = $wpdb->get_row( "SELECT * FROM {$wpdb->users} INNER JOIN {$wpdb->usermeta} ON user_id = ID WHERE meta_key = '_bbp_class' AND user_login = '{$username}' LIMIT 1" );
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->users} INNER JOIN {$wpdb->usermeta} ON user_id = ID WHERE meta_key = '_bbp_class' AND user_login = '%s' LIMIT 1", $username ) );
 	if ( empty( $row ) || is_wp_error( $row ) )
 		return;
 

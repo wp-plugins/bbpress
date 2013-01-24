@@ -79,6 +79,11 @@ class BBP_Shortcodes {
 
 			'bbp-single-view'      => array( $this, 'display_view'          ), // Single view
 
+			/** Search ********************************************************/
+
+			'bbp-search-form'      => array( $this, 'display_search_form'   ), // Search form
+			'bbp-search'           => array( $this, 'display_search'        ), // Search
+
 			/** Account *******************************************************/
 
 			'bbp-login'            => array( $this, 'display_login'         ), // Login
@@ -114,9 +119,10 @@ class BBP_Shortcodes {
 		$bbp = bbpress();
 
 		// Unset global queries
-		$bbp->forum_query = new stdClass;
-		$bbp->topic_query = new stdClass;
-		$bbp->reply_query = new stdClass;
+		$bbp->forum_query  = new stdClass;
+		$bbp->topic_query  = new stdClass;
+		$bbp->reply_query  = new stdClass;
+		$bbp->search_query = new stdClass;
 
 		// Unset global ID's
 		$bbp->current_forum_id     = 0;
@@ -597,6 +603,64 @@ class BBP_Shortcodes {
 
 		// Output template
 		bbp_get_template_part( 'content', 'single-view' );
+
+		// Return contents of output buffer
+		return $this->end();
+	}
+
+	/** Search ****************************************************************/
+
+	/**
+	 * Display the search form in an output buffer and return to ensure
+	 * post/page contents are displayed first.
+	 *
+	 * @since bbPress (r4585)
+	 *
+	 * @uses get_template_part()
+	 */
+	public function display_search_form() {
+
+		// Start output buffer
+		$this->start( 'bbp_search_form' );
+
+		// Output templates
+		bbp_get_template_part( 'form', 'search' );
+
+		// Return contents of output buffer
+		return $this->end();
+	}
+
+	/**
+	 * Display the contents of search results in an output buffer and return to
+	 * ensure that post/page contents are displayed first.
+	 *
+	 * @since bbPress (r4579)
+	 *
+	 * @param array $attr
+	 * @param string $content
+	 * @uses bbp_search_query()
+	 * @uses get_template_part()
+	 */
+	public function display_search( $attr, $content = '' ) {
+
+		// Sanity check required info
+		if ( !empty( $content ) )
+			return $content;
+
+		// Set passed attribute to $search_terms for clarity
+		$search_terms = empty( $attr['search'] ) ? bbp_get_search_terms() : $attr['search'];
+
+		// Unset globals
+		$this->unset_globals();
+
+		// Set terms for query
+		set_query_var( bbp_get_search_rewrite_id(), $search_terms );
+
+		// Start output buffer
+		$this->start( 'bbp_search' );
+
+		// Output template
+		bbp_get_template_part( 'content', 'search' );
 
 		// Return contents of output buffer
 		return $this->end();

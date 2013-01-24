@@ -140,6 +140,7 @@ function bbp_forum_id( $forum_id = 0 ) {
 	 * @uses bbPress::forum_query::in_the_loop To check if we're in the loop
 	 * @uses bbPress::forum_query::post::ID To get the forum id
 	 * @uses WP_Query::post::ID To get the forum id
+	 * @uses bbp_is_forum() To check if the search result is a forum
 	 * @uses bbp_is_single_forum() To check if it's a forum page
 	 * @uses bbp_is_single_topic() To check if it's a topic page
 	 * @uses bbp_get_topic_forum_id() To get the topic forum id
@@ -160,6 +161,10 @@ function bbp_forum_id( $forum_id = 0 ) {
 		// Currently inside a forum loop
 		} elseif ( !empty( $bbp->forum_query->in_the_loop ) && isset( $bbp->forum_query->post->ID ) ) {
 			$bbp_forum_id = $bbp->forum_query->post->ID;
+
+		// Currently inside a search loop
+		} elseif ( !empty( $bbp->search_query->in_the_loop ) && isset( $bbp->search_query->post->ID ) && bbp_is_forum( $bbp->search_query->post->ID ) ) {
+			$bbp_forum_id = $bbp->search_query->post->ID;
 
 		// Currently viewing a forum
 		} elseif ( bbp_is_single_forum() && !empty( $bbp->current_forum_id ) ) {
@@ -637,19 +642,24 @@ function bbp_forum_get_subforums( $args = '' ) {
 
 	// Parse arguments against default values
 	$r = bbp_parse_args( $args, array(
-		'post_parent'    => 0,
-		'post_type'      => bbp_get_forum_post_type(),
-		'post_status'    => implode( ',', $post_stati ),
-		'posts_per_page' => get_option( '_bbp_forums_per_page', 50 ),
-		'orderby'        => 'menu_order',
-		'order'          => 'ASC'
+		'post_parent'         => 0,
+		'post_type'           => bbp_get_forum_post_type(),
+		'post_status'         => implode( ',', $post_stati ),
+		'posts_per_page'      => get_option( '_bbp_forums_per_page', 50 ),
+		'orderby'             => 'menu_order',
+		'order'               => 'ASC',
+		'ignore_sticky_posts' => true,
+		'no_found_rows'       => true
 	), 'forum_get_subforums' );
 	$r['post_parent'] = bbp_get_forum_id( $r['post_parent'] );
 
-	// No forum passed
-	$sub_forums = !empty( $r['post_parent'] ) ? get_posts( $r ) : '';
+	// Create a new query for the subforums
+	$get_posts = new WP_Query();
 
-	return apply_filters( 'bbp_forum_get_sub_forums', (array) $sub_forums, $args );
+	// No forum passed
+	$sub_forums = !empty( $r['post_parent'] ) ? $get_posts->query( $r ) : array();
+
+	return (array) apply_filters( 'bbp_forum_get_subforums', $sub_forums, $args );
 }
 
 /**
@@ -692,10 +702,6 @@ function bbp_list_forums( $args = '' ) {
 		'show_topic_count'  => true,
 		'show_reply_count'  => true,
 	), 'list_forums' );
-
-	// Bail if there are no subforums
-	if ( !bbp_get_forum_subforum_count( $r['forum_id'], false ) )
-		return;
 
 	// Loop through forums and create a list
 	$sub_forums = bbp_forum_get_subforums( $r['forum_id'] );

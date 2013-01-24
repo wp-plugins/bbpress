@@ -243,6 +243,58 @@ function bbp_user_profile_link( $user_id = 0 ) {
 	}
 
 /**
+ * Output a users nicename to the screen
+ *
+ * @since bbPress (r4671)
+ *
+ * @param int $user_id User ID whose nicename to get
+ * @param array $args before|after|user_id|force
+ */
+function bbp_user_nicename( $user_id = 0, $args = array() ) {
+	echo bbp_get_user_nicename( $user_id, $args );
+}
+	/**
+	 * Return a users nicename to the screen
+	 *
+	 * @since bbPress (r4671)
+	 *
+	 * @param int $user_id User ID whose nicename to get
+	 * @param array $args before|after|user_id|force
+	 * @return string User nicename, maybe wrapped in before/after strings
+	 */
+	function bbp_get_user_nicename( $user_id = 0, $args = array() ) {
+
+		// Bail if no user ID passed
+		$user_id = bbp_get_user_id( $user_id, false, false );
+		if ( empty( $user_id ) )
+			return false;
+
+		// Parse default arguments
+		$r = bbp_parse_args( $args, array(
+			'user_id' => $user_id,
+			'before'  => '',
+			'after'   => '',
+			'force'   => ''
+		), 'get_user_nicename' );
+
+		// Get the user data and nicename
+		if ( empty( $r['force'] ) ) {
+			$user     = get_userdata( $user_id );
+			$nicename = $user->user_nicename;
+
+		// Force the nicename to something else
+		} else {
+			$nicename = (string) $r['force'];
+		}
+
+		// Maybe wrap the nicename
+		$retval = !empty( $nicename ) ? ( $r['before'] . $nicename . $r['after'] ) : '';
+
+		// Filter and return
+		return (string) apply_filters( 'bbp_get_user_nicename', $retval, $user_id, $args );
+	}
+
+/**
  * Output URL to the profile page of a user
  *
  * @since bbPress (r2688)
@@ -289,10 +341,7 @@ function bbp_user_profile_url( $user_id = 0, $user_nicename = '' ) {
 
 			// Get username if not passed
 			if ( empty( $user_nicename ) ) {
-				$user = get_userdata( $user_id );
-				if ( !empty( $user->user_nicename ) ) {
-					$user_nicename = $user->user_nicename;
-				}
+				$user_nicename = bbp_get_user_nicename( $user_id );
 			}
 
 			$url = str_replace( '%' . bbp_get_user_rewrite_id() . '%', $user_nicename, $url );
@@ -618,14 +667,13 @@ function bbp_favorites_permalink( $user_id = 0 ) {
  *
  * @since bbPress (r2652)
  *
- * @param array $add Optional. Add to favorites args
- * @param array $rem Optional. Remove from favorites args
+ * @param mixed $args See {@link bbp_get_user_favorites_link()}
  * @param int $user_id Optional. User id
- * @param int $topic_id Optional. Topic id
+ * @param bool $wrap Optional. If you want to wrap the link in <span id="favorite-toggle">.
  * @uses bbp_get_user_favorites_link() To get the user favorites link
  */
-function bbp_user_favorites_link( $add = array(), $rem = array(), $user_id = 0, $topic_id = 0 ) {
-	echo bbp_get_user_favorites_link( $add, $rem, $user_id, $topic_id );
+function bbp_user_favorites_link( $args = array(), $user_id = 0, $wrap = true ) {
+	echo bbp_get_user_favorites_link( $args, $user_id, $wrap );
 }
 	/**
 	 * User favorites link
@@ -635,8 +683,13 @@ function bbp_user_favorites_link( $add = array(), $rem = array(), $user_id = 0, 
 	 *
 	 * @since bbPress (r2652)
 	 *
-	 * @param array $add Optional. Add to favorites args
-	 * @param array $rem Optional. Remove from favorites args
+	 * @param mixed $args This function supports these arguments:
+	 *  - subscribe: Favorite text
+	 *  - unsubscribe: Unfavorite text
+	 *  - user_id: User id
+	 *  - topic_id: Topic id
+	 *  - before: Before the link
+	 *  - after: After the link
 	 * @param int $user_id Optional. User id
 	 * @param int $topic_id Optional. Topic id
 	 * @param bool $wrap Optional. If you want to wrap the link in <span id="favorite-toggle">. See ajax_favorite()
@@ -651,66 +704,55 @@ function bbp_user_favorites_link( $add = array(), $rem = array(), $user_id = 0, 
 	 *                        html, add args, remove args, user & topic id
 	 * @return string User favorites link
 	 */
-	function bbp_get_user_favorites_link( $add = array(), $rem = array(), $user_id = 0, $topic_id = 0, $wrap = true ) {
+	function bbp_get_user_favorites_link( $args = '', $user_id = 0, $wrap = true ) {
 		if ( !bbp_is_favorites_active() )
 			return false;
 
+		// Parse arguments against default values
+		$r = bbp_parse_args( $args, array(
+			'favorite'  => __( 'Favorite',  'bbpress' ),
+			'favorited' => __( 'Favorited', 'bbpress' ),
+			'user_id'   => 0,
+			'topic_id'  => 0,
+			'before'    => '',
+			'after'     => ''
+		), 'get_user_favorites_link' );
+
 		// Validate user and topic ID's
-		$user_id  = bbp_get_user_id( $user_id, true, true );
-		$topic_id = bbp_get_topic_id( $topic_id );
-		if ( empty( $user_id ) || empty( $topic_id ) )
+		$user_id  = bbp_get_user_id( $r['user_id'], true, true );
+		$topic_id = bbp_get_topic_id( $r['topic_id'] );
+		if ( empty( $user_id ) || empty( $topic_id ) ) {
 			return false;
-
-		if ( !current_user_can( 'edit_user', (int) $user_id ) )
-			return false;
-
-		if ( empty( $add ) || !is_array( $add ) ) {
-			$add = array(
-				'mid'  => __( 'Add this topic to your favorites', 'bbpress' ),
-				'post' => __( ' (%?%)', 'bbpress' )
-			);
 		}
 
-		if ( empty( $rem ) || !is_array( $rem ) ) {
-			$rem = array(
-				'pre'  => __( 'This topic is one of your %favorites% [', 'bbpress' ),
-				'mid'  => __( '&times;', 'bbpress' ),
-				'post' => __( ']', 'bbpress' )
-			);
+		// No link if you can't edit yourself
+		if ( !current_user_can( 'edit_user', (int) $user_id ) ) {
+			return false;
 		}
 
+		// Decine which link to show
 		$is_fav = bbp_is_user_favorite( $user_id, $topic_id );
 		if ( !empty( $is_fav ) ) {
-			$url   = esc_url( bbp_get_favorites_permalink( $user_id ) );
-			$rem   = preg_replace( '|%(.+)%|', "<a href='$url'>$1</a>", $rem );
-			$favs  = array( 'action' => 'bbp_favorite_remove', 'topic_id' => $topic_id );
-			$pre   = ( is_array( $rem ) && isset( $rem['pre']  ) ) ? $rem['pre']  : '';
-			$mid   = ( is_array( $rem ) && isset( $rem['mid']  ) ) ? $rem['mid']  : ( is_string( $rem ) ? $rem : '' );
-			$_post = ( is_array( $rem ) && isset( $rem['post'] ) ) ? $rem['post'] : '';
+			$text       = $r['favorited'];
+			$query_args = array( 'action' => 'bbp_favorite_remove', 'topic_id' => $topic_id );
 		} else {
-			$url   = esc_url( bbp_get_favorites_permalink( $user_id ) );
-			$add   = preg_replace( '|%(.+)%|', "<a href='$url'>$1</a>", $add );
-			$favs  = array( 'action' => 'bbp_favorite_add', 'topic_id' => $topic_id );
-			$pre   = ( is_array( $add ) && isset( $add['pre']  ) ) ? $add['pre']  : '';
-			$mid   = ( is_array( $add ) && isset( $add['mid']  ) ) ? $add['mid']  : ( is_string( $add ) ? $add : '' );
-			$_post = ( is_array( $add ) && isset( $add['post'] ) ) ? $add['post'] : '';
+			$text       = $r['favorite'];
+			$query_args = array( 'action' => 'bbp_favorite_add',    'topic_id' => $topic_id );
 		}
 
 		// Create the link based where the user is and if the topic is
 		// already the user's favorite
 		if ( bbp_is_favorites() ) {
 			$permalink = bbp_get_favorites_permalink( $user_id );
-		} elseif ( is_singular( bbp_get_topic_post_type() ) ) {
-			$permalink = bbp_get_topic_permalink( $topic_id );
-		} elseif ( is_singular( bbp_get_reply_post_type() ) ) {
+		} elseif ( bbp_is_single_topic() || bbp_is_single_reply() ) {
 			$permalink = bbp_get_topic_permalink( $topic_id );
 		} else {
 			$permalink = get_permalink();
 		}
 
-		$url  = esc_url( wp_nonce_url( add_query_arg( $favs, $permalink ), 'toggle-favorite_' . $topic_id ) );
-		$fav  = $is_fav ? 'is-favorite' : '';
-		$html = sprintf( '<span id="favorite-%d" class="%s">%s<a href="%s" class="favorite-toggle" data-topic="%d" >%s</a>%s</span>', $topic_id, $fav, $pre, $url, $topic_id, $mid, $_post );
+		$url  = esc_url( wp_nonce_url( add_query_arg( $query_args, $permalink ), 'toggle-favorite_' . $topic_id ) );
+		$sub  = $is_fav ? ' class="is-favorite"' : '';
+		$html = sprintf( '%s<span id="favorite-%d"  %s><a href="%s" class="favorite-toggle" data-topic="%d">%s</a></span>%s', $r['before'], $topic_id, $sub, $url, $topic_id, $text, $r['after'] );
 
 		// Initial output is wrapped in a span, ajax output is hooked to this
 		if ( !empty( $wrap ) ) {
@@ -718,7 +760,7 @@ function bbp_user_favorites_link( $add = array(), $rem = array(), $user_id = 0, 
 		}
 
 		// Return the link
-		return apply_filters( 'bbp_get_user_favorites_link', $html, $add, $rem, $user_id, $topic_id );
+		return apply_filters( 'bbp_get_user_favorites_link', $html, $r, $user_id, $topic_id );
 	}
 
 /** Subscriptions *************************************************************/
@@ -788,10 +830,12 @@ function bbp_subscriptions_permalink( $user_id = 0 ) {
  * @since bbPress (r2668)
  *
  * @param mixed $args See {@link bbp_get_user_subscribe_link()}
+ * @param int $user_id Optional. User id
+ * @param bool $wrap Optional. If you want to wrap the link in <span id="subscription-toggle">.
  * @uses bbp_get_user_subscribe_link() To get the subscribe link
  */
-function bbp_user_subscribe_link( $args = '' ) {
-	echo bbp_get_user_subscribe_link( $args );
+function bbp_user_subscribe_link( $args = '', $user_id = 0, $wrap = true ) {
+	echo bbp_get_user_subscribe_link( $args, $user_id, $wrap );
 }
 	/**
 	 * Return the link to subscribe/unsubscribe from a topic
@@ -806,7 +850,7 @@ function bbp_user_subscribe_link( $args = '' ) {
 	 *  - before: Before the link
 	 *  - after: After the link
 	 * @param int $user_id Optional. User id
-	 * @param bool $wrap Optional. If you want to wrap the link in <span id="favorite-toggle">.
+	 * @param bool $wrap Optional. If you want to wrap the link in <span id="subscription-toggle">.
 	 * @uses bbp_get_user_id() To get the user id
 	 * @uses current_user_can() To check if the current user can edit user
 	 * @uses bbp_get_topic_id() To get the topic id
@@ -858,17 +902,15 @@ function bbp_user_subscribe_link( $args = '' ) {
 		// subscribed already
 		if ( bbp_is_subscriptions() ) {
 			$permalink = bbp_get_subscriptions_permalink( $user_id );
-		} elseif ( is_singular( bbp_get_topic_post_type() ) ) {
-			$permalink = bbp_get_topic_permalink( $topic_id );
-		} elseif ( is_singular( bbp_get_reply_post_type() ) ) {
+		} elseif ( bbp_is_single_topic() || bbp_is_single_reply() ) {
 			$permalink = bbp_get_topic_permalink( $topic_id );
 		} else {
 			$permalink = get_permalink();
 		}
 
 		$url  = esc_url( wp_nonce_url( add_query_arg( $query_args, $permalink ), 'toggle-subscription_' . $topic_id ) );
-		$sub  = $is_subscribed ? ' class="is_subscribed"' : '';
-		$html = sprintf( '%s <span id="subscribe-%d"  %s><a href="%s" class="subscription-toggle" data-topic="%d">%s</a></span>' . $r['after'] . '</span>', $r['before'], $topic_id, $sub, $url, $topic_id, $text );
+		$sub  = $is_subscribed ? ' class="is-subscribed"' : '';
+		$html = sprintf( '%s<span id="subscribe-%d"  %s><a href="%s" class="subscription-toggle" data-topic="%d">%s</a></span>%s', $r['before'], $topic_id, $sub, $url, $topic_id, $text, $r['after'] );
 
 		// Initial output is wrapped in a span, ajax output is hooked to this
 		if ( !empty( $wrap ) ) {

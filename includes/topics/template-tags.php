@@ -86,28 +86,15 @@ function bbp_has_topics( $args = '' ) {
 
 	/** Defaults **************************************************************/
 
-	// What are the default allowed statuses (based on user caps)
-	if ( bbp_get_view_all() ) {
-		$post_statuses = array( bbp_get_public_status_id(), bbp_get_closed_status_id(), bbp_get_spam_status_id(), bbp_get_trash_status_id() );
-	} else {
-		$post_statuses = array( bbp_get_public_status_id(), bbp_get_closed_status_id() );
-	}
-
-	// Add support for private status
-	if ( current_user_can( 'read_private_topics' ) ) {
-		$post_statuses[] = bbp_get_private_status_id();
-	}
-
+	// Other defaults
 	$default_topic_search  = !empty( $_REQUEST['ts'] ) ? $_REQUEST['ts'] : false;
 	$default_show_stickies = (bool) ( bbp_is_single_forum() || bbp_is_topic_archive() ) && ( false === $default_topic_search );
 	$default_post_parent   = bbp_is_single_forum() ? bbp_get_forum_id() : 'any';
-	$default_post_status   = join( ',', $post_statuses );
 
 	// Default argument array
 	$default = array(
 		'post_type'      => bbp_get_topic_post_type(), // Narrow query down to bbPress topics
 		'post_parent'    => $default_post_parent,      // Forum ID
-		'post_status'    => $default_post_status,      // Post Status
 		'meta_key'       => '_bbp_last_active_time',   // Make sure topic has some last activity time
 		'orderby'        => 'meta_value',              // 'meta_value', 'author', 'date', 'title', 'modified', 'parent', rand',
 		'order'          => 'DESC',                    // 'ASC', 'DESC'
@@ -117,6 +104,30 @@ function bbp_has_topics( $args = '' ) {
 		'show_stickies'  => $default_show_stickies,    // Ignore sticky topics?
 		'max_num_pages'  => false,                     // Maximum number of pages to show
 	);
+
+	// What are the default allowed statuses (based on user caps)
+	if ( bbp_get_view_all() ) {
+
+		// Default view=all statuses
+		$post_statuses = array(
+			bbp_get_public_status_id(),
+			bbp_get_closed_status_id(),
+			bbp_get_spam_status_id(),
+			bbp_get_trash_status_id()
+		);
+
+		// Add support for private status
+		if ( current_user_can( 'read_private_topics' ) ) {
+			$post_statuses[] = bbp_get_private_status_id();
+		}
+
+		// Join post statuses together
+		$default['post_status'] = join( ',', $post_statuses );
+
+	// Lean on the 'perm' query var value of 'readable' to provide statuses
+	} else {
+		$default['perm'] = 'readable';
+	}
 
 	// Maybe query for topic tags
 	if ( bbp_is_topic_tag() ) {
@@ -195,12 +206,20 @@ function bbp_has_topics( $args = '' ) {
 				$sticky_query = array(
 					'post_type'   => bbp_get_topic_post_type(),
 					'post_parent' => 'any',
-					'post_status' => $default_post_status,
 					'meta_key'    => '_bbp_last_active_time',
 					'orderby'     => 'meta_value',
 					'order'       => 'DESC',
 					'include'     => $stickies
 				);
+
+				// What are the default allowed statuses (based on user caps)
+				if ( bbp_get_view_all() ) {
+					$sticky_query['post_status'] = $r['post_status'];
+
+				// Lean on the 'perm' query var value of 'readable' to provide statuses
+				} else {
+					$sticky_query['post_status'] = $r['perm'];
+				}
 
 				// Get all stickies
 				$sticky_posts = get_posts( $sticky_query );
@@ -300,8 +319,8 @@ function bbp_has_topics( $args = '' ) {
 			'format'    => '',
 			'total'     => $r['posts_per_page'] == $bbp->topic_query->found_posts ? 1 : ceil( (int) $bbp->topic_query->found_posts / (int) $r['posts_per_page'] ),
 			'current'   => (int) $bbp->topic_query->paged,
-			'prev_text' => '&larr;',
-			'next_text' => '&rarr;',
+			'prev_text' => is_rtl() ? '&rarr;' : '&larr;',
+			'next_text' => is_rtl() ? '&larr;' : '&rarr;',
 			'mid_size'  => 1
 		) );
 
@@ -365,6 +384,7 @@ function bbp_topic_id( $topic_id = 0) {
 	 *
 	 * @param $topic_id Optional. Used to check emptiness
 	 * @uses bbPress::topic_query::post::ID To get the topic id
+	 * @uses bbp_is_topic() To check if the search result is a topic
 	 * @uses bbp_is_single_topic() To check if it's a topic page
 	 * @uses bbp_is_topic_edit() To check if it's a topic edit page
 	 * @uses bbp_is_single_reply() To check if it it's a reply page
@@ -390,16 +410,20 @@ function bbp_topic_id( $topic_id = 0) {
 		} elseif ( !empty( $bbp->topic_query->in_the_loop ) && isset( $bbp->topic_query->post->ID ) ) {
 			$bbp_topic_id = $bbp->topic_query->post->ID;
 
-		// Currently viewing a forum
+		// Currently inside a search loop
+		} elseif ( !empty( $bbp->search_query->in_the_loop ) && isset( $bbp->search_query->post->ID ) && bbp_is_topic( $bbp->search_query->post->ID ) ) {
+			$bbp_topic_id = $bbp->search_query->post->ID;
+
+		// Currently viewing/editing a topic, likely alone
 		} elseif ( ( bbp_is_single_topic() || bbp_is_topic_edit() ) && !empty( $bbp->current_topic_id ) ) {
 			$bbp_topic_id = $bbp->current_topic_id;
 
-		// Currently viewing a topic
+		// Currently viewing/editing a topic, likely in a loop
 		} elseif ( ( bbp_is_single_topic() || bbp_is_topic_edit() ) && isset( $wp_query->post->ID ) ) {
 			$bbp_topic_id = $wp_query->post->ID;
 
-		// Currently viewing a topic
-		} elseif ( bbp_is_single_reply() ) {
+		// Currently viewing/editing a reply
+		} elseif ( bbp_is_single_reply() || bbp_is_reply_edit() ) {
 			$bbp_topic_id = bbp_get_reply_topic_id();
 
 		// Fallback
@@ -679,7 +703,7 @@ function bbp_topic_post_date( $topic_id = 0, $humanize = false, $gmt = false ) {
 	 * @param bool $gmt Optional. Use GMT
 	 * @uses bbp_get_topic_id() To get the topic id
 	 * @uses get_post_time() to get the topic post time
-	 * @uses bbp_time_since() to maybe humanize the topic post time
+	 * @uses bbp_get_time_since() to maybe humanize the topic post time
 	 * @return string
 	 */
 	function bbp_get_topic_post_date( $topic_id = 0, $humanize = false, $gmt = false ) {
@@ -687,10 +711,10 @@ function bbp_topic_post_date( $topic_id = 0, $humanize = false, $gmt = false ) {
 
 		// 4 days, 4 hours ago
 		if ( !empty( $humanize ) ) {
-			$gmt    = !empty( $gmt ) ? 'G' : 'U';
-			$date   = get_post_time( $gmt, $topic_id );
+			$gmt_s  = !empty( $gmt ) ? 'U' : 'G';
+			$date   = get_post_time( $gmt_s, $gmt, $topic_id );
 			$time   = false; // For filter below
-			$result = bbp_time_since( $date );
+			$result = bbp_get_time_since( $date );
 
 		// August 4, 2012 at 2:37 pm
 		} else {
@@ -1246,7 +1270,11 @@ function bbp_topic_author_display_name( $topic_id = 0 ) {
 		if ( empty( $author_name ) )
 			$author_name = __( 'Anonymous', 'bbpress' );
 
-		return apply_filters( 'bbp_get_topic_author_display_name', esc_attr( $author_name ), $topic_id );
+		// Encode possible UTF8 display names
+		if ( seems_utf8( $author_name ) === false )
+			$author_name = utf8_encode( $author_name );
+
+		return apply_filters( 'bbp_get_topic_author_display_name', $author_name, $topic_id );
 	}
 
 /**
@@ -1350,12 +1378,16 @@ function bbp_topic_author_link( $args = '' ) {
 			// Tweak link title if empty
 			if ( empty( $r['link_title'] ) ) {
 				$link_title = sprintf( !bbp_is_topic_anonymous( $topic_id ) ? __( 'View %s\'s profile', 'bbpress' ) : __( 'Visit %s\'s website', 'bbpress' ), bbp_get_topic_author_display_name( $topic_id ) );
+
+			// Use what was passed if not
+			} else {
+				$link_title = $r['link_title'];
 			}
 
-			$r['link_title'] = !empty( $r['link_title'] ) ? ' title="' . $r['link_title'] . '"' : '';
-			$author_url      = bbp_get_topic_author_url( $topic_id );
-			$anonymous       = bbp_is_topic_anonymous( $topic_id );
-			$author_links    = array();
+			$link_title   = !empty( $link_title ) ? ' title="' . $link_title . '"' : '';
+			$author_url   = bbp_get_topic_author_url( $topic_id );
+			$anonymous    = bbp_is_topic_anonymous( $topic_id );
+			$author_links = array();
 
 			// Get avatar
 			if ( 'avatar' == $r['type'] || 'both' == $r['type'] ) {
@@ -1530,7 +1562,7 @@ function bbp_topic_author_role( $args = array() ) {
 			'after'    => ''
 		), 'get_topic_author_role' );
 
-		$topic_id    = bbp_get_topic_id( $topic_id );
+		$topic_id    = bbp_get_topic_id( $r['topic_id'] );
 		$role        = bbp_get_user_display_role( bbp_get_topic_author_id( $topic_id ) );
 		$author_role = sprintf( '%1$s<div class="%2$s">%3$s</div>%4$s', $r['before'], $r['class'], $role, $r['after'] );
 
@@ -2856,7 +2888,7 @@ function bbp_topic_type_select( $args = '' ) {
 	}
 
 	// Used variables
-	$tab             = !empty( $tab ) ? ' tabindex="' . $tab . '"' : '';
+	$tab             = !empty( $r['tab'] ) ? ' tabindex="' . $r['tab'] . '"' : '';
 	$select_id       = esc_attr( $r['select_id'] );
 	$sticky_statuses = array (
 		'unstick' => $r['unstick_text'],
@@ -3462,7 +3494,7 @@ function bbp_form_topic_forum() {
 
 		// Get _POST data
 		if ( 'post' == strtolower( $_SERVER['REQUEST_METHOD'] ) && isset( $_POST['bbp_forum_id'] ) ) {
-			$topic_forum = $_POST['bbp_forum_id'];
+			$topic_forum = (int) $_POST['bbp_forum_id'];
 
 		// Get edit data
 		} elseif ( bbp_is_topic_edit() ) {
@@ -3473,7 +3505,7 @@ function bbp_form_topic_forum() {
 			$topic_forum = 0;
 		}
 
-		return apply_filters( 'bbp_get_form_topic_forum', esc_attr( $topic_forum ) );
+		return apply_filters( 'bbp_get_form_topic_forum', $topic_forum );
 	}
 
 /**
@@ -3502,7 +3534,7 @@ function bbp_form_topic_subscribed() {
 
 		// Get _POST data
 		if ( 'post' == strtolower( $_SERVER['REQUEST_METHOD'] ) && isset( $_POST['bbp_topic_subscription'] ) ) {
-			$topic_subscribed = $_POST['bbp_topic_subscription'];
+			$topic_subscribed = (bool) $_POST['bbp_topic_subscription'];
 
 		// Get edit data
 		} elseif ( bbp_is_topic_edit() || bbp_is_reply_edit() ) {
@@ -3525,7 +3557,7 @@ function bbp_form_topic_subscribed() {
 
 		// No data
 		} else {
-			$topic_subscribed = 0;
+			$topic_subscribed = false;
 		}
 
 		// Get checked output
@@ -3557,14 +3589,17 @@ function bbp_form_topic_log_edit() {
 
 		// Get _POST data
 		if ( 'post' == strtolower( $_SERVER['REQUEST_METHOD'] ) && isset( $_POST['bbp_log_topic_edit'] ) ) {
-			$topic_revision = $_POST['bbp_log_topic_edit'];
+			$topic_revision = (int) $_POST['bbp_log_topic_edit'];
 
 		// No data
 		} else {
 			$topic_revision = 1;
 		}
 
-		return apply_filters( 'bbp_get_form_topic_log_edit', checked( $topic_revision, true, false ) );
+		// Get checked output
+		$checked = checked( $topic_revision, true, false );
+
+		return apply_filters( 'bbp_get_form_topic_log_edit', $checked, $topic_revision );
 	}
 
 /**

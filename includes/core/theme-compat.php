@@ -108,7 +108,7 @@ function bbp_setup_theme_compat( $theme = '' ) {
  * Gets the name of the bbPress compatable theme used, in the event the
  * currently active WordPress theme does not explicitly support bbPress.
  * This can be filtered or set manually. Tricky theme authors can override the
- * default and include their own bbPress compatability layers for their themes.
+ * default and include their own bbPress compatibility layers for their themes.
  *
  * @since bbPress (r3506)
  * @uses apply_filters()
@@ -122,7 +122,7 @@ function bbp_get_theme_compat_id() {
  * Gets the name of the bbPress compatable theme used, in the event the
  * currently active WordPress theme does not explicitly support bbPress.
  * This can be filtered or set manually. Tricky theme authors can override the
- * default and include their own bbPress compatability layers for their themes.
+ * default and include their own bbPress compatibility layers for their themes.
  *
  * @since bbPress (r3506)
  * @uses apply_filters()
@@ -136,7 +136,7 @@ function bbp_get_theme_compat_name() {
  * Gets the version of the bbPress compatable theme used, in the event the
  * currently active WordPress theme does not explicitly support bbPress.
  * This can be filtered or set manually. Tricky theme authors can override the
- * default and include their own bbPress compatability layers for their themes.
+ * default and include their own bbPress compatibility layers for their themes.
  *
  * @since bbPress (r3506)
  * @uses apply_filters()
@@ -150,7 +150,7 @@ function bbp_get_theme_compat_version() {
  * Gets the bbPress compatable theme used in the event the currently active
  * WordPress theme does not explicitly support bbPress. This can be filtered,
  * or set manually. Tricky theme authors can override the default and include
- * their own bbPress compatability layers for their themes.
+ * their own bbPress compatibility layers for their themes.
  *
  * @since bbPress (r3032)
  * @uses apply_filters()
@@ -164,7 +164,7 @@ function bbp_get_theme_compat_dir() {
  * Gets the bbPress compatable theme used in the event the currently active
  * WordPress theme does not explicitly support bbPress. This can be filtered,
  * or set manually. Tricky theme authors can override the default and include
- * their own bbPress compatability layers for their themes.
+ * their own bbPress compatibility layers for their themes.
  *
  * @since bbPress (r3032)
  * @uses apply_filters()
@@ -435,6 +435,8 @@ function bbp_theme_compat_reset_post( $args = array() ) {
  * @uses bbp_get_single_user_edit_template() To get user edit template
  * @uses bbp_is_single_view() To check if page is single view
  * @uses bbp_get_single_view_template() To get view template
+ * @uses bbp_is_search() To check if page is search
+ * @uses bbp_get_search_template() To get search template
  * @uses bbp_is_forum_edit() To check if page is forum edit
  * @uses bbp_get_forum_edit_template() To get forum edit template
  * @uses bbp_is_topic_merge() To check if page is topic merge
@@ -451,11 +453,15 @@ function bbp_theme_compat_reset_post( $args = array() ) {
  */
 function bbp_template_include_theme_compat( $template = '' ) {
 
-	// Bail if the template already matches a bbPress template. This includes
-	// archive-* and single-* WordPress post_type matches (allowing
-	// themes to use the expected format) as well as all bbPress-specific
-	// template files for users, topics, forums, etc...
-	if ( !empty( bbpress()->theme_compat->bbpress_template ) )
+	/**
+	 * If BuddyPress is activated at a network level, the action order is
+	 * reversed, which causes the template integration to fail. If we're looking
+	 * at a BuddyPress page here, bail to prevent the extra processing.
+	 *
+	 * This is a bit more brute-force than is probably necessary, but gets the
+	 * job done while we work towards something more elegant.
+	 */
+	if ( function_exists( 'is_buddypress' ) && is_buddypress() )
 		return $template;
 
 	/** Users *************************************************************/
@@ -591,6 +597,22 @@ function bbp_template_include_theme_compat( $template = '' ) {
 			'comment_status' => 'closed'
 		) );
 
+	/** Search ************************************************************/
+
+	} elseif ( bbp_is_search() ) {
+
+		// Reset post
+		bbp_theme_compat_reset_post( array(
+			'ID'             => 0,
+			'post_title'     => bbp_get_search_title(),
+			'post_author'    => 0,
+			'post_date'      => 0,
+			'post_content'   => '',
+			'post_type'      => '',
+			'post_status'    => bbp_get_public_status_id(),
+			'comment_status' => 'closed'
+		) );
+
 	/** Topic Tags ********************************************************/
 
 	// Topic Tag Edit
@@ -611,6 +633,20 @@ function bbp_template_include_theme_compat( $template = '' ) {
 			'comment_status' => 'closed'
 		) );
 	}
+
+	/**
+	 * Bail if the template already matches a bbPress template. This includes
+	 * archive-* and single-* WordPress post_type matches (allowing
+	 * themes to use the expected format) as well as all bbPress-specific
+	 * template files for users, topics, forums, etc...
+	 *
+	 * We do this after the above checks to prevent incorrect 404 body classes
+	 * and header statuses.
+	 *
+	 * @see http://bbpress.trac.wordpress.org/ticket/1478/
+	 */
+	if ( !empty( bbpress()->theme_compat->bbpress_template ) )
+		return $template;
 
 	/**
 	 * If we are relying on bbPress's built in theme compatibility to load
@@ -823,6 +859,11 @@ function bbp_replace_the_content( $content = '' ) {
 
 	} elseif ( bbp_is_single_view() ) {
 		$new_content = $bbp->shortcodes->display_view( array( 'id' => get_query_var( 'bbp_view' ) ) );
+
+	/** Search ************************************************************/
+
+	} elseif ( bbp_is_search() ) {
+		$new_content = $bbp->shortcodes->display_search( array( 'search' => get_query_var( 'bbp_search' ) ) );
 
 	/** Topic Tags ********************************************************/
 
