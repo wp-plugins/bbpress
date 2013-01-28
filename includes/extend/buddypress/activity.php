@@ -235,8 +235,10 @@ class BBP_BuddyPress_Activity {
 	 * @uses bp_activity_set_action()
 	 */
 	public function register_activity_actions() {
-		bp_activity_set_action( $this->component, $this->topic_create, __( 'New topic created', 'bbpress' ) );
-		bp_activity_set_action( $this->component, $this->reply_create, __( 'New reply created', 'bbpress' ) );
+
+		// Sitewide activity stream items
+		bp_activity_set_action( $this->component, $this->topic_create, __( 'New forum topic', 'bbpress' ) );
+		bp_activity_set_action( $this->component, $this->reply_create, __( 'New forum reply', 'bbpress' ) );
 	}
 
 	/**
@@ -500,7 +502,7 @@ class BBP_BuddyPress_Activity {
 		if ( $activity_id = $this->get_activity_id( $topic_id ) )
 			return bp_activity_delete( array( 'id' => $activity_id ) );
 
-		return false;		
+		return false;
 	}
 
 	/**
@@ -651,7 +653,7 @@ class BBP_BuddyPress_Activity {
 		if ( $activity_id = $this->get_activity_id( $reply_id ) )
 			return bp_activity_delete( array( 'id' => $activity_id ) );
 
-		return false;		
+		return false;
 	}
 
 	/**
