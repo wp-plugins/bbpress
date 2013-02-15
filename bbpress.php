@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 4751 2013-02-01 16:45:06Z johnjamesjacoby $
+ * $Id: bbpress.php 4764 2013-02-11 18:29:42Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -671,7 +671,7 @@ final class bbPress {
 			bbp_get_closed_status_id(),
 			apply_filters( 'bbp_register_closed_post_status', array(
 				'label'             => _x( 'Closed', 'post', 'bbpress' ),
-				'label_count'       => _nx_noop( 'Closed <span class="count">(%s)</span>', 'Closed <span class="count">(%s)</span>', 'bbpress' ),
+				'label_count'       => _nx_noop( 'Closed <span class="count">(%s)</span>', 'Closed <span class="count">(%s)</span>', 'post', 'bbpress' ),
 				'public'            => true,
 				'show_in_admin_all' => true
 			) )
@@ -682,7 +682,7 @@ final class bbPress {
 			bbp_get_spam_status_id(),
 			apply_filters( 'bbp_register_spam_post_status', array(
 				'label'                     => _x( 'Spam', 'post', 'bbpress' ),
-				'label_count'               => _nx_noop( 'Spam <span class="count">(%s)</span>', 'Spam <span class="count">(%s)</span>', 'bbpress' ),
+				'label_count'               => _nx_noop( 'Spam <span class="count">(%s)</span>', 'Spam <span class="count">(%s)</span>', 'post', 'bbpress' ),
 				'protected'                 => true,
 				'exclude_from_search'       => true,
 				'show_in_admin_status_list' => true,
@@ -695,7 +695,7 @@ final class bbPress {
 			bbp_get_orphan_status_id(),
 			apply_filters( 'bbp_register_orphan_post_status', array(
 				'label'                     => _x( 'Orphan', 'post', 'bbpress' ),
-				'label_count'               => _nx_noop( 'Orphan <span class="count">(%s)</span>', 'Orphans <span class="count">(%s)</span>', 'bbpress' ),
+				'label_count'               => _nx_noop( 'Orphan <span class="count">(%s)</span>', 'Orphans <span class="count">(%s)</span>', 'post', 'bbpress' ),
 				'protected'                 => true,
 				'exclude_from_search'       => true,
 				'show_in_admin_status_list' => true,
@@ -708,7 +708,7 @@ final class bbPress {
 			bbp_get_hidden_status_id(),
 			apply_filters( 'bbp_register_hidden_post_status', array(
 				'label'                     => _x( 'Hidden', 'post', 'bbpress' ),
-				'label_count'               => _nx_noop( 'Hidden <span class="count">(%s)</span>', 'Hidden <span class="count">(%s)</span>', 'bbpress' ),
+				'label_count'               => _nx_noop( 'Hidden <span class="count">(%s)</span>', 'Hidden <span class="count">(%s)</span>', 'post', 'bbpress' ),
 				'private'                   => true,
 				'exclude_from_search'       => true,
 				'show_in_admin_status_list' => true,

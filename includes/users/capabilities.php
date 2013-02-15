@@ -81,6 +81,10 @@ function bbp_set_user_role( $user_id = 0, $new_role = '' ) {
 
 			// Add the new role
 			if ( !empty( $new_role ) ) {
+
+				// Make sure bbPress roles are added
+				bbp_add_forums_roles();
+
 				$user->add_role( $new_role );
 			}
 		}
@@ -136,12 +140,9 @@ function bbp_get_user_role( $user_id = 0 ) {
  * @return string
  */
 function bbp_get_user_blog_role( $user_id = 0 ) {
-	global $wp_roles;
 
-	// This really shold not be necessary anymore, and will likely be removed
-	// at a later date. If roles aren't loaded yet, something else is wrong.
-	if ( ! isset( $wp_roles ) )
-		$wp_roles = new WP_Roles();
+	// Add bbPress roles (returns $wp_roles global)
+	$wp_roles  = bbp_add_forums_roles();
 
 	// Validate user id
 	$user_id   = bbp_get_user_id( $user_id, false, false );
@@ -163,7 +164,7 @@ function bbp_get_user_blog_role( $user_id = 0 ) {
 }
 
 /**
- * Helper function hooked to 'bbp_edit_user_profile_update' action to save or
+ * Helper function hooked to 'bbp_profile_update' action to save or
  * update user roles and capabilities.
  *
  * @since bbPress (r4235)
@@ -186,10 +187,20 @@ function bbp_profile_update_role( $user_id = 0 ) {
 	$new_role    = sanitize_text_field( $_POST['bbp-forums-role'] );
 	$forums_role = bbp_get_user_role( $user_id );
 
+	// Bail if no role change
+	if ( $new_role == $forums_role )
+		return;
+
+	// Bail if trying to set their own role
+	if ( bbp_is_user_home_edit() )
+		return;
+	
+	// Bail if current user cannot promote the passing user
+	if ( ! current_user_can( 'promote_user', $user_id ) )
+		return;
+
 	// Set the new forums role
-	if ( $new_role != $forums_role ) {
-		bbp_set_user_role( $user_id, $new_role );
-	}
+	bbp_set_user_role( $user_id, $new_role );
 }
 
 /**
@@ -266,6 +277,10 @@ function bbp_set_current_user_default_role() {
 
 	// Add the user to the site
 	if ( true == $add_to_site ) {
+
+		// Make sure bbPress roles are added
+		bbp_add_forums_roles();
+
 		$bbp->current_user->add_role( $new_role );
 
 	// Don't add the user, but still give them the correct caps dynamically
