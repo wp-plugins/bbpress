@@ -1111,7 +1111,7 @@ function bbp_wp_login_action( $args = '' ) {
 
 	$login_url = site_url( $login_url, $r['context'] );
 
-	echo apply_filters( 'bbp_wp_login_action', $login_url, $args );
+	echo apply_filters( 'bbp_wp_login_action', $login_url, $r );
 }
 
 /**
@@ -1429,7 +1429,7 @@ function bbp_dropdown( $args = '' ) {
 			}
 		}
 
-		return apply_filters( 'bbp_get_dropdown', $retval, $args );
+		return apply_filters( 'bbp_get_dropdown', $retval, $r );
 	}
 
 /**
@@ -2105,8 +2105,12 @@ function bbp_breadcrumb( $args = array() ) {
 
 		/** Current Text ******************************************************/
 
+		// Search page
+		if ( bbp_is_search() ) {
+			$pre_current_text = bbp_get_search_title();
+
 		// Forum archive
-		if ( bbp_is_forum_archive() ) {
+		} elseif ( bbp_is_forum_archive() ) {
 			$pre_current_text = bbp_get_forum_archive_title();
 
 		// Topic archive
@@ -2224,6 +2228,10 @@ function bbp_breadcrumb( $args = array() ) {
 				// Parents
 				$parent = get_post( $parent_id );
 
+				// Skip parent if empty or error
+				if ( empty( $parent ) || is_wp_error( $parent ) )
+					continue;
+
 				// Switch through post_type to ensure correct filters are applied
 				switch ( $parent->post_type ) {
 
@@ -2274,7 +2282,11 @@ function bbp_breadcrumb( $args = array() ) {
 
 		// Pad the separator
 		if ( !empty( $r['pad_sep'] ) ) {
-			$sep = str_pad( $sep, strlen( $sep ) + ( (int) $r['pad_sep'] * 2 ), ' ', STR_PAD_BOTH );
+			if ( function_exists( 'mb_strlen' ) ) {
+				$sep = str_pad( $sep, mb_strlen( $sep ) + ( (int) $r['pad_sep'] * 2 ), ' ', STR_PAD_BOTH );
+			} else {
+				$sep = str_pad( $sep, strlen( $sep ) + ( (int) $r['pad_sep'] * 2 ), ' ', STR_PAD_BOTH );
+			}
 		}
 
 		/** Finish Up *********************************************************/

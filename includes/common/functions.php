@@ -578,7 +578,7 @@ function bbp_get_statistics( $args = '' ) {
 	$statistics['hidden_topic_title'] = isset( $hidden_topic_title ) ? $hidden_topic_title : '';
 	$statistics['hidden_reply_title'] = isset( $hidden_reply_title ) ? $hidden_reply_title : '';
 
-	return apply_filters( 'bbp_get_statistics', $statistics, $args );
+	return apply_filters( 'bbp_get_statistics', $statistics, $r );
 }
 
 /** New/edit topic/reply helpers **********************************************/
@@ -632,7 +632,7 @@ function bbp_filter_anonymous_post_data( $args = '' ) {
 	$retval = bbp_has_errors() ? false : $r;
 
 	// Finally, return sanitized data or false
-	return apply_filters( 'bbp_filter_anonymous_post_data', $retval, $args );
+	return apply_filters( 'bbp_filter_anonymous_post_data', $retval, $r );
 }
 
 /**
@@ -761,7 +761,7 @@ function bbp_check_for_flood( $anonymous_data = false, $author_id = 0 ) {
  * @param int $author_id Topic or reply author ID
  * @param string $title The title of the content
  * @param string $content The content being posted
- * @uses is_super_admin() Allow super admins to bypass blacklist
+ * @uses bbp_is_user_keymaster() Allow keymasters to bypass blacklist
  * @uses bbp_current_author_ip() To get current user IP address
  * @uses bbp_current_author_ua() To get current user agent
  * @return bool True if test is passed, false if fail
@@ -772,8 +772,8 @@ function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $tit
 	if ( apply_filters( 'bbp_bypass_check_for_moderation', false, $anonymous_data, $author_id, $title, $content ) )
 		return true;
 
-	// Bail if super admin is author
-	if ( is_super_admin( $author_id ) )
+	// Bail if keymaster is author
+	if ( bbp_is_user_keymaster( $author_id ) )
 		return true;
 
 	// Define local variable(s)
@@ -880,7 +880,7 @@ function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $tit
  * @param int $author_id Topic or reply author ID
  * @param string $title The title of the content
  * @param string $content The content being posted
- * @uses is_super_admin() Allow super admins to bypass blacklist
+ * @uses bbp_is_user_keymaster() Allow keymasters to bypass blacklist
  * @uses bbp_current_author_ip() To get current user IP address
  * @uses bbp_current_author_ua() To get current user agent
  * @return bool True if test is passed, false if fail
@@ -891,8 +891,8 @@ function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $titl
 	if ( apply_filters( 'bbp_bypass_check_for_blacklist', false, $anonymous_data, $author_id, $title, $content ) )
 		return true;
 
-	// Bail if super admin is author
-	if ( is_super_admin( $author_id ) )
+	// Bail if keymaster is author
+	if ( bbp_is_user_keymaster( $author_id ) )
 		return true;
 
 	// Define local variable

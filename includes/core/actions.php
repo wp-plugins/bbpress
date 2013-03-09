@@ -82,12 +82,17 @@ add_action( 'bbp_init', 'bbp_add_rewrite_tags', 20  );
 add_action( 'bbp_init', 'bbp_ready',            999 );
 
 /**
- * There is no action API for roles to use, so hook in immediately after the
- * $wp_roles global is set, which is the 'setup_theme' action.
+ * There is no action API for roles to use, so hook in immediately after
+ * everything is included (including the theme's functions.php. This is after
+ * the $wp_roles global is set but before $wp->init().
+ *
+ * If it's hooked in any sooner, role names may not be translated correctly.
+ *
+ * @link http://bbpress.trac.wordpress.org/ticket/2219
  *
  * This is kind of lame, but is all we have for now.
  */
-add_action( 'bbp_setup_theme', 'bbp_add_forums_roles', 1 );
+add_action( 'bbp_after_setup_theme', 'bbp_add_forums_roles', 1 );
 
 /**
  * When setting up the current user, make sure they have a role for the forums.
@@ -136,8 +141,8 @@ add_action( 'bbp_widgets_init', array( 'BBP_Topics_Widget',  'register_widget' )
 add_action( 'bbp_widgets_init', array( 'BBP_Replies_Widget', 'register_widget' ), 10 );
 add_action( 'bbp_widgets_init', array( 'BBP_Stats_Widget',   'register_widget' ), 10 );
 
-// Template - Head, foot, errors and messages
-add_action( 'bbp_loaded',           'bbp_login_notices'    );
+// Notices (loaded after bbp_init for translations)
+add_action( 'bbp_head',             'bbp_login_notices'    );
 add_action( 'bbp_head',             'bbp_topic_notices'    );
 add_action( 'bbp_template_notices', 'bbp_template_notices' );
 

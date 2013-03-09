@@ -80,7 +80,6 @@ class BBP_Topics_Admin {
 
 		// Anonymous metabox actions
 		add_action( 'add_meta_boxes', array( $this, 'author_metabox'      ) );
-		add_action( 'save_post',      array( $this, 'author_metabox_save' ) );
 
 		// Add ability to filter topics and replies per forum
 		add_filter( 'restrict_manage_posts', array( $this, 'filter_dropdown'  ) );
@@ -295,7 +294,7 @@ class BBP_Topics_Admin {
 			return $topic_id;
 
 		// Bail if not a post request
-		if ( 'POST' != strtoupper( $_SERVER['REQUEST_METHOD'] ) )
+		if ( ! bbp_is_post_request() )
 			return $topic_id;
 
 		// Nonce check
@@ -309,8 +308,13 @@ class BBP_Topics_Admin {
 		// Get the forum ID
 		$forum_id = !empty( $_POST['parent_id'] ) ? (int) $_POST['parent_id'] : 0;
 
+		// Get topic author data
+		$anonymous_data = bbp_filter_anonymous_post_data();
+		$author_id      = bbp_get_topic_author_id( $topic_id );
+		$is_edit        = (bool) isset( $_POST['save'] );
+
 		// Formally update the topic
-		bbp_update_topic( $topic_id, $forum_id );
+		bbp_update_topic( $topic_id, $forum_id, $anonymous_data, $author_id, $is_edit );
 
 		// Stickies
 		if ( !empty( $_POST['bbp_stick_topic'] ) && in_array( $_POST['bbp_stick_topic'], array( 'stick', 'super', 'unstick' ) ) ) {
@@ -337,7 +341,8 @@ class BBP_Topics_Admin {
 		}
 
 		// Allow other fun things to happen
-		do_action( 'bbp_topic_attributes_metabox_save', $topic_id, $forum_id );
+		do_action( 'bbp_topic_attributes_metabox_save', $topic_id, $forum_id       );
+		do_action( 'bbp_author_metabox_save',           $topic_id, $anonymous_data );
 
 		return $topic_id;
 	}
@@ -374,53 +379,6 @@ class BBP_Topics_Admin {
 		);
 
 		do_action( 'bbp_author_metabox', get_the_ID() );
-	}
-
-	/**
-	 * Save the author information for the topic
-	 *
-	 * @since bbPress (r2828)
-	 *
-	 * @param int $post_id Topic or reply id
-	 * @uses bbp_get_topic() To get the topic
-	 * @uses bbp_get_reply() To get the reply
-	 * @uses current_user_can() To check if the current user can edit the
-	 *                           topic or reply
-	 * @uses bbp_filter_author_post_data() To filter the author data
-	 * @uses update_post_meta() To update the anonymous user data
-	 * @uses do_action() Calls 'bbp_author_metabox_save' with the topic id and
-	 *                    anonymous data
-	 * @return int Topic or reply id
-	 */
-	public function author_metabox_save( $post_id ) {
-
-		if ( $this->bail() ) return $post_id;
-
-		// Bail if no post_id
-		if ( empty( $post_id ) )
-			return $post_id;
-
-		// Bail if doing an autosave
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-			return $post_id;
-
-		// Bail if not a post request
-		if ( 'POST' != strtoupper( $_SERVER['REQUEST_METHOD'] ) )
-			return $post_id;
-
-		// Bail if user cannot edit topics
-		if ( !current_user_can( 'edit_topic', $post_id ) )
-			return $post_id;
-
-		$anonymous_data = bbp_filter_anonymous_post_data();
-
-		update_post_meta( $post_id, '_bbp_anonymous_name',    $anonymous_data['bbp_anonymous_name']    );
-		update_post_meta( $post_id, '_bbp_anonymous_email',   $anonymous_data['bbp_anonymous_email']   );
-		update_post_meta( $post_id, '_bbp_anonymous_website', $anonymous_data['bbp_anonymous_website'] );
-
-		do_action( 'bbp_author_metabox_save', $post_id, $anonymous_data );
-
-		return $post_id;
 	}
 
 	/**
@@ -526,7 +484,7 @@ class BBP_Topics_Admin {
 		if ( $this->bail() ) return;
 
 		// Only proceed if GET is a topic toggle action
-		if ( 'GET' == $_SERVER['REQUEST_METHOD'] && !empty( $_GET['action'] ) && in_array( $_GET['action'], array( 'bbp_toggle_topic_close', 'bbp_toggle_topic_stick', 'bbp_toggle_topic_spam' ) ) && !empty( $_GET['topic_id'] ) ) {
+		if ( bbp_is_get_request() && !empty( $_GET['action'] ) && in_array( $_GET['action'], array( 'bbp_toggle_topic_close', 'bbp_toggle_topic_stick', 'bbp_toggle_topic_spam' ) ) && !empty( $_GET['topic_id'] ) ) {
 			$action    = $_GET['action'];            // What action is taking place?
 			$topic_id  = (int) $_GET['topic_id'];    // What's the topic id?
 			$success   = false;                      // Flag
@@ -607,7 +565,7 @@ class BBP_Topics_Admin {
 		if ( $this->bail() ) return;
 
 		// Only proceed if GET is a topic toggle action
-		if ( 'GET' == $_SERVER['REQUEST_METHOD'] && !empty( $_GET['bbp_topic_toggle_notice'] ) && in_array( $_GET['bbp_topic_toggle_notice'], array( 'opened', 'closed', 'super_sticked', 'sticked', 'unsticked', 'spammed', 'unspammed' ) ) && !empty( $_GET['topic_id'] ) ) {
+		if ( bbp_is_get_request() && !empty( $_GET['bbp_topic_toggle_notice'] ) && in_array( $_GET['bbp_topic_toggle_notice'], array( 'opened', 'closed', 'super_sticked', 'sticked', 'unsticked', 'spammed', 'unspammed' ) ) && !empty( $_GET['topic_id'] ) ) {
 			$notice     = $_GET['bbp_topic_toggle_notice'];         // Which notice?
 			$topic_id   = (int) $_GET['topic_id'];                  // What's the topic id?
 			$is_failure = !empty( $_GET['failed'] ) ? true : false; // Was that a failure?
