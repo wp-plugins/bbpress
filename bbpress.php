@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 4764 2013-02-11 18:29:42Z johnjamesjacoby $
+ * $Id: bbpress.php 4811 2013-03-15 10:18:42Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -17,7 +17,7 @@
  * Description: bbPress is forum software with a twist from the creators of WordPress.
  * Author:      The bbPress Community
  * Author URI:  http://bbpress.org
- * Version:     2.3-beta2
+ * Version:     2.3-rc1
  * Text Domain: bbpress
  * Domain Path: /languages/
  */
@@ -188,7 +188,7 @@ final class bbPress {
 
 		/** Versions **********************************************************/
 
-		$this->version    = '2.3-beta2';
+		$this->version    = '2.3-rc1';
 		$this->db_version = '224';
 
 		/** Paths *************************************************************/
@@ -734,7 +734,7 @@ final class bbPress {
 				$wp_post_statuses['trash']->protected = true;
 
 			// User cannot view trash so set internal to true
-			} elseif ( !current_user_can( 'view_trash' ) ) {
+			} else {
 				$wp_post_statuses['trash']->internal = true;
 			}
 		}
@@ -797,15 +797,28 @@ final class bbPress {
 	 */
 	public static function register_views() {
 
+		// Popular topics
+		bbp_register_view(
+			'popular',
+			__( 'Most popular topics', 'bbpress' ),
+			apply_filters( 'bbp_register_view_popular', array(
+				'meta_key'      => '_bbp_reply_count',
+				'max_num_pages' => 1,
+				'orderby'       => 'meta_value_num',
+				'show_stickies' => false
+			)
+		) );
+
 		// Topics with no replies
 		bbp_register_view(
 			'no-replies',
 			__( 'Topics with no replies', 'bbpress' ),
 			apply_filters( 'bbp_register_view_no_replies', array(
-				'meta_key'     => '_bbp_reply_count',
-				'meta_value'   => 1,
-				'meta_compare' => '<',
-				'orderby'      => ''
+				'meta_key'      => '_bbp_reply_count',
+				'meta_value'    => 1,
+				'meta_compare'  => '<',
+				'orderby'       => '',
+				'show_stickies' => false
 			)
 		) );
 	}

@@ -170,7 +170,7 @@ function bbp_new_forum_handler( $action = '' ) {
 	// Forum parent was passed (the norm)
 	if ( !empty( $_POST['bbp_forum_parent_id'] ) )
 		$forum_parent_id = (int) $_POST['bbp_forum_parent_id'];
-		
+
 	// Filter and sanitize
 	$forum_parent_id = apply_filters( 'bbp_new_forum_pre_parent_id', $forum_parent_id );
 
@@ -199,7 +199,7 @@ function bbp_new_forum_handler( $action = '' ) {
 		// Forum is hidden and user cannot access
 		if ( bbp_is_forum_hidden( $forum_parent_id ) && !current_user_can( 'read_hidden_forums' ) ) {
 			bbp_add_error( 'bbp_new_forum_forum_hidden', __( '<strong>ERROR</strong>: This forum is hidden and you do not have the capability to read or create new forums in it.', 'bbpress' ) );
-		}		
+		}
 	}
 
 	/** Forum Flooding ********************************************************/
@@ -1155,7 +1155,7 @@ function bbp_update_forum_last_reply_id( $forum_id = 0, $reply_id = 0 ) {
 	// Cast as integer in case of empty or string
 	$reply_id            = (int) $reply_id;
 	$children_last_reply = (int) $children_last_reply;
-	
+
 	// If child forums have higher ID, check for newer reply id
 	if ( !empty( $children ) && ( $children_last_reply > $reply_id ) )
 		$reply_id = $children_last_reply;
@@ -1559,7 +1559,7 @@ function bbp_exclude_forum_ids( $type = 'string' ) {
 			$retval = array( array() ) ;
 			break;
 	}
-	
+
 	// Exclude for everyone but keymasters
 	if ( ! bbp_is_user_keymaster() ) {
 
@@ -1607,9 +1607,13 @@ function bbp_exclude_forum_ids( $type = 'string' ) {
 }
 
 /**
- * Adjusts topic and reply queries to exclude items that might be contained
- * inside hidden or private forums that the user does not have the capability
- * to view.
+ * Adjusts forum, topic, and reply queries to exclude items that might be
+ * contained inside hidden or private forums that the user does not have the
+ * capability to view.
+ *
+ * Doing it with an action allows us to trap all WP_Query's rather than needing
+ * to hardcode this logic into each query. It also protects forum content for
+ * plugins that might be doing their own queries.
  *
  * @since bbPress (r3291)
  *
@@ -1621,7 +1625,7 @@ function bbp_exclude_forum_ids( $type = 'string' ) {
  * @uses bbp_get_reply_post_type()
  * @return WP_Query
  */
-function bbp_pre_get_posts_exclude_forums( $posts_query ) {
+function bbp_pre_get_posts_normalize_forum_visibility( $posts_query = null ) {
 
 	// Bail if all forums are explicitly allowed
 	if ( true === apply_filters( 'bbp_include_all_forums', false, $posts_query ) ) {
@@ -1649,24 +1653,50 @@ function bbp_pre_get_posts_exclude_forums( $posts_query ) {
 			return;
 		}
 
-		// Define local variable
-		$status = array();
+		/** Default ***********************************************************/
 
-		// All users can see published forums
-		$status[] = bbp_get_public_status_id();
+		// Get any existing post status
+		$post_stati = $posts_query->get( 'post_status' );
 
-		// Add bbp_get_private_status_id() if user is capable
-		if ( current_user_can( 'read_private_forums' ) ) {
-			$status[] = bbp_get_private_status_id();
+		// Default to public status
+		if ( empty( $post_stati ) ) {
+			$post_stati[] = bbp_get_public_status_id();
+
+		// Split the status string
+		} elseif ( is_string( $post_stati ) ) {
+			$post_stati = explode( ',', $post_stati );
 		}
 
-		// Add bbp_get_hidden_status_id() if user is capable
-		if ( current_user_can( 'read_hidden_forums' ) ) {
-			$status[] = bbp_get_hidden_status_id();
+		/** Private ***********************************************************/
+
+		// Remove bbp_get_private_status_id() if user is not capable
+		if ( ! current_user_can( 'read_private_forums' ) ) {
+			$key = array_search( bbp_get_private_status_id(), $post_stati );
+			if ( !empty( $key ) ) {
+				unset( $post_stati[$key] );
+			}
+
+		// ...or add it if they are
+		} else {
+			$post_stati[] = bbp_get_private_status_id();
 		}
 
-		// Implode and add the statuses
-		$posts_query->set( 'post_status', implode( ',', $status ) );
+		/** Hidden ************************************************************/
+
+		// Remove bbp_get_hidden_status_id() if user is not capable
+		if ( ! current_user_can( 'read_hidden_forums' ) ) {
+			$key = array_search( bbp_get_hidden_status_id(), $post_stati );
+			if ( !empty( $key ) ) {
+				unset( $post_stati[$key] );
+			}
+
+		// ...or add it if they are
+		} else {
+			$post_stati[] = bbp_get_hidden_status_id();
+		}
+
+		// Add the statuses
+		$posts_query->set( 'post_status', $post_stati );
 	}
 
 	// Topics Or Replies
@@ -1895,7 +1925,7 @@ function bbp_forum_enforce_private() {
 
 /**
  * Redirect if unathorized user is attempting to edit a forum
- * 
+ *
  * @since bbPress (r3607)
  *
  * @uses bbp_is_forum_edit()
@@ -1967,7 +1997,7 @@ function bbp_delete_forum_topics( $forum_id = 0 ) {
 
 /**
  * Trash all topics inside a forum
- * 
+ *
  * @since bbPress (r3668)
  *
  * @param int $forum_id

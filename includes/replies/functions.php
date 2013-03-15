@@ -111,7 +111,7 @@ function bbp_new_reply_handler( $action = '' ) {
 
 	// Nonce check
 	if ( ! bbp_verify_nonce_request( 'bbp-new-reply' ) ) {
-		bbp_add_error( 'bbp_rew_reply_nonce', __( '<strong>ERROR</strong>: Are you sure you wanted to do that?', 'bbpress' ) );
+		bbp_add_error( 'bbp_new_reply_nonce', __( '<strong>ERROR</strong>: Are you sure you wanted to do that?', 'bbpress' ) );
 		return;
 	}
 
@@ -1229,15 +1229,15 @@ function bbp_move_reply_handler( $action = '' ) {
 			'post_date'     => $destination_post_date,
 			'post_date_gmt' => get_gmt_from_date( $destination_post_date )
 		);
-	
+
 		// Update destination topic
 		wp_update_post( $postarr );
 	}
-	
+
 	// Set the last reply ID and freshness to the move_reply
 	$last_reply_id = $move_reply->ID;
 	$freshness     = $move_reply->post_date;
-	
+
 	// It is a new topic and we need to set some default metas to make
 	// the topic display in bbp_has_topics() list
 	if ( 'topic' == $move_option ) {
@@ -1256,7 +1256,7 @@ function bbp_move_reply_handler( $action = '' ) {
 	bbp_update_topic_last_reply_id   ( $source_topic->ID );
 	bbp_update_topic_last_active_id  ( $source_topic->ID );
 	bbp_update_topic_last_active_time( $source_topic->ID );
-	
+
 	/** Successful Move ******************************************************/
 
 	// Update counts, etc...
@@ -1533,6 +1533,11 @@ function bbp_unspam_reply( $reply_id = 0 ) {
 	// Get pre spam status
 	$reply['post_status'] = get_post_meta( $reply_id, '_bbp_spam_meta_status', true );
 
+	// If no previous status, default to publish
+	if ( empty( $reply['post_status'] ) ) {
+		$reply['post_status'] = bbp_get_public_status_id();
+	}
+
 	// Delete pre spam meta
 	delete_post_meta( $reply_id, '_bbp_spam_meta_status' );
 
@@ -1728,25 +1733,29 @@ function bbp_reply_content_autoembed() {
  */
 function _bbp_has_replies_where( $where = '', $query = false ) {
 
+	/** Bail ******************************************************************/
+
 	// Bail if the sky is falling
-	if ( empty( $where ) || empty( $query ) )
+	if ( empty( $where ) || empty( $query ) ) {
 		return $where;
+	}
 
 	// Bail if no post_parent to replace
-	if ( ! is_numeric( $query->get( 'post_parent' ) ) )
+	if ( ! is_numeric( $query->get( 'post_parent' ) ) ) {
 		return $where;
+	}
 
 	// Bail if not a topic and reply query
-	if ( array( bbp_get_topic_post_type(), bbp_get_reply_post_type() ) != $query->get( 'post_type' ) )
+	if ( array( bbp_get_topic_post_type(), bbp_get_reply_post_type() ) != $query->get( 'post_type' ) ) {
 		return $where;
-
-	// Bail if meta query (cannot FORCE INDEX when join'ing postmeta)
-	if ( $query->get( 'meta_key' ) || $query->get( 'meta_query' ) )
-		return $where;
+	}
 
 	// Bail if including or excluding specific post ID's
-	if ( $query->get( 'post__not_in' ) || $query->get( 'post__in' ) )
+	if ( $query->get( 'post__not_in' ) || $query->get( 'post__in' ) ) {
 		return $where;
+	}
+
+	/** Proceed ***************************************************************/
 
 	global $wpdb;
 
