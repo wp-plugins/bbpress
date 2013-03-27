@@ -161,38 +161,55 @@ function bbp_has_topics( $args = '' ) {
 
 		// Get super stickies and stickies in this forum
 		$stickies = bbp_get_super_stickies();
-		$stickies = !empty( $r['post_parent'] ) ? array_merge( $stickies, bbp_get_stickies( $r['post_parent'] ) ) : $stickies;
+
+		// Get stickies for current forum
+		if ( !empty( $r['post_parent'] ) ) {
+			$stickies = array_merge( $stickies, bbp_get_stickies( $r['post_parent'] ) );
+		}
+
+		// Remove any duplicate stickies
 		$stickies = array_unique( $stickies );
 
 		// We have stickies
 		if ( is_array( $stickies ) && !empty( $stickies ) ) {
 
-			// Setup the number of stickies and reset offset to 0
-			$num_topics    = count( $bbp->topic_query->posts );
-			$sticky_offset = 0;
+			// Start the offset at -1 so first sticky is at correct 0 offset
+			$sticky_offset = -1;
 
 			// Loop over topics and relocate stickies to the front.
-			for ( $i = 0; $i < $num_topics; $i++ ) {
-				if ( in_array( $bbp->topic_query->posts[$i]->ID, $stickies ) ) {
-					$sticky = $bbp->topic_query->posts[$i];
+			foreach ( $stickies as $sticky_index => $sticky_ID ) {
+
+				// Get the post offset from the posts array
+				$post_offsets = wp_filter_object_list( $bbp->topic_query->posts, array( 'ID' => $sticky_ID ), 'OR', 'ID' );
+
+				// Continue if no post offsets
+				if ( empty( $post_offsets ) ) {
+					continue;
+				}
+
+				// Loop over posts in current query and splice them into position
+				foreach ( array_keys( $post_offsets ) as $post_offset ) {
+					$sticky_offset++;
+
+					$sticky = $bbp->topic_query->posts[$post_offset];
 
 					// Remove sticky from current position
-					array_splice( $bbp->topic_query->posts, $i, 1 );
+					array_splice( $bbp->topic_query->posts, $post_offset, 1 );
 
 					// Move to front, after other stickies
 					array_splice( $bbp->topic_query->posts, $sticky_offset, 0, array( $sticky ) );
 
-					// Increment the sticky offset.  The next sticky will be placed at this offset.
-					$sticky_offset++;
-
-					// Remove post from sticky posts array
-					$offset = array_search( $sticky->ID, $stickies );
-
 					// Cleanup
-					unset( $stickies[$offset] );
-					unset( $sticky            );
+					unset( $stickies[$sticky_index] );
+					unset( $sticky );
 				}
+
+				// Cleanup
+				unset( $post_offsets );
 			}
+
+			// Cleanup
+			unset( $sticky_offset );
 
 			// If any posts have been excluded specifically, Ignore those that are sticky.
 			if ( !empty( $stickies ) && !empty( $r['post__not_in'] ) ) {
@@ -212,6 +229,9 @@ function bbp_has_topics( $args = '' ) {
 					'include'     => $stickies
 				);
 
+				// Cleanup
+				unset( $stickies );
+
 				// What are the default allowed statuses (based on user caps)
 				if ( bbp_get_view_all() ) {
 					$sticky_query['post_status'] = $r['post_status'];
@@ -228,22 +248,14 @@ function bbp_has_topics( $args = '' ) {
 					// Get a count of the visible stickies
 					$sticky_count = count( $sticky_posts );
 
-					// Loop through stickies and add them to beginning of array
-					foreach ( $sticky_posts as $sticky )
-						$topics[] = $sticky;
-
-					// Loop through topics and add them to end of array
-					foreach ( $bbp->topic_query->posts as $topic )
-						$topics[] = $topic;
+					// Merge the stickies topics with the query topics .
+					$bbp->topic_query->posts       = array_merge( $sticky_posts, $bbp->topic_query->posts );
 
 					// Adjust loop and counts for new sticky positions
-					$bbp->topic_query->posts       = $topics;
 					$bbp->topic_query->found_posts = (int) $bbp->topic_query->found_posts + (int) $sticky_count;
 					$bbp->topic_query->post_count  = (int) $bbp->topic_query->post_count  + (int) $sticky_count;
 
 					// Cleanup
-					unset( $topics       );
-					unset( $stickies     );
 					unset( $sticky_posts );
 				}
 			}
@@ -1383,18 +1395,21 @@ function bbp_topic_author_link( $args = '' ) {
 		// Topic ID is good
 		if ( !empty( $topic_id ) ) {
 
+			// Get some useful topic information
+			$author_url = bbp_get_topic_author_url( $topic_id );
+			$anonymous  = bbp_is_topic_anonymous( $topic_id );
+
 			// Tweak link title if empty
 			if ( empty( $r['link_title'] ) ) {
-				$link_title = sprintf( !bbp_is_topic_anonymous( $topic_id ) ? __( 'View %s\'s profile', 'bbpress' ) : __( 'Visit %s\'s website', 'bbpress' ), bbp_get_topic_author_display_name( $topic_id ) );
+				$link_title = sprintf( empty( $anonymous ) ? __( 'View %s\'s profile', 'bbpress' ) : __( 'Visit %s\'s website', 'bbpress' ), bbp_get_topic_author_display_name( $topic_id ) );
 
 			// Use what was passed if not
 			} else {
 				$link_title = $r['link_title'];
 			}
 
+			// Setup title and author_links array
 			$link_title   = !empty( $link_title ) ? ' title="' . $link_title . '"' : '';
-			$author_url   = bbp_get_topic_author_url( $topic_id );
-			$anonymous    = bbp_is_topic_anonymous( $topic_id );
 			$author_links = array();
 
 			// Get avatar
@@ -2308,7 +2323,7 @@ function bbp_topic_edit_link( $args = '' ) {
 	 * @return string Topic edit link
 	 */
 	function bbp_get_topic_edit_link( $args = '' ) {
-		
+
 		// Parse arguments against default values
 		$r = bbp_parse_args( $args, array(
 			'id'           => 0,
@@ -2797,7 +2812,7 @@ function bbp_forum_pagination_links() {
  * @uses bbp_get_topic_id() To get the topic id
  * @uses apply_filters() Calls 'bbp_topic_notices' with the notice text, topic
  *                        status and topic id
- * @uses bbPress::errors::add() To add the notices to the error handler
+ * @uses bbp_add_error() To add an error message
  */
 function bbp_topic_notices() {
 
@@ -3374,7 +3389,7 @@ function bbp_form_topic_content() {
 
 		// Get _POST data
 		if ( bbp_is_post_request() && isset( $_POST['bbp_topic_content'] ) ) {
-			$topic_content = $_POST['bbp_topic_content'];
+			$topic_content = stripslashes( $_POST['bbp_topic_content'] );
 
 		// Get edit data
 		} elseif ( bbp_is_topic_edit() ) {

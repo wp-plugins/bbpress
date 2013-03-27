@@ -373,7 +373,7 @@ function bbp_forum_content( $forum_id = 0 ) {
 	}
 
 /**
- * Allow topic rows to have adminstrative actions
+ * Allow forum rows to have adminstrative actions
  *
  * @since bbPress (r3653)
  * @uses do_action()
@@ -1980,7 +1980,7 @@ function bbp_form_forum_content() {
 
 		// Get _POST data
 		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_content'] ) ) {
-			$forum_content = $_POST['bbp_forum_content'];
+			$forum_content = stripslashes( $_POST['bbp_forum_content'] );
 
 		// Get edit data
 		} elseif ( bbp_is_forum_edit() ) {
