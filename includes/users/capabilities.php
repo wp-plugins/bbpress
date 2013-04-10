@@ -111,7 +111,7 @@ function bbp_set_user_role( $user_id = 0, $new_role = '' ) {
 function bbp_get_user_role( $user_id = 0 ) {
 
 	// Validate user id
-	$user_id = bbp_get_user_id( $user_id, false, false );
+	$user_id = bbp_get_user_id( $user_id );
 	$user    = get_userdata( $user_id );
 	$role    = false;
 
@@ -145,14 +145,18 @@ function bbp_get_user_blog_role( $user_id = 0 ) {
 	$wp_roles  = bbp_add_forums_roles();
 
 	// Validate user id
-	$user_id   = bbp_get_user_id( $user_id, false, false );
+	$user_id   = bbp_get_user_id( $user_id );
 	$user      = get_userdata( $user_id );
 	$role      = false;
-	$all_roles = apply_filters( 'editable_roles', $wp_roles->roles );
 
 	// User has roles so lets
 	if ( ! empty( $user->roles ) ) {
-		$roles = array_intersect( array_values( $user->roles ), array_keys( $all_roles ) );
+
+		// Apply the WordPress 'editable_roles' filter to let plugins ride along
+		$all_roles = apply_filters( 'editable_roles', $wp_roles->roles );
+
+		// Look for an intersection of user roles to available blog roles
+		$roles     = array_intersect( array_values( $user->roles ), array_keys( $all_roles ) );
 
 		// If there's a role in the array, use the first one
 		if ( !empty( $roles ) ) {
