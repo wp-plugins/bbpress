@@ -295,7 +295,7 @@ class BBP_Views_Widget extends WP_Widget {
 
 			<?php foreach ( array_keys( bbp_get_views() ) as $view ) : ?>
 
-				<li><a class="bbp-view-title" href="<?php bbp_view_url( $view ); ?>" title="<?php bbp_view_title( $view ); ?>"><?php bbp_view_title( $view ); ?></a></li>
+				<li><a class="bbp-view-title" href="<?php bbp_view_url( $view ); ?>"><?php bbp_view_title( $view ); ?></a></li>
 
 			<?php endforeach; ?>
 
@@ -407,6 +407,10 @@ class BBP_Search_Widget extends WP_Widget {
 	 * @uses get_template_part() To get the search form
 	 */
 	public function widget( $args, $instance ) {
+
+		// Bail if search is disabled
+		if ( ! bbp_allow_search() )
+			return;
 
 		// Get widget settings
 		$settings = $this->parse_settings( $instance );
@@ -552,14 +556,16 @@ class BBP_Forums_Widget extends WP_Widget {
 		$settings['title'] = apply_filters( 'bbp_forum_widget_title', $settings['title'], $instance, $this->id_base );
 
 		// Note: private and hidden forums will be excluded via the
-		// bbp_pre_get_posts_exclude_forums filter and function.
+		// bbp_pre_get_posts_normalize_forum_visibility action and function.
 		$widget_query = new WP_Query( array(
-			'post_type'      => bbp_get_forum_post_type(),
-			'post_parent'    => $settings['parent_forum'],
-			'post_status'    => bbp_get_public_status_id(),
-			'posts_per_page' => get_option( '_bbp_forums_per_page', 50 ),
-			'orderby'        => 'menu_order',
-			'order'          => 'ASC'
+			'post_type'           => bbp_get_forum_post_type(),
+			'post_parent'         => $settings['parent_forum'],
+			'post_status'         => bbp_get_public_status_id(),
+			'posts_per_page'      => get_option( '_bbp_forums_per_page', 50 ),
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+			'orderby'             => 'menu_order',
+			'order'               => 'ASC'
 		) );
 
 		// Bail if no posts
@@ -577,7 +583,7 @@ class BBP_Forums_Widget extends WP_Widget {
 
 			<?php while ( $widget_query->have_posts() ) : $widget_query->the_post(); ?>
 
-				<li><a class="bbp-forum-title" href="<?php bbp_forum_permalink( $widget_query->post->ID ); ?>" title="<?php bbp_forum_title( $widget_query->post->ID ); ?>"><?php bbp_forum_title( $widget_query->post->ID ); ?></a></li>
+				<li><a class="bbp-forum-title" href="<?php bbp_forum_permalink( $widget_query->post->ID ); ?>"><?php bbp_forum_title( $widget_query->post->ID ); ?></a></li>
 
 			<?php endwhile; ?>
 
@@ -731,28 +737,30 @@ class BBP_Topics_Widget extends WP_Widget {
 			// Order by most recent replies
 			case 'freshness' :
 				$topics_query = array(
-					'post_type'      => bbp_get_topic_post_type(),
-					'post_parent'    => $settings['parent_forum'],
-					'posts_per_page' => (int) $settings['max_shown'],
-					'post_status'    => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
-					'show_stickies'  => false,
-					'meta_key'       => '_bbp_last_active_time',
-					'orderby'        => 'meta_value',
-					'order'          => 'DESC',
+					'post_type'           => bbp_get_topic_post_type(),
+					'post_parent'         => $settings['parent_forum'],
+					'posts_per_page'      => (int) $settings['max_shown'],
+					'post_status'         => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
+					'ignore_sticky_posts' => true,
+					'no_found_rows'       => true,
+					'meta_key'            => '_bbp_last_active_time',
+					'orderby'             => 'meta_value',
+					'order'               => 'DESC',
 				);
 				break;
 
 			// Order by total number of replies
 			case 'popular' :
 				$topics_query = array(
-					'post_type'      => bbp_get_topic_post_type(),
-					'post_parent'    => $settings['parent_forum'],
-					'posts_per_page' => (int) $settings['max_shown'],
-					'post_status'    => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
-					'show_stickies'  => false,
-					'meta_key'       => '_bbp_reply_count',
-					'orderby'        => 'meta_value',
-					'order'          => 'DESC'
+					'post_type'           => bbp_get_topic_post_type(),
+					'post_parent'         => $settings['parent_forum'],
+					'posts_per_page'      => (int) $settings['max_shown'],
+					'post_status'         => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
+					'ignore_sticky_posts' => true,
+					'no_found_rows'       => true,
+					'meta_key'            => '_bbp_reply_count',
+					'orderby'             => 'meta_value',
+					'order'               => 'DESC'
 				);
 				break;
 
@@ -760,18 +768,19 @@ class BBP_Topics_Widget extends WP_Widget {
 			case 'newness' :
 			default :
 				$topics_query = array(
-					'post_type'      => bbp_get_topic_post_type(),
-					'post_parent'    => $settings['parent_forum'],
-					'posts_per_page' => (int) $settings['max_shown'],
-					'post_status'    => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
-					'show_stickies'  => false,
-					'order'          => 'DESC'
+					'post_type'           => bbp_get_topic_post_type(),
+					'post_parent'         => $settings['parent_forum'],
+					'posts_per_page'      => (int) $settings['max_shown'],
+					'post_status'         => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
+					'ignore_sticky_posts' => true,
+					'no_found_rows'       => true,
+					'order'               => 'DESC'
 				);
 				break;
 		}
 
 		// Note: private and hidden forums will be excluded via the
-		// bbp_pre_get_posts_exclude_forums filter and function.
+		// bbp_pre_get_posts_normalize_forum_visibility action and function.
 		$widget_query = new WP_Query( $topics_query );
 
 		// Bail if no topics are found
@@ -794,12 +803,12 @@ class BBP_Topics_Widget extends WP_Widget {
 				$author_link = '';
 
 				// Maybe get the topic author
-				if ( 'on' == $settings['show_user'] ) :
+				if ( 'on' === $settings['show_user'] ) :
 					$author_link = bbp_get_topic_author_link( array( 'post_id' => $topic_id, 'type' => 'both', 'size' => 14 ) );
 				endif; ?>
 
 				<li>
-					<a class="bbp-forum-title" href="<?php echo esc_url( bbp_get_topic_permalink( $topic_id ) ); ?>" title="<?php echo esc_attr( bbp_get_topic_title( $topic_id ) ); ?>"><?php bbp_topic_title( $topic_id ); ?></a>
+					<a class="bbp-forum-title" href="<?php echo esc_url( bbp_get_topic_permalink( $topic_id ) ); ?>"><?php bbp_topic_title( $topic_id ); ?></a>
 
 					<?php if ( ! empty( $author_link ) ) : ?>
 
@@ -807,7 +816,7 @@ class BBP_Topics_Widget extends WP_Widget {
 
 					<?php endif; ?>
 
-					<?php if ( 'on' == $settings['show_date'] ) : ?>
+					<?php if ( 'on' === $settings['show_date'] ) : ?>
 
 						<div><?php bbp_topic_last_active_time( $topic_id ); ?></div>
 
@@ -1112,11 +1121,13 @@ class BBP_Replies_Widget extends WP_Widget {
 		$settings['title'] = apply_filters( 'bbp_replies_widget_title', $settings['title'], $instance, $this->id_base );
 
 		// Note: private and hidden forums will be excluded via the
-		// bbp_pre_get_posts_exclude_forums filter and function.
+		// bbp_pre_get_posts_normalize_forum_visibility action and function.
 		$widget_query = new WP_Query( array(
-			'post_type'      => bbp_get_reply_post_type(),
-			'post_status'    => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
-			'posts_per_page' => (int) $settings['max_shown']
+			'post_type'           => bbp_get_reply_post_type(),
+			'post_status'         => array( bbp_get_public_status_id(), bbp_get_closed_status_id() ),
+			'posts_per_page'      => (int) $settings['max_shown'],
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
 		) );
 
 		// Bail if no replies
@@ -1143,20 +1154,20 @@ class BBP_Replies_Widget extends WP_Widget {
 					$reply_link = '<a class="bbp-reply-topic-title" href="' . esc_url( bbp_get_reply_url( $reply_id ) ) . '" title="' . esc_attr( bbp_get_reply_excerpt( $reply_id, 50 ) ) . '">' . bbp_get_reply_topic_title( $reply_id ) . '</a>';
 
 					// Only query user if showing them
-					if ( 'on' == $settings['show_user'] ) :
+					if ( 'on' === $settings['show_user'] ) :
 						$author_link = bbp_get_reply_author_link( array( 'post_id' => $reply_id, 'type' => 'both', 'size' => 14 ) );
 					else :
 						$author_link = false;
 					endif;
 
 					// Reply author, link, and timestamp
-					if ( ( 'on' == $settings['show_date'] ) && !empty( $author_link ) ) :
+					if ( ( 'on' === $settings['show_date'] ) && !empty( $author_link ) ) :
 
 						// translators: 1: reply author, 2: reply link, 3: reply timestamp
 						printf( _x( '%1$s on %2$s %3$s', 'widgets', 'bbpress' ), $author_link, $reply_link, '<div>' . bbp_get_time_since( get_the_time( 'U' ) ) . '</div>' );
 
 					// Reply link and timestamp
-					elseif ( 'on' == $settings['show_date'] ) :
+					elseif ( 'on' === $settings['show_date'] ) :
 
 						// translators: 1: reply link, 2: reply timestamp
 						printf( _x( '%1$s %2$s',         'widgets', 'bbpress' ), $reply_link,  '<div>' . bbp_get_time_since( get_the_time( 'U' ) ) . '</div>'              );

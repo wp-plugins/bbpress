@@ -31,7 +31,7 @@ function bbp_redirect_login( $url = '', $raw_url = '', $user = '' ) {
 		$url = $raw_url;
 
 	// $url was manually set in wp-login.php to redirect to admin
-	elseif ( admin_url() == $url )
+	elseif ( admin_url() === $url )
 		$url = home_url();
 
 	// $url is empty
@@ -221,20 +221,20 @@ function bbp_get_user_reply_count_raw( $user_id = 0 ) {
  * @return array|bool Results if the topic has any favoriters, otherwise false
  */
 function bbp_get_topic_favoriters( $topic_id = 0 ) {
+	$topic_id = bbp_get_topic_id( $topic_id );
 	if ( empty( $topic_id ) )
 		return;
 
 	global $wpdb;
 
-	// Get the users who have favorited the topic
 	$key   = $wpdb->prefix . '_bbp_favorites';
-	$users = $wpdb->get_col( "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = '{$key}' and FIND_IN_SET('{$topic_id}', meta_value) > 0" );
-	$users = apply_filters( 'bbp_get_topic_favoriters', $users, $topic_id );
+	$users = wp_cache_get( 'bbp_get_topic_favoriters_' . $topic_id, 'bbpress_users' );
+	if ( false === $users ) {
+		$users = $wpdb->get_col( "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = '{$key}' and FIND_IN_SET('{$topic_id}', meta_value) > 0" );
+		wp_cache_set( 'bbp_get_topic_favoriters_' . $topic_id, $users, 'bbpress_users' );
+	}
 
-	if ( !empty( $users ) )
-		return $users;
-
-	return false;
+	return apply_filters( 'bbp_get_topic_favoriters', $users );
 }
 
 /**
@@ -257,14 +257,12 @@ function bbp_get_user_favorites( $user_id = 0 ) {
 	// If user has favorites, load them
 	$favorites = bbp_get_user_favorites_topic_ids( $user_id );
 	if ( !empty( $favorites ) ) {
-
-		// Setup the topics query
-		$topics_query = bbp_has_topics( array( 'post__in' => $favorites ) );
-
-		return apply_filters( 'bbp_get_user_favorites', $topics_query, $user_id );
+		$query = bbp_has_topics( array( 'post__in' => $favorites ) );
+	} else {
+		$query = false;
 	}
 
-	return false;
+	return apply_filters( 'bbp_get_user_favorites', $query, $user_id, $favorites );
 }
 
 /**
@@ -284,11 +282,10 @@ function bbp_get_user_favorites_topic_ids( $user_id = 0 ) {
 	if ( empty( $user_id ) )
 		return false;
 
-	$favorites = (string) get_user_option( '_bbp_favorites', $user_id );
-	$favorites = (array) explode( ',', $favorites );
-	$favorites = array_filter( $favorites );
+	$favorites = get_user_option( '_bbp_favorites', $user_id );
+	$favorites = array_filter( wp_parse_id_list( $favorites ) );
 
-	return apply_filters( 'bbp_get_user_favorites_topic_ids', $favorites, $user_id );
+	return (array) apply_filters( 'bbp_get_user_favorites_topic_ids', $favorites, $user_id );
 }
 
 /**
@@ -356,15 +353,14 @@ function bbp_add_user_favorite( $user_id = 0, $topic_id = 0 ) {
 	if ( empty( $user_id ) || empty( $topic_id ) )
 		return false;
 
-	$favorites = (array) bbp_get_user_favorites_topic_ids( $user_id );
-	$topic     = bbp_get_topic( $topic_id );
+	$topic = bbp_get_topic( $topic_id );
 	if ( empty( $topic ) )
 		return false;
 
+	$favorites = bbp_get_user_favorites_topic_ids( $user_id );
 	if ( !in_array( $topic_id, $favorites ) ) {
 		$favorites[] = $topic_id;
-		$favorites   = array_filter( $favorites );
-		$favorites   = (string) implode( ',', $favorites );
+		$favorites   = implode( ',', wp_parse_id_list( array_filter( $favorites ) ) );
 		update_user_option( $user_id, '_bbp_favorites', $favorites );
 	}
 
@@ -401,7 +397,7 @@ function bbp_remove_user_favorite( $user_id, $topic_id ) {
 		$favorites = array_filter( $favorites );
 
 		if ( !empty( $favorites ) ) {
-			$favorites = implode( ',', $favorites );
+			$favorites = implode( ',', wp_parse_id_list( $favorites ) );
 			update_user_option( $user_id, '_bbp_favorites', $favorites );
 		} else {
 			delete_user_option( $user_id, '_bbp_favorites' );
@@ -476,16 +472,16 @@ function bbp_favorites_handler( $action = '' ) {
 	$is_favorite = bbp_is_user_favorite( $user_id, $topic_id );
 	$success     = false;
 
-	if ( true == $is_favorite && 'bbp_favorite_remove' == $action )
+	if ( true === $is_favorite && 'bbp_favorite_remove' === $action )
 		$success = bbp_remove_user_favorite( $user_id, $topic_id );
-	elseif ( false == $is_favorite && 'bbp_favorite_add' == $action )
+	elseif ( false === $is_favorite && 'bbp_favorite_add' === $action )
 		$success = bbp_add_user_favorite( $user_id, $topic_id );
 
 	// Do additional favorites actions
 	do_action( 'bbp_favorites_handler', $success, $user_id, $topic_id, $action );
 
 	// Success!
-	if ( true == $success ) {
+	if ( true === $success ) {
 
 		// Redirect back from whence we came
 		if ( bbp_is_favorites() ) {
@@ -506,9 +502,9 @@ function bbp_favorites_handler( $action = '' ) {
 		exit();
 
 	// Fail! Handle errors
-	} elseif ( true == $is_favorite && 'bbp_favorite_remove' == $action ) {
+	} elseif ( true === $is_favorite && 'bbp_favorite_remove' === $action ) {
 		bbp_add_error( 'bbp_favorite_remove', __( '<strong>ERROR</strong>: There was a problem removing that topic from favorites!', 'bbpress' ) );
-	} elseif ( false == $is_favorite && 'bbp_favorite_add' == $action ) {
+	} elseif ( false === $is_favorite && 'bbp_favorite_add' === $action ) {
 		bbp_add_error( 'bbp_favorite_add',    __( '<strong>ERROR</strong>: There was a problem favoriting that topic!', 'bbpress' ) );
 	}
 }
@@ -526,23 +522,20 @@ function bbp_favorites_handler( $action = '' ) {
  * @return array|bool Results if the topic has any subscribers, otherwise false
  */
 function bbp_get_topic_subscribers( $topic_id = 0 ) {
-	if ( empty( $topic_id ) ) return;
+	$topic_id = bbp_get_topic_id( $topic_id );
+	if ( empty( $topic_id ) )
+		return;
 
 	global $wpdb;
 
 	$key   = $wpdb->prefix . '_bbp_subscriptions';
 	$users = wp_cache_get( 'bbp_get_topic_subscribers_' . $topic_id, 'bbpress_users' );
-	if ( empty( $users ) ) {
+	if ( false === $users ) {
 		$users = $wpdb->get_col( "SELECT user_id FROM {$wpdb->usermeta} WHERE meta_key = '{$key}' and FIND_IN_SET('{$topic_id}', meta_value) > 0" );
 		wp_cache_set( 'bbp_get_topic_subscribers_' . $topic_id, $users, 'bbpress_users' );
 	}
 
-	if ( !empty( $users ) ) {
-		$users = apply_filters( 'bbp_get_topic_subscribers', $users );
-		return $users;
-	}
-
-	return false;
+	return apply_filters( 'bbp_get_topic_subscribers', $users );
 }
 
 /**
@@ -568,10 +561,11 @@ function bbp_get_user_subscriptions( $user_id = 0 ) {
 	$subscriptions = bbp_get_user_subscribed_topic_ids( $user_id );
 	if ( !empty( $subscriptions ) ) {
 		$query = bbp_has_topics( array( 'post__in' => $subscriptions ) );
-		return apply_filters( 'bbp_get_user_subscriptions', $query, $user_id );
+	} else {
+		$query = false;
 	}
 
-	return false;
+	return apply_filters( 'bbp_get_user_subscriptions', $query, $user_id );
 }
 
 /**
@@ -591,11 +585,10 @@ function bbp_get_user_subscribed_topic_ids( $user_id = 0 ) {
 	if ( empty( $user_id ) )
 		return false;
 
-	$subscriptions = (string) get_user_option( '_bbp_subscriptions', $user_id );
-	$subscriptions = (array) explode( ',', $subscriptions );
-	$subscriptions = array_filter( $subscriptions );
+	$subscriptions = get_user_option( '_bbp_subscriptions', $user_id );
+	$subscriptions = array_filter( wp_parse_id_list( $subscriptions ) );
 
-	return apply_filters( 'bbp_get_user_subscribed_topic_ids', $subscriptions, $user_id );
+	return (array) apply_filters( 'bbp_get_user_subscribed_topic_ids', $subscriptions, $user_id );
 }
 
 /**
@@ -665,19 +658,17 @@ function bbp_add_user_subscription( $user_id = 0, $topic_id = 0 ) {
 	if ( empty( $user_id ) || empty( $topic_id ) )
 		return false;
 
-	$subscriptions = (array) bbp_get_user_subscribed_topic_ids( $user_id );
-
 	$topic = bbp_get_topic( $topic_id );
 	if ( empty( $topic ) )
 		return false;
 
+	$subscriptions = (array) bbp_get_user_subscribed_topic_ids( $user_id );
 	if ( !in_array( $topic_id, $subscriptions ) ) {
 		$subscriptions[] = $topic_id;
-		$subscriptions   = array_filter( $subscriptions );
-		$subscriptions   = (string) implode( ',', $subscriptions );
+		$subscriptions   = implode( ',', wp_parse_id_list( array_filter( $subscriptions ) ) );
 		update_user_option( $user_id, '_bbp_subscriptions', $subscriptions );
 
-		wp_cache_delete( 'bbp_get_topic_subscribers_' . $topic_id, 'bbpress' );
+		wp_cache_delete( 'bbp_get_topic_subscribers_' . $topic_id, 'bbpress_users' );
 	}
 
 	do_action( 'bbp_add_user_subscription', $user_id, $topic_id );
@@ -715,13 +706,13 @@ function bbp_remove_user_subscription( $user_id, $topic_id ) {
 		$subscriptions = array_filter( $subscriptions );
 
 		if ( !empty( $subscriptions ) ) {
-			$subscriptions = implode( ',', $subscriptions );
+			$subscriptions = implode( ',', wp_parse_id_list( $subscriptions ) );
 			update_user_option( $user_id, '_bbp_subscriptions', $subscriptions );
 		} else {
 			delete_user_option( $user_id, '_bbp_subscriptions' );
 		}
 
-		wp_cache_delete( 'bbp_get_topic_subscribers_' . $topic_id, 'bbpress' );
+		wp_cache_delete( 'bbp_get_topic_subscribers_' . $topic_id, 'bbpress_users' );
 	}
 
 	do_action( 'bbp_remove_user_subscription', $user_id, $topic_id );
@@ -794,16 +785,16 @@ function bbp_subscriptions_handler( $action = '' ) {
 	$is_subscription = bbp_is_user_subscribed( $user_id, $topic_id );
 	$success         = false;
 
-	if ( true == $is_subscription && 'bbp_unsubscribe' == $action )
+	if ( true === $is_subscription && 'bbp_unsubscribe' === $action )
 		$success = bbp_remove_user_subscription( $user_id, $topic_id );
-	elseif ( false == $is_subscription && 'bbp_subscribe' == $action )
+	elseif ( false === $is_subscription && 'bbp_subscribe' === $action )
 		$success = bbp_add_user_subscription( $user_id, $topic_id );
 
 	// Do additional subscriptions actions
 	do_action( 'bbp_subscriptions_handler', $success, $user_id, $topic_id, $action );
 
 	// Success!
-	if ( true == $success ) {
+	if ( true === $success ) {
 
 		// Redirect back from whence we came
 		if ( bbp_is_subscriptions() ) {
@@ -824,9 +815,9 @@ function bbp_subscriptions_handler( $action = '' ) {
 		exit();
 
 	// Fail! Handle errors
-	} elseif ( true == $is_subscription && 'bbp_unsubscribe' == $action ) {
+	} elseif ( true === $is_subscription && 'bbp_unsubscribe' === $action ) {
 		bbp_add_error( 'bbp_unsubscribe', __( '<strong>ERROR</strong>: There was a problem unsubscribing from that topic!', 'bbpress' ) );
-	} elseif ( false == $is_subscription && 'bbp_subscribe' == $action ) {
+	} elseif ( false === $is_subscription && 'bbp_subscribe' === $action ) {
 		bbp_add_error( 'bbp_subscribe',    __( '<strong>ERROR</strong>: There was a problem subscribing to that topic!', 'bbpress' ) );
 	}
 }
@@ -876,15 +867,15 @@ function bbp_edit_user_handler( $action = '' ) {
 
 		$new_email = get_option( $user_id . '_new_email' );
 
-		if ( $new_email['hash'] == $_GET['newuseremail'] ) {
-			$user             = new stdClass();
+		if ( $new_email['hash'] === $_GET['newuseremail'] ) {
+			$user             = new WP_User();
 			$user->ID         = $user_id;
 			$user->user_email = esc_html( trim( $new_email['newemail'] ) );
 
 			global $wpdb;
 
-			if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", bbp_get_displayed_user_field( 'user_login' ) ) ) ) {
-				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, bbp_get_displayed_user_field( 'user_login' ) ) );
+			if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", bbp_get_displayed_user_field( 'user_login', 'raw' ) ) ) ) {
+				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, bbp_get_displayed_user_field( 'user_login', 'raw' ) ) );
 			}
 
 			wp_update_user( get_object_vars( $user ) );
@@ -895,7 +886,7 @@ function bbp_edit_user_handler( $action = '' ) {
 		}
 
 	// Delete new email address from user options
-	} elseif ( is_multisite() && bbp_is_user_home_edit() && !empty( $_GET['dismiss'] ) && ( $user_id . '_new_email' == $_GET['dismiss'] ) ) {
+	} elseif ( is_multisite() && bbp_is_user_home_edit() && !empty( $_GET['dismiss'] ) && ( $user_id . '_new_email' === $_GET['dismiss'] ) ) {
 		delete_option( $user_id . '_new_email' );
 		wp_safe_redirect( add_query_arg( array( 'updated' => 'true' ), bbp_get_user_profile_edit_url( $user_id ) ) );
 		exit();
@@ -916,6 +907,11 @@ function bbp_edit_user_handler( $action = '' ) {
 	// Do action based on who's profile you're editing
 	$edit_action = bbp_is_user_home_edit() ? 'personal_options_update' : 'edit_user_profile_update';
 	do_action( $edit_action, $user_id );
+
+	// Prevent edit_user() from wiping out the user's Toolbar on front setting
+	if ( !isset( $_POST['admin_bar_front'] ) && _get_admin_bar_pref( 'front', $user_id ) ) {
+		$_POST['admin_bar_front'] = 1;
+	}
 
 	// Handle user edit
 	$edit_user = edit_user( $user_id );
@@ -978,17 +974,10 @@ function bbp_get_user_topics_started( $user_id = 0 ) {
 	if ( empty( $user_id ) )
 		return false;
 
-	// Query defaults
-	$default_query = array(
-		'author'         => $user_id,
-		'show_stickies'  => false,
-		'order'          => 'DESC',
-	);
-
 	// Try to get the topics
-	$query = bbp_has_topics( $default_query );
-	if ( empty( $query ) )
-		return false;
+	$query = bbp_has_topics( array(
+		'author' => $user_id
+	) );
 
 	return apply_filters( 'bbp_get_user_topics_started', $query, $user_id );
 }
@@ -1012,14 +1001,9 @@ function bbp_get_user_replies_created( $user_id = 0 ) {
 
 	// Try to get the topics
 	$query = bbp_has_replies( array(
-		'post_type'      => bbp_get_reply_post_type(),
-		'post_parent'    => 'any',
-		'posts_per_page' => bbp_get_replies_per_page(),
-		'paged'          => bbp_get_paged(),
-		'orderby'        => 'date',
-		'order'          => 'DESC',
-		'author'         => $user_id,
-		'show_stickies'  => false,
+		'post_type' => bbp_get_reply_post_type(),
+		'order'     => 'DESC',
+		'author'    => $user_id
 	) );
 
 	return apply_filters( 'bbp_get_user_replies_created', $query, $user_id );

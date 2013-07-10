@@ -54,22 +54,11 @@
 
 					<?php do_action( 'bbp_theme_before_reply_form_content' ); ?>
 
-					<?php if ( !function_exists( 'wp_editor' ) ) : ?>
-
-						<p>
-							<label for="bbp_reply_content"><?php _e( 'Reply:', 'bbpress' ); ?></label><br />
-							<textarea id="bbp_reply_content" tabindex="<?php bbp_tab_index(); ?>" name="bbp_reply_content" rows="6"><?php bbp_form_reply_content(); ?></textarea>
-						</p>
-
-					<?php else : ?>
-
-						<?php bbp_the_content( array( 'context' => 'reply' ) ); ?>
-
-					<?php endif; ?>
+					<?php bbp_the_content( array( 'context' => 'reply' ) ); ?>
 
 					<?php do_action( 'bbp_theme_after_reply_form_content' ); ?>
 
-					<?php if ( !current_user_can( 'unfiltered_html' ) ) : ?>
+					<?php if ( ! ( bbp_use_wp_editor() || current_user_can( 'unfiltered_html' ) ) ) : ?>
 
 						<p class="form-allowed-tags">
 							<label><?php _e( 'You may use these <abbr title="HyperText Markup Language">HTML</abbr> tags and attributes:','bbpress' ); ?></label><br />
@@ -99,7 +88,7 @@
 
 							<input name="bbp_topic_subscription" id="bbp_topic_subscription" type="checkbox" value="bbp_subscribe"<?php bbp_form_topic_subscribed(); ?> tabindex="<?php bbp_tab_index(); ?>" />
 
-							<?php if ( bbp_is_reply_edit() && ( get_the_author_meta( 'ID' ) != bbp_get_current_user_id() ) ) : ?>
+							<?php if ( bbp_is_reply_edit() && ( bbp_get_reply_author_id() !== bbp_get_current_user_id() ) ) : ?>
 
 								<label for="bbp_topic_subscription"><?php _e( 'Notify the author of follow-up replies via email', 'bbpress' ); ?></label>
 
@@ -141,6 +130,8 @@
 					<div class="bbp-submit-wrapper">
 
 						<?php do_action( 'bbp_theme_before_reply_form_submit_button' ); ?>
+
+						<?php bbp_cancel_reply_to_link(); ?>
 
 						<button type="submit" tabindex="<?php bbp_tab_index(); ?>" id="bbp_reply_submit" name="bbp_reply_submit" class="button submit"><?php _e( 'Submit', 'bbpress' ); ?></button>
 

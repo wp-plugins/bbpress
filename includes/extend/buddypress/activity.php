@@ -192,8 +192,8 @@ class BBP_BuddyPress_Activity {
 	public function register_activity_actions() {
 
 		// Sitewide activity stream items
-		bp_activity_set_action( $this->component, $this->topic_create, __( 'New forum topic', 'bbpress' ) );
-		bp_activity_set_action( $this->component, $this->reply_create, __( 'New forum reply', 'bbpress' ) );
+		bp_activity_set_action( $this->component, $this->topic_create, esc_html__( 'New forum topic', 'bbpress' ) );
+		bp_activity_set_action( $this->component, $this->reply_create, esc_html__( 'New forum reply', 'bbpress' ) );
 	}
 
 	/**
@@ -351,8 +351,8 @@ class BBP_BuddyPress_Activity {
 	function activity_filter_options() {
 	?>
 
-		<option value="<?php echo $this->topic_create; ?>"><?php _e( 'Topics',  'bbpress' ); ?></option>
-		<option value="<?php echo $this->reply_create; ?>"><?php _e( 'Replies', 'bbpress' ); ?></option>
+		<option value="<?php echo $this->topic_create; ?>"><?php esc_html_e( 'Topics',  'bbpress' ); ?></option>
+		<option value="<?php echo $this->reply_create; ?>"><?php esc_html_e( 'Replies', 'bbpress' ); ?></option>
 
 	<?php
 	}
@@ -409,15 +409,15 @@ class BBP_BuddyPress_Activity {
 		$topic_permalink = bbp_get_topic_permalink( $topic_id );
 		$topic_title     = get_post_field( 'post_title',   $topic_id, 'raw' );
 		$topic_content   = get_post_field( 'post_content', $topic_id, 'raw' );
-		$topic_link      = '<a href="' . $topic_permalink . '" title="' . $topic_title . '">' . $topic_title . '</a>';
+		$topic_link      = '<a href="' . $topic_permalink . '">' . $topic_title . '</a>';
 
 		// Forum
 		$forum_permalink = bbp_get_forum_permalink( $forum_id );
 		$forum_title     = get_post_field( 'post_title', $forum_id, 'raw' );
-		$forum_link      = '<a href="' . $forum_permalink . '" title="' . $forum_title . '">' . $forum_title . '</a>';
+		$forum_link      = '<a href="' . $forum_permalink . '">' . $forum_title . '</a>';
 
 		// Activity action & text
-		$activity_text    = sprintf( __( '%1$s started the topic %2$s in the forum %3$s', 'bbpress' ), $user_link, $topic_link, $forum_link );
+		$activity_text    = sprintf( esc_html__( '%1$s started the topic %2$s in the forum %3$s', 'bbpress' ), $user_link, $topic_link, $forum_link );
 		$activity_action  = apply_filters( 'bbp_activity_topic_create',         $activity_text, $user_id,   $topic_id,   $forum_id );
 		$activity_content = apply_filters( 'bbp_activity_topic_create_excerpt', $topic_content                                     );
 
@@ -554,15 +554,15 @@ class BBP_BuddyPress_Activity {
 		// Topic
 		$topic_permalink = bbp_get_topic_permalink( $topic_id );
 		$topic_title     = get_post_field( 'post_title', $topic_id, 'raw' );
-		$topic_link      = '<a href="' . $topic_permalink . '" title="' . $topic_title . '">' . $topic_title . '</a>';
+		$topic_link      = '<a href="' . $topic_permalink . '">' . $topic_title . '</a>';
 
 		// Forum
 		$forum_permalink = bbp_get_forum_permalink( $forum_id );
 		$forum_title     = get_post_field( 'post_title', $forum_id, 'raw' );
-		$forum_link      = '<a href="' . $forum_permalink . '" title="' . $forum_title . '">' . $forum_title . '</a>';
+		$forum_link      = '<a href="' . $forum_permalink . '">' . $forum_title . '</a>';
 
 		// Activity action & text
-		$activity_text    = sprintf( __( '%1$s replied to the topic %2$s in the forum %3$s', 'bbpress' ), $user_link, $topic_link, $forum_link );
+		$activity_text    = sprintf( esc_html__( '%1$s replied to the topic %2$s in the forum %3$s', 'bbpress' ), $user_link, $topic_link, $forum_link );
 		$activity_action  = apply_filters( 'bbp_activity_reply_create',         $activity_text, $user_id, $reply_id,  $topic_id );
 		$activity_content = apply_filters( 'bbp_activity_reply_create_excerpt', $reply_content                                  );
 
@@ -631,7 +631,7 @@ class BBP_BuddyPress_Activity {
 			return;
 
 		// Action based on new status
-		if ( $post->post_status == bbp_get_public_status_id() ) {
+		if ( bbp_get_public_status_id() === $post->post_status ) {
 
 			// Validate reply data
 			$topic_id        = bbp_get_reply_topic_id( $reply_id );

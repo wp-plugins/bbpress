@@ -233,6 +233,26 @@ function bbp_add_rewrite_tags() {
 }
 
 /**
+ * Add the bbPress-specific rewrite rules
+ *
+ * @since bbPress (r4918)
+ * @uses do_action() Calls 'bbp_add_rewrite_rules'
+ */
+function bbp_add_rewrite_rules() {
+	do_action( 'bbp_add_rewrite_rules' );
+}
+
+/**
+ * Add the bbPress-specific permalink structures
+ *
+ * @since bbPress (r4918)
+ * @uses do_action() Calls 'bbp_add_permastructs'
+ */
+function bbp_add_permastructs() {
+	do_action( 'bbp_add_permastructs' );
+}
+
+/**
  * Add the bbPress-specific login forum action
  *
  * @since bbPress (r2753)
@@ -341,7 +361,12 @@ function bbp_post_request() {
 	if ( empty( $_POST['action'] ) )
 		return;
 
-	do_action( 'bbp_post_request', $_POST['action'] );
+	// This dynamic action is probably the one you want to use. It narrows down
+	// the scope of the 'action' without needing to check it in your function.
+	do_action( 'bbp_post_request_' . $_POST['action'] );
+
+	// Use this static action if you don't mind checking the 'action' yourself.
+	do_action( 'bbp_post_request',   $_POST['action'] );
 }
 
 /**
@@ -360,7 +385,12 @@ function bbp_get_request() {
 	if ( empty( $_GET['action'] ) )
 		return;
 
-	do_action( 'bbp_get_request', $_GET['action'] );
+	// This dynamic action is probably the one you want to use. It narrows down
+	// the scope of the 'action' without needing to check it in your function.
+	do_action( 'bbp_get_request_' . $_GET['action'] );
+
+	// Use this static action if you don't mind checking the 'action' yourself.
+	do_action( 'bbp_get_request',   $_GET['action'] );
 }
 
 /** Filters *******************************************************************/
@@ -405,6 +435,7 @@ function bbp_template_include( $template = '' ) {
  * Generate bbPress-specific rewrite rules
  *
  * @since bbPress (r2688)
+ * @deprecated since bbPress (r4918)
  * @param WP_Rewrite $wp_rewrite
  * @uses do_action() Calls 'bbp_generate_rewrite_rules' with {@link WP_Rewrite}
  */

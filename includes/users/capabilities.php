@@ -68,7 +68,7 @@ function bbp_set_user_role( $user_id = 0, $new_role = '' ) {
 		$role = bbp_get_user_role( $user_id );
 
 		// User already has this role so no new role is set
-		if ( $new_role == $role ) {
+		if ( $new_role === $role ) {
 			$new_role = false;
 
 		// Users role is different than the new role
@@ -192,7 +192,7 @@ function bbp_profile_update_role( $user_id = 0 ) {
 	$forums_role = bbp_get_user_role( $user_id );
 
 	// Bail if no role change
-	if ( $new_role == $forums_role )
+	if ( $new_role === $forums_role )
 		return;
 
 	// Bail if trying to set their own role
@@ -280,7 +280,7 @@ function bbp_set_current_user_default_role() {
 	/** Add or Map ************************************************************/
 
 	// Add the user to the site
-	if ( true == $add_to_site ) {
+	if ( true === $add_to_site ) {
 
 		// Make sure bbPress roles are added
 		bbp_add_forums_roles();
@@ -366,7 +366,7 @@ function bbp_is_user_spammer( $user_id = 0 ) {
 
  * @uses bbp_is_single_user()
  * @uses bbp_is_user_home()
- * @uses bbp_get_displayed_user_field()
+ * @uses bbp_get_displayed_user_id()
  * @uses bbp_is_user_keymaster()
  * @uses get_blogs_of_user()
  * @uses get_current_blog_id()
@@ -407,7 +407,6 @@ function bbp_make_spam_user( $user_id = 0 ) {
 	// Make array of post types to mark as spam
 	$post_types  = array( bbp_get_topic_post_type(), bbp_get_reply_post_type() );
 	$post_types  = "'" . implode( "', '", $post_types ) . "'";
-	$status      = bbp_get_public_status_id();
 
 	// Loop through blogs and remove their posts
 	foreach ( (array) array_keys( $blogs ) as $blog_id ) {
@@ -416,7 +415,7 @@ function bbp_make_spam_user( $user_id = 0 ) {
 		switch_to_blog( $blog_id );
 
 		// Get topics and replies
-		$posts = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_author = {$user_id} AND post_status = '{$status}' AND post_type IN ({$post_types})" );
+		$posts = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_author = %d AND post_status = '%s' AND post_type IN ( {$post_types} )", $user_id, bbp_get_public_status_id() ) );
 
 		// Loop through posts and spam them
 		if ( !empty( $posts ) ) {
@@ -455,7 +454,7 @@ function bbp_make_spam_user( $user_id = 0 ) {
  *
  * @uses bbp_is_single_user()
  * @uses bbp_is_user_home()
- * @uses bbp_get_displayed_user_field()
+ * @uses bbp_get_displayed_user_id()
  * @uses bbp_is_user_keymaster()
  * @uses get_blogs_of_user()
  * @uses bbp_get_topic_post_type()
@@ -472,7 +471,7 @@ function bbp_make_ham_user( $user_id = 0 ) {
 
 	// Use displayed user if it's not yourself
 	if ( empty( $user_id ) && bbp_is_single_user() && !bbp_is_user_home() )
-		$user_id = bbp_get_displayed_user_field();
+		$user_id = bbp_get_displayed_user_id();
 
 	// Bail if no user ID
 	if ( empty( $user_id ) )
@@ -495,7 +494,6 @@ function bbp_make_ham_user( $user_id = 0 ) {
 	// Make array of post types to mark as spam
 	$post_types = array( bbp_get_topic_post_type(), bbp_get_reply_post_type() );
 	$post_types = "'" . implode( "', '", $post_types ) . "'";
-	$status     = bbp_get_spam_status_id();
 
 	// Loop through blogs and remove their posts
 	foreach ( (array) array_keys( $blogs ) as $blog_id ) {
@@ -504,7 +502,7 @@ function bbp_make_ham_user( $user_id = 0 ) {
 		switch_to_blog( $blog_id );
 
 		// Get topics and replies
-		$posts = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_author = {$user_id} AND post_status = '{$status}' AND post_type IN ({$post_types})" );
+		$posts = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_author = %d AND post_status = '%s' AND post_type IN ( {$post_types} )", $user_id, bbp_get_spam_status_id() ) );
 
 		// Loop through posts and spam them
 		if ( !empty( $posts ) ) {

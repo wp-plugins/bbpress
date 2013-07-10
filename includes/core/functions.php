@@ -284,6 +284,19 @@ function bbp_has_errors() {
 /** Mentions ******************************************************************/
 
 /**
+ * Set the pattern used for matching usernames for mentions.
+ *
+ * Moved into its own function to allow filtering of the regex pattern
+ * anywhere mentions might be used.
+ *
+ * @since bbPress (r4997)
+ * @return string Pattern to match usernames with
+ */
+function bbp_find_mentions_pattern() {
+	return apply_filters( 'bbp_find_mentions_pattern', '/[@]+([A-Za-z0-9-_\.@]+)\b/' );
+}
+
+/**
  * Searches through the content to locate usernames, designated by an @ sign.
  *
  * @since bbPress (r4323)
@@ -292,15 +305,16 @@ function bbp_has_errors() {
  * @return bool|array $usernames Existing usernames. False if no matches.
  */
 function bbp_find_mentions( $content = '' ) {
-	$pattern   = '/[@]+([A-Za-z0-9-_\.@]+)\b/';
+	$pattern   = bbp_find_mentions_pattern();
 	preg_match_all( $pattern, $content, $usernames );
 	$usernames = array_unique( array_filter( $usernames[1] ) );
 
 	// Bail if no usernames
-	if ( empty( $usernames ) )
-		return false;
+	if ( empty( $usernames ) ) {
+		$usernames = false;
+	}
 
-	return $usernames;
+	return apply_filters( 'bbp_find_mentions', $usernames, $pattern, $content );
 }
 
 /**
@@ -319,7 +333,7 @@ function bbp_mention_filter( $content = '' ) {
 		return $content;
 
 	// Loop through usernames and link to profiles
-	foreach( (array) $usernames as $username ) {
+	foreach ( (array) $usernames as $username ) {
 
 		// Skip if username does not exist or user is not active
 		$user = get_user_by( 'slug', $username );
@@ -507,6 +521,30 @@ function bbp_get_view_rewrite_id() {
 	return bbpress()->view_id;
 }
 
+/** Rewrite Extras ************************************************************/
+
+/**
+ * Get the id used for paginated requests
+ *
+ * @since bbPress (r4926)
+ * @return string
+ */
+function bbp_get_paged_rewrite_id() {
+	return bbpress()->paged_id;
+}
+
+/**
+ * Get the slug used for paginated requests
+ *
+ * @since bbPress (r4926)
+ * @global object $wp_rewrite The WP_Rewrite object
+ * @return string
+ */
+function bbp_get_paged_slug() {
+	global $wp_rewrite;
+	return $wp_rewrite->pagination_base;
+}
+
 /**
  * Delete a blogs rewrite rules, so that they are automatically rebuilt on
  * the subsequent page load.
@@ -526,7 +564,7 @@ function bbp_delete_rewrite_rules() {
  * @return bool
  */
 function bbp_is_post_request() {
-	return (bool) ( 'POST' == strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+	return (bool) ( 'POST' === strtoupper( $_SERVER['REQUEST_METHOD'] ) );
 }
 
 /**
@@ -536,6 +574,6 @@ function bbp_is_post_request() {
  * @return bool
  */
 function bbp_is_get_request() {
-	return (bool) ( 'GET' == strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+	return (bool) ( 'GET' === strtoupper( $_SERVER['REQUEST_METHOD'] ) );
 }
 

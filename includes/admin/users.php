@@ -79,12 +79,12 @@ class BBP_Users_Admin {
 		if ( ! bbp_is_user_keymaster() )
 			unset( $dynamic_roles[ bbp_get_keymaster_role() ] ); ?>
 
-		<h3><?php _e( 'Forums', 'bbpress' ); ?></h3>
+		<h3><?php esc_html_e( 'Forums', 'bbpress' ); ?></h3>
 
 		<table class="form-table">
 			<tbody>
 				<tr>
-					<th><label for="bbp-forums-role"><?php _e( 'Forum Role', 'bbpress' ); ?></label></th>
+					<th><label for="bbp-forums-role"><?php esc_html_e( 'Forum Role', 'bbpress' ); ?></label></th>
 					<td>
 
 						<?php $user_role = bbp_get_user_role( $profileuser->ID ); ?>
@@ -93,11 +93,11 @@ class BBP_Users_Admin {
 
 							<?php if ( ! empty( $user_role ) ) : ?>
 
-								<option value=""><?php _e( '&mdash; No role for these forums &mdash;', 'bbpress' ); ?></option>
+								<option value=""><?php esc_html_e( '&mdash; No role for these forums &mdash;', 'bbpress' ); ?></option>
 
 							<?php else : ?>
 
-								<option value="" selected="selected"><?php _e( '&mdash; No role for these forums &mdash;', 'bbpress' ); ?></option>
+								<option value="" selected="selected"><?php esc_html_e( '&mdash; No role for these forums &mdash;', 'bbpress' ); ?></option>
 
 							<?php endif; ?>
 
@@ -135,9 +135,9 @@ class BBP_Users_Admin {
 		if ( ! bbp_is_user_keymaster() )
 			unset( $dynamic_roles[ bbp_get_keymaster_role() ] ); ?>
 
-		<label class="screen-reader-text" for="bbp-new-role"><?php _e( 'Change forum role to&hellip;', 'bbpress' ) ?></label>
+		<label class="screen-reader-text" for="bbp-new-role"><?php esc_html_e( 'Change forum role to&hellip;', 'bbpress' ) ?></label>
 		<select name="bbp-new-role" id="bbp-new-role" style="display:inline-block; float:none;">
-			<option value=''><?php _e( 'Change forum role to&hellip;', 'bbpress' ) ?></option>
+			<option value=''><?php esc_html_e( 'Change forum role to&hellip;', 'bbpress' ) ?></option>
 			<?php foreach ( $dynamic_roles as $role => $details ) : ?>
 				<option value="<?php echo esc_attr( $role ); ?>"><?php echo translate_user_role( $details['name'] ); ?></option>
 			<?php endforeach; ?>
@@ -181,7 +181,7 @@ class BBP_Users_Admin {
 			$user_id = (int) $user_id;
 
 			// Don't let a user change their own role
-			if ( $user_id == $current_user_id ) 
+			if ( $user_id === $current_user_id )
 				continue;
 
 			// Set up user and role data
@@ -193,7 +193,7 @@ class BBP_Users_Admin {
 				continue;
 
 			// Set the new forums role
-			if ( $new_role != $user_role ) {
+			if ( $new_role !== $user_role ) {
 				bbp_set_user_role( $user_id, $new_role );
 			}
 		}
@@ -229,7 +229,7 @@ class BBP_Users_Admin {
 	public static function user_role_row( $retval = '', $column_name = '', $user_id = 0 ) {
 
 		// Only looking for bbPress's user role column
-		if ( 'bbp_user_role' == $column_name ) {
+		if ( 'bbp_user_role' === $column_name ) {
 
 			// Get the users role
 			$user_role = bbp_get_user_role( $user_id );

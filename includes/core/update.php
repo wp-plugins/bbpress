@@ -53,9 +53,9 @@ function bbp_is_activation( $basename = '' ) {
 	$bbp    = bbpress();
 	$action = false;
 
-	if ( ! empty( $_REQUEST['action'] ) && ( '-1' != $_REQUEST['action'] ) ) {
+	if ( ! empty( $_REQUEST['action'] ) && ( '-1' !== $_REQUEST['action'] ) ) {
 		$action = $_REQUEST['action'];
-	} elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' != $_REQUEST['action2'] ) ) {
+	} elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' !== $_REQUEST['action2'] ) ) {
 		$action = $_REQUEST['action2'];
 	}
 
@@ -65,7 +65,7 @@ function bbp_is_activation( $basename = '' ) {
 	}
 
 	// The plugin(s) being activated
-	if ( $action == 'activate' ) {
+	if ( $action === 'activate' ) {
 		$plugins = isset( $_GET['plugin'] ) ? array( $_GET['plugin'] ) : array();
 	} else {
 		$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
@@ -95,9 +95,9 @@ function bbp_is_deactivation( $basename = '' ) {
 	$bbp    = bbpress();
 	$action = false;
 	
-	if ( ! empty( $_REQUEST['action'] ) && ( '-1' != $_REQUEST['action'] ) ) {
+	if ( ! empty( $_REQUEST['action'] ) && ( '-1' !== $_REQUEST['action'] ) ) {
 		$action = $_REQUEST['action'];
-	} elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' != $_REQUEST['action2'] ) ) {
+	} elseif ( ! empty( $_REQUEST['action2'] ) && ( '-1' !== $_REQUEST['action2'] ) ) {
 		$action = $_REQUEST['action2'];
 	}
 
@@ -107,7 +107,7 @@ function bbp_is_deactivation( $basename = '' ) {
 	}
 
 	// The plugin(s) being deactivated
-	if ( $action == 'deactivate' ) {
+	if ( $action === 'deactivate' ) {
 		$plugins = isset( $_GET['plugin'] ) ? array( $_GET['plugin'] ) : array();
 	} else {
 		$plugins = isset( $_POST['checked'] ) ? (array) $_POST['checked'] : array();
@@ -300,4 +300,44 @@ function bbp_add_activation_redirect() {
 
 	// Add the transient to redirect
     set_transient( '_bbp_activation_redirect', true, 30 );
+}
+
+/**
+ * Hooked to the 'bbp_activate' action, this helper function automatically makes
+ * the current user a Key Master in the forums if they just activated bbPress,
+ * regardless of the bbp_allow_global_access() setting.
+ *
+ * @since bbPress (r4910)
+ *
+ * @internal Used to internally make the current user a keymaster on activation
+ *
+ * @uses current_user_can() to bail if user cannot activate plugins
+ * @uses get_current_user_id() to get the current user ID
+ * @uses get_current_blog_id() to get the current blog ID
+ * @uses is_user_member_of_blog() to bail if the current user does not have a role
+ * @uses bbp_is_user_keymaster() to bail if the user is already a keymaster
+ * @uses bbp_set_user_role() to make the current user a keymaster
+ *
+ * @return If user can't activate plugins or is already a keymaster
+ */
+function bbp_make_current_user_keymaster() {
+
+	// Bail if the current user can't activate plugins since previous pageload
+	if ( ! current_user_can( 'activate_plugins' ) )
+		return;
+
+	// Get the current user ID
+	$user_id = get_current_user_id();
+	$blog_id = get_current_blog_id();
+
+	// Bail if user is not actually a member of this site
+	if ( ! is_user_member_of_blog( $user_id, $blog_id ) )
+		return;
+
+	// Bail if the current user is already a keymaster
+	if ( bbp_is_user_keymaster( $user_id ) )
+		return;
+
+	// Make the current user a keymaster
+	bbp_set_user_role( $user_id, bbp_get_keymaster_role() );
 }

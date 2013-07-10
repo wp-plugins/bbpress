@@ -74,12 +74,14 @@ add_action( 'bbp_loaded', 'bbp_filter_user_roles_option',  16 );
  *
  * Attach various initialization actions to the init action.
  * The load order helps to execute code at the correct time.
- *                                              v---Load order
+ *                                               v---Load order
  */
-add_action( 'bbp_init', 'bbp_load_textdomain',  0   );
-add_action( 'bbp_init', 'bbp_register',         0   );
-add_action( 'bbp_init', 'bbp_add_rewrite_tags', 20  );
-add_action( 'bbp_init', 'bbp_ready',            999 );
+add_action( 'bbp_init', 'bbp_load_textdomain',   0   );
+add_action( 'bbp_init', 'bbp_register',          0   );
+add_action( 'bbp_init', 'bbp_add_rewrite_tags',  20  );
+add_action( 'bbp_init', 'bbp_add_rewrite_rules', 30  );
+add_action( 'bbp_init', 'bbp_add_permastructs',  40  );
+add_action( 'bbp_init', 'bbp_ready',             999 );
 
 /**
  * There is no action API for roles to use, so hook in immediately after
@@ -179,8 +181,8 @@ add_action( 'bbp_edit_forum_post_extras',        'bbp_save_forum_extras', 2 );
 add_action( 'bbp_forum_attributes_metabox_save', 'bbp_save_forum_extras', 2 );
 
 // New/Edit Reply
-add_action( 'bbp_new_reply',  'bbp_update_reply', 10, 6 );
-add_action( 'bbp_edit_reply', 'bbp_update_reply', 10, 6 );
+add_action( 'bbp_new_reply',  'bbp_update_reply', 10, 7 );
+add_action( 'bbp_edit_reply', 'bbp_update_reply', 10, 7 );
 
 // Before Delete/Trash/Untrash Reply
 add_action( 'wp_trash_post', 'bbp_trash_reply'   );
@@ -295,10 +297,11 @@ add_action( 'bbp_post_request', 'bbp_new_reply_handler',      10 );
 add_action( 'bbp_post_request', 'bbp_new_topic_handler',      10 );
 
 // Theme-side GET requests
-add_action( 'bbp_get_request', 'bbp_toggle_topic_handler',   1  );
-add_action( 'bbp_get_request', 'bbp_toggle_reply_handler',   1  );
-add_action( 'bbp_get_request', 'bbp_favorites_handler',      1  );
-add_action( 'bbp_get_request', 'bbp_subscriptions_handler',  1  );
+add_action( 'bbp_get_request', 'bbp_toggle_topic_handler',    1  );
+add_action( 'bbp_get_request', 'bbp_toggle_reply_handler',    1  );
+add_action( 'bbp_get_request', 'bbp_favorites_handler',       1  );
+add_action( 'bbp_get_request', 'bbp_subscriptions_handler',   1  );
+add_action( 'bbp_get_request', 'bbp_search_results_redirect', 10 );
 
 // Maybe convert the users password
 add_action( 'bbp_login_form_login', 'bbp_user_maybe_convert_pass' );

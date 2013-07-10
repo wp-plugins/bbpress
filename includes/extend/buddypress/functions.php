@@ -38,11 +38,11 @@ function bbp_filter_user_id( $user_id = 0, $displayed_user_fallback = true, $cur
 		$bbp_user_id = $user_id;
 
 	// Currently viewing or editing a user
-	elseif ( ( true == $displayed_user_fallback ) && !empty( $did ) )
+	elseif ( ( true === $displayed_user_fallback ) && !empty( $did ) )
 		$bbp_user_id = $did;
 
 	// Maybe fallback on the current_user ID
-	elseif ( ( true == $current_user_fallback ) && !empty( $lid ) )
+	elseif ( ( true === $current_user_fallback ) && !empty( $lid ) )
 		$bbp_user_id = $lid;
 
 	return $bbp_user_id;
@@ -431,7 +431,7 @@ function bbp_remove_group_id_from_all_forums( $group_id = 0 ) {
 	$forum_ids = bbp_get_group_forum_ids( $group_id );
 
 	// Loop through forums and remove this group from each one
-	foreach( (array) $forum_ids as $forum_id ) {
+	foreach ( (array) $forum_ids as $forum_id ) {
 		bbp_remove_group_id_from_forum( $group_id, $forum_id );
 	}
 }
@@ -449,7 +449,7 @@ function bbp_remove_forum_id_from_all_groups( $forum_id = 0 ) {
 	$group_ids = bbp_get_forum_group_ids( $forum_id );
 
 	// Loop through groups and remove this forum from each one
-	foreach( (array) $group_ids as $group_id ) {
+	foreach ( (array) $group_ids as $group_id ) {
 		bbp_remove_forum_id_from_group( $forum_id, $group_id );
 	}
 }
