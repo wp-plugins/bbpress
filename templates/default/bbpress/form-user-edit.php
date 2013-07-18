@@ -62,7 +62,7 @@
 
 			<div>
 				<label for="<?php echo esc_attr( $name ); ?>"><?php echo apply_filters( 'user_' . $name . '_label', $desc ); ?></label>
-				<input type="text" name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $name ); ?>" value="<?php bbp_displayed_user_field( $name ); ?>" class="regular-text" tabindex="<?php bbp_tab_index(); ?>" />
+				<input type="text" name="<?php echo esc_attr( $name ); ?>" id="<?php echo esc_attr( $name ); ?>" value="<?php bbp_displayed_user_field( $name, 'edit' ); ?>" class="regular-text" tabindex="<?php bbp_tab_index(); ?>" />
 			</div>
 
 		<?php endforeach; ?>
@@ -80,7 +80,7 @@
 
 		<div>
 			<label for="description"><?php _e( 'Biographical Info', 'bbpress' ); ?></label>
-			<textarea name="description" id="description" rows="5" cols="30" tabindex="<?php bbp_tab_index(); ?>"><?php echo bbp_get_displayed_user_field( 'description', 'edit' ); ?></textarea>
+			<textarea name="description" id="description" rows="5" cols="30" tabindex="<?php bbp_tab_index(); ?>"><?php bbp_displayed_user_field( 'description', 'edit' ); ?></textarea>
 		</div>
 
 		<?php do_action( 'bbp_user_edit_after_about' ); ?>

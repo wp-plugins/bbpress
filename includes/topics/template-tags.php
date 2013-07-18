@@ -512,7 +512,7 @@ function bbp_get_topic( $topic, $output = OBJECT, $filter = 'raw' ) {
  * @uses bbp_get_topic_permalink() To get the topic permalink
  */
 function bbp_topic_permalink( $topic_id = 0, $redirect_to = '' ) {
-	echo bbp_get_topic_permalink( $topic_id, $redirect_to );
+	echo esc_url( bbp_get_topic_permalink( $topic_id, $redirect_to ) );
 }
 	/**
 	 * Return the link to the topic
@@ -1476,7 +1476,7 @@ function bbp_topic_author_link( $args = '' ) {
  * @uses bbp_get_topic_author_url() To get the topic author url
  */
 function bbp_topic_author_url( $topic_id = 0 ) {
-	echo bbp_get_topic_author_url( $topic_id );
+	echo esc_url( bbp_get_topic_author_url( $topic_id ) );
 }
 
 	/**
@@ -1814,7 +1814,7 @@ function bbp_topic_last_reply_title( $topic_id = 0 ) {
  * @uses bbp_get_topic_last_reply_permalink() To get the topic's last reply link
  */
 function bbp_topic_last_reply_permalink( $topic_id = 0 ) {
-	echo bbp_get_topic_last_reply_permalink( $topic_id );
+	echo esc_url( bbp_get_topic_last_reply_permalink( $topic_id ) );
 }
 	/**
 	 * Return the link to the last reply in a topic
@@ -1843,7 +1843,7 @@ function bbp_topic_last_reply_permalink( $topic_id = 0 ) {
  * @uses bbp_get_topic_last_reply_url() To get the topic last reply url
  */
 function bbp_topic_last_reply_url( $topic_id = 0 ) {
-	echo bbp_get_topic_last_reply_url( $topic_id );
+	echo esc_url( bbp_get_topic_last_reply_url( $topic_id ) );
 }
 	/**
 	 * Return the link to the last reply in a topic
@@ -1906,7 +1906,7 @@ function bbp_topic_freshness_link( $topic_id = 0 ) {
 		$time_since = bbp_get_topic_last_active_time( $topic_id );
 
 		if ( !empty( $time_since ) )
-			$anchor = '<a href="' . $link_url . '" title="' . esc_attr( $title ) . '">' . $time_since . '</a>';
+			$anchor = '<a href="' . esc_url( $link_url ) . '" title="' . esc_attr( $title ) . '">' . esc_html( $time_since ) . '</a>';
 		else
 			$anchor = __( 'No Replies', 'bbpress' );
 
@@ -2358,7 +2358,7 @@ function bbp_topic_edit_link( $args = '' ) {
 		if ( empty( $uri ) )
 			return;
 
-		$retval = $r['link_before'] . '<a href="' . $uri . '">' . $r['edit_text'] . '</a>' . $r['link_after'];
+		$retval = $r['link_before'] . '<a href="' . esc_url( $uri ) . '">' . $r['edit_text'] . '</a>' . $r['link_after'];
 
 		return apply_filters( 'bbp_get_topic_edit_link', $retval, $r );
 	}
@@ -2372,7 +2372,7 @@ function bbp_topic_edit_link( $args = '' ) {
  * @uses bbp_get_topic_edit_url() To get the topic edit url
  */
 function bbp_topic_edit_url( $topic_id = 0 ) {
-	echo bbp_get_topic_edit_url( $topic_id );
+	echo esc_url( bbp_get_topic_edit_url( $topic_id ) );
 }
 	/**
 	 * Return URL to the topic edit page
@@ -2542,8 +2542,8 @@ function bbp_topic_close_link( $args = '' ) {
 
 		$display = bbp_is_topic_open( $topic->ID ) ? $r['close_text'] : $r['open_text'];
 		$uri     = add_query_arg( array( 'action' => 'bbp_toggle_topic_close', 'topic_id' => $topic->ID ) );
-		$uri     = esc_url( wp_nonce_url( $uri, 'close-topic_' . $topic->ID ) );
-		$retval  = $r['link_before'] . '<a href="' . $uri . '">' . $display . '</a>' . $r['link_after'];
+		$uri     = wp_nonce_url( $uri, 'close-topic_' . $topic->ID );
+		$retval  = $r['link_before'] . '<a href="' . esc_url( $uri ) . '">' . $display . '</a>' . $r['link_after'];
 
 		return apply_filters( 'bbp_get_topic_close_link', $retval, $r );
 	}
@@ -2604,16 +2604,16 @@ function bbp_topic_stick_link( $args = '' ) {
 		$is_sticky = bbp_is_topic_sticky( $topic->ID );
 
 		$stick_uri = add_query_arg( array( 'action' => 'bbp_toggle_topic_stick', 'topic_id' => $topic->ID ) );
-		$stick_uri = esc_url( wp_nonce_url( $stick_uri, 'stick-topic_' . $topic->ID ) );
+		$stick_uri = wp_nonce_url( $stick_uri, 'stick-topic_' . $topic->ID );
 
 		$stick_display = true === $is_sticky ? $r['unstick_text'] : $r['stick_text'];
-		$stick_display = '<a href="' . $stick_uri . '">' . $stick_display . '</a>';
+		$stick_display = '<a href="' . esc_url( $stick_uri ) . '">' . $stick_display . '</a>';
 
 		if ( empty( $is_sticky ) ) {
 			$super_uri = add_query_arg( array( 'action' => 'bbp_toggle_topic_stick', 'topic_id' => $topic->ID, 'super' => 1 ) );
-			$super_uri = esc_url( wp_nonce_url( $super_uri, 'stick-topic_' . $topic->ID ) );
+			$super_uri = wp_nonce_url( $super_uri, 'stick-topic_' . $topic->ID );
 
-			$super_display = ' (<a href="' . $super_uri . '">' . $r['super_text'] . '</a>)';
+			$super_display = ' (<a href="' . esc_url( $super_uri ) . '">' . $r['super_text'] . '</a>)';
 		} else {
 			$super_display = '';
 		}
@@ -2670,8 +2670,8 @@ function bbp_topic_merge_link( $args = '' ) {
 		if ( empty( $topic ) || !current_user_can( 'moderate', $topic->ID ) )
 			return;
 
-		$uri    = esc_url( add_query_arg( array( 'action' => 'merge' ), bbp_get_topic_edit_url( $topic->ID ) ) );
-		$retval = $r['link_before'] . '<a href="' . $uri . '">' . $r['merge_text'] . '</a>' . $r['link_after'];
+		$uri    = add_query_arg( array( 'action' => 'merge' ), bbp_get_topic_edit_url( $topic->ID ) );
+		$retval = $r['link_before'] . '<a href="' . esc_url( $uri ) . '">' . $r['merge_text'] . '</a>' . $r['link_after'];
 
 		return apply_filters( 'bbp_get_topic_merge_link', $retval, $args );
 	}
@@ -2729,8 +2729,8 @@ function bbp_topic_spam_link( $args = '' ) {
 
 		$display = bbp_is_topic_spam( $topic->ID ) ? $r['unspam_text'] : $r['spam_text'];
 		$uri     = add_query_arg( array( 'action' => 'bbp_toggle_topic_spam', 'topic_id' => $topic->ID ) );
-		$uri     = esc_url( wp_nonce_url( $uri, 'spam-topic_' . $topic->ID ) );
-		$retval  = $r['link_before'] . '<a href="' . $uri . '">' . $display . '</a>' . $r['link_after'];
+		$uri     = wp_nonce_url( $uri, 'spam-topic_' . $topic->ID );
+		$retval  = $r['link_before'] . '<a href="' . esc_url( $uri ) . '">' . $display . '</a>' . $r['link_after'];
 
 		return apply_filters( 'bbp_get_topic_spam_link', $retval, $r );
 	}
@@ -3242,7 +3242,7 @@ function bbp_topic_tag_slug( $tag = '' ) {
  * @uses bbp_get_topic_tag_link()
  */
 function bbp_topic_tag_link( $tag = '' ) {
-	echo bbp_get_topic_tag_link( $tag );
+	echo esc_url( bbp_get_topic_tag_link( $tag ) );
 }
 	/**
 	 * Return the link of the current tag
@@ -3286,7 +3286,7 @@ function bbp_topic_tag_link( $tag = '' ) {
  * @uses bbp_get_topic_tag_edit_link()
  */
 function bbp_topic_tag_edit_link( $tag = '' ) {
-	echo bbp_get_topic_tag_edit_link( $tag );
+	echo esc_url( bbp_get_topic_tag_edit_link( $tag ) );
 }
 	/**
 	 * Return the link of the current tag
