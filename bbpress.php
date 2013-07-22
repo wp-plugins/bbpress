@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 5026 2013-07-10 21:57:23Z bumpbot $
+ * $Id: bbpress.php 5045 2013-07-22 04:04:22Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -188,7 +188,7 @@ final class bbPress {
 
 		/** Versions **********************************************************/
 
-		$this->version    = '2.4-beta1-5026';
+		$this->version    = '2.4-beta1-5033';
 		$this->db_version = '240';
 
 		/** Paths *************************************************************/
@@ -293,38 +293,38 @@ final class bbPress {
 		/** Components ********************************************************/
 
 		// Common
-		require( $this->includes_dir . 'common/ajax.php'           );
-		require( $this->includes_dir . 'common/classes.php'        );
-		require( $this->includes_dir . 'common/functions.php'      );
-		require( $this->includes_dir . 'common/formatting.php'     );
-		require( $this->includes_dir . 'common/template-tags.php'  );
-		require( $this->includes_dir . 'common/widgets.php'        );
-		require( $this->includes_dir . 'common/shortcodes.php'     );
+		require( $this->includes_dir . 'common/ajax.php'          );
+		require( $this->includes_dir . 'common/classes.php'       );
+		require( $this->includes_dir . 'common/functions.php'     );
+		require( $this->includes_dir . 'common/formatting.php'    );
+		require( $this->includes_dir . 'common/template.php'      );
+		require( $this->includes_dir . 'common/widgets.php'       );
+		require( $this->includes_dir . 'common/shortcodes.php'    );
 
 		// Forums
-		require( $this->includes_dir . 'forums/capabilities.php'   );
-		require( $this->includes_dir . 'forums/functions.php'      );
-		require( $this->includes_dir . 'forums/template-tags.php'  );
+		require( $this->includes_dir . 'forums/capabilities.php'  );
+		require( $this->includes_dir . 'forums/functions.php'     );
+		require( $this->includes_dir . 'forums/template.php'      );
 
 		// Topics
-		require( $this->includes_dir . 'topics/capabilities.php'   );
-		require( $this->includes_dir . 'topics/functions.php'      );
-		require( $this->includes_dir . 'topics/template-tags.php'  );
+		require( $this->includes_dir . 'topics/capabilities.php'  );
+		require( $this->includes_dir . 'topics/functions.php'     );
+		require( $this->includes_dir . 'topics/template.php'      );
 
 		// Replies
-		require( $this->includes_dir . 'replies/capabilities.php'  );
-		require( $this->includes_dir . 'replies/functions.php'     );
-		require( $this->includes_dir . 'replies/template-tags.php' );
+		require( $this->includes_dir . 'replies/capabilities.php' );
+		require( $this->includes_dir . 'replies/functions.php'    );
+		require( $this->includes_dir . 'replies/template.php'     );
 
 		// Search
-		require( $this->includes_dir . 'search/functions.php'      );
-		require( $this->includes_dir . 'search/template-tags.php'  );
+		require( $this->includes_dir . 'search/functions.php'     );
+		require( $this->includes_dir . 'search/template.php'      );
 
 		// Users
-		require( $this->includes_dir . 'users/capabilities.php'    );
-		require( $this->includes_dir . 'users/functions.php'       );
-		require( $this->includes_dir . 'users/template-tags.php'   );
-		require( $this->includes_dir . 'users/options.php'         );
+		require( $this->includes_dir . 'users/capabilities.php'   );
+		require( $this->includes_dir . 'users/functions.php'      );
+		require( $this->includes_dir . 'users/template.php'       );
+		require( $this->includes_dir . 'users/options.php'        );
 
 		/** Hooks *************************************************************/
 
