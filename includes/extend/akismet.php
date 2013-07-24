@@ -69,6 +69,11 @@ class BBP_Akismet {
 
 		// Update post meta
 		add_action( 'wp_insert_post', array( $this, 'update_post_meta' ), 10, 2 );
+
+		// Admin
+		if ( is_admin() ) {
+			add_action( 'add_meta_boxes', array( $this, 'add_metaboxes' ) );
+		}
 	}
 
 	/**
@@ -467,7 +472,7 @@ class BBP_Akismet {
 
 					// Leave a trail so other's know what we did
 					update_post_meta( $post_id, '_bbp_akismet_result', 'false' );
-					$this->update_post_history( $post_id, esc_html__( 'Akismet cleared this post', 'bbpress' ), 'check-ham' );
+					$this->update_post_history( $post_id, esc_html__( 'Akismet cleared this post as not spam', 'bbpress' ), 'check-ham' );
 
 					// If post_status is the spam status, which isn't expected, leave a note
 					if ( bbp_get_spam_status_id() === $_post->post_status ) {
@@ -713,6 +718,85 @@ class BBP_Akismet {
 		}
 
 		return implode( ',', $roles );
+	}
+
+	/** Admin *****************************************************************/
+
+	/**
+	 * Add Aksimet History metaboxes to topics and replies
+	 *
+	 * @since bbPress (r5049)
+	 */
+	public function add_metaboxes() {
+
+		// Topics
+		add_meta_box(
+			'bbp_akismet_topic_history',
+			__( 'Akismet History', 'bbpress' ),
+			array( $this, 'history_metabox' ),
+			bbp_get_topic_post_type(),
+			'normal',
+			'core'
+		);
+
+		// Replies
+		add_meta_box(
+			'bbp_akismet_reply_history',
+			__( 'Akismet History', 'bbpress' ),
+			array( $this, 'history_metabox' ),
+			bbp_get_reply_post_type(),
+			'normal',
+			'core'
+		);
+	}
+
+	/**
+	 * Output for Akismet History metabox
+	 *
+	 * @since bbPress (r5049)
+	 *
+	 * @uses get_post_history() To get the Akismet history for the post
+	 * @uses get_the_ID() To get the post ID
+	 * @uses bbp_time_since() To get the human readable time
+	 */
+	public function history_metabox() {
+
+		// Post ID
+		$history = $this->get_post_history( get_the_ID() ); ?>
+
+		<div class="akismet-history" style="margin: 13px 0;">
+
+			<?php if ( !empty( $history ) ) : ?>
+
+				<table>
+					<tbody>
+
+						<?php foreach ( $history as $row ) : ?>
+
+							<tr>
+								<td style="color: #999; text-align: right; white-space: nowrap;">
+									<span title="<?php echo esc_attr( date( 'D d M Y @ h:i:m a', $row['time'] ) . ' GMT' ); ?>">
+										<?php bbp_time_since( $row['time'], false, true ); ?>
+									</span>
+								</td>
+								<td style="padding-left: 5px;">
+									<?php echo esc_html( $row['message'] ); ?>
+								</td>
+							</tr>
+
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+
+			<?php else : ?>
+
+				<p><?php esc_html_e( 'No recorded history. Akismet has not checked this post.', 'bbpress' ); ?></p>
+
+			<?php endif; ?>
+
+		</div>
+
+		<?php
 	}
 }
 endif;
