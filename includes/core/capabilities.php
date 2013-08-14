@@ -260,6 +260,29 @@ function bbp_get_wp_roles() {
 	return $wp_roles;
 }
 
+/**
+ * Get the available roles minus bbPress's dynamic roles
+ *
+ * @since bbPress (r5064)
+ *
+ * @uses bbp_get_wp_roles() To load and get the $wp_roles global
+ * @return array
+ */
+function bbp_get_blog_roles() {
+
+	// Get WordPress's roles (returns $wp_roles global)
+	$wp_roles  = bbp_get_wp_roles();
+
+	// Apply the WordPress 'editable_roles' filter to let plugins ride along.
+	//
+	// We use this internally via bbp_filter_blog_editable_roles() to remove
+	// any custom bbPress roles that are added to the global.
+	$the_roles = isset( $wp_roles->roles ) ? $wp_roles->roles : false;
+	$all_roles = apply_filters( 'editable_roles', $the_roles );
+
+	return apply_filters( 'bbp_get_blog_roles', $all_roles, $wp_roles );
+}
+
 /** Forum Roles ***************************************************************/
 
 /**
@@ -268,6 +291,9 @@ function bbp_get_wp_roles() {
  * We do this to avoid adding these values to the database.
  *
  * @since bbPress (r4290)
+ *
+ * @uses bbp_get_wp_roles() To load and get the $wp_roles global
+ * @uses bbp_get_dynamic_roles() To get and add bbPress's roles to $wp_roles
  * @return WP_Roles The main $wp_roles global
  */
 function bbp_add_forums_roles() {
@@ -504,5 +530,13 @@ function bbp_add_roles() {
  * @deprecated since version 2.2
  */
 function bbp_remove_roles() {
-	_doing_it_wrong( 'bbp_remove_roles', __( 'Editable forum roles no longer exist.', 'bbpress' ), '2.2' );
+
+	// Remove the bbPress roles
+	foreach ( array_keys( bbp_get_dynamic_roles() ) as $bbp_role ) {
+		remove_role( $bbp_role );
+	}
+
+	// Some early adopters may have a deprecated visitor role. It was later
+	// replaced by the Spectator role.
+	remove_role( 'bbp_visitor' );
 }
