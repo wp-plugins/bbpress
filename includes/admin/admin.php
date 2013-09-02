@@ -1382,7 +1382,7 @@ class BBP_Admin {
 
 		<div class="wrap about-wrap">
 			<h1><?php printf( esc_html__( 'Welcome to bbPress %s', 'bbpress' ), $display_version ); ?></h1>
-			<div class="about-text"><?php printf( esc_html__( 'Thank you for updating to the latest version! bbPress %s goes great with pizza and popcorn, and will nicely complement your community too!', 'bbpress' ), $display_version ); ?></div>
+			<div class="about-text"><?php printf( esc_html__( 'Thank you for updating! bbPress %s is waxed, polished, and ready for you to take it for a lap or two around the block!', 'bbpress' ), $display_version ); ?></div>
 			<div class="bbp-badge"><?php printf( esc_html__( 'Version %s', 'bbpress' ), $display_version ); ?></div>
 
 			<h2 class="nav-tab-wrapper">
@@ -1394,41 +1394,18 @@ class BBP_Admin {
 			</h2>
 
 			<div class="changelog">
-				<h3><?php esc_html_e( 'Forum Search', 'bbpress' ); ?></h3>
+				<h3><?php esc_html_e( 'Hierarchical Replies', 'bbpress' ); ?></h3>
 
-				<div class="feature-section">
-					<h4><?php esc_html_e( 'Only Forum Content', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'Allow your forums to be searched without mixing in your posts or pages.', 'bbpress' ); ?></p>
+				<div class="feature-section col two-col">
+					<div class="last-feature">
+						<h4><?php esc_html_e( 'Reply to replies', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Now your users can reply to specific replies, providing context to each inidividual post.', 'bbpress' ); ?></p>
+					</div>
 
-					<h4><?php esc_html_e( 'Choose Your Own Slug', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'Setup your forum search to live anywhere relative to the forum index.', 'bbpress' ); ?></p>
-				</div>
-			</div>
-
-			<div class="changelog">
-				<h3><?php esc_html_e( 'New & Improved Forum Importers', 'bbpress' ); ?></h3>
-
-				<div class="feature-section">
-					<h4><?php esc_html_e( 'BBCodes & Smilies', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'Happy faces all-around now that the importers properly convert BBCodes & smilies. :)', 'bbpress' ); ?></p>
-
-					<h4><?php esc_html_e( 'Vanilla', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'Tired of plain old Vanilla? Now you can easily switch to <del>Mint Chocolate Chip</del> bbPress!', 'bbpress' ); ?></p>
-
-					<h4><?php esc_html_e( 'SimplePress', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'Converting an existing SimplePress powered forum to bbPress has never been "simpler!"', 'bbpress' ); ?></p>
-
-					<h4><?php esc_html_e( 'Mingle', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'No time to... chit-chat; convert your Mingle forums to bbPress today!', 'bbpress' ); ?></p>
-				</div>
-			</div>
-
-			<div class="changelog">
-				<h3><?php esc_html_e( 'Even Better BuddyPress Integration', 'bbpress' ); ?></h3>
-
-				<div class="feature-section">
-					<h4><?php esc_html_e( 'bbPress powered BuddyPress Group Forums', 'bbpress' ); ?></h4>
-					<p><?php esc_html_e( 'Use bbPress to manage your BuddyPress Group Forums, allowing for seamless integration and improved plugin performance.', 'bbpress' ); ?></p>
+					<div>
+						<h4><?php esc_html_e( 'Choose your own discussion style', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Stay flat or go threaded, and seamlessly switch between the two.', 'bbpress' ); ?></p>
+					</div>
 				</div>
 			</div>
 
@@ -1437,27 +1414,35 @@ class BBP_Admin {
 
 				<div class="feature-section col three-col">
 					<div>
-						<h4><?php esc_html_e( 'Smarter Fancy Editor', 'bbpress' ); ?></h4>
-						<p><?php esc_html_e( 'We simplified the Fancy Editor, and the allowed HTML tags that work with it.', 'bbpress' ); ?></p>
-
-						<h4><?php esc_html_e( 'Better Code Posting', 'bbpress' ); ?></h4>
-						<p><?php esc_html_e( 'Your users can now post code snippets without too much hassle.', 'bbpress' ); ?></p>
+						<h4><?php esc_html_e( 'Preformatted text', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Forum users can post code snippets with confidence.', 'bbpress' ); ?></p>
 					</div>
 
 					<div>
-						<h4><?php esc_html_e( 'Template Stacking', 'bbpress' ); ?></h4>
-						<p><?php esc_html_e( 'Now you can replace specific template parts on the fly without modifying the existing theme.', 'bbpress' ); ?></p>
-
-						<h4><?php esc_html_e( 'TwentyThirteen Tested', 'bbpress' ); ?></h4>
-						<p><?php esc_html_e( 'bbPress 2.3 already works with the in-development TwentyThirteen theme, coming in a future version of WordPress.', 'bbpress' ); ?></p>
+						<h4><?php esc_html_e( 'Polyglot support', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'bbPress is ready for future translation API improvements.', 'bbpress' ); ?></p>
 					</div>
 
 					<div class="last-feature">
-						<h4><?php esc_html_e( 'Statistics Shortcode', 'bbpress' ); ?></h4>
-						<p><?php esc_html_e( 'The old statistics easter-egg page was turned into an easy to use shortcode.', 'bbpress' ); ?></p>
+						<h4><?php esc_html_e( 'User capabilities', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Roles and capabilities have been swept through, cleaned up, and simplified.', 'bbpress' ); ?></p>
+					</div>
+				</div>
 
-						<h4><?php esc_html_e( 'Green Theme Updated', 'bbpress' ); ?></h4>
-						<p><?php esc_html_e( 'The green admin theme easter-egg was updated to work with WordPress 3.5 changes.', 'bbpress' ); ?></p>
+				<div class="feature-section col three-col">
+					<div>
+						<h4><?php esc_html_e( 'Search', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Search results use pretty permalinks, and have a dedicated output page.', 'bbpress' ); ?></p>
+					</div>
+
+					<div>
+						<h4><?php esc_html_e( 'Settings', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Fields and sections have been reordered and reorganized.', 'bbpress' ); ?></p>
+					</div>
+
+					<div class="last-feature">
+						<h4><?php esc_html_e( 'BuddyPress', 'bbpress' ); ?></h4>
+						<p><?php esc_html_e( 'Forums are now fully and seamlessly integrated into BuddyPress Groups.', 'bbpress' ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -1484,9 +1469,9 @@ class BBP_Admin {
 		list( $display_version ) = explode( '-', bbp_get_version() ); ?>
 
 		<div class="wrap about-wrap">
-			<h1><?php printf( __( 'Welcome to bbPress %s', 'bbpress' ), $display_version ); ?></h1>
-			<div class="about-text"><?php printf( __( 'Thank you for updating to the latest version! bbPress %s goes great with pizza and popcorn, and will nicely complement your community too!', 'bbpress' ), $display_version ); ?></div>
-			<div class="bbp-badge"><?php printf( __( 'Version %s' ), $display_version ); ?></div>
+			<h1><?php printf( esc_html__( 'Welcome to bbPress %s', 'bbpress' ), $display_version ); ?></h1>
+			<div class="about-text"><?php printf( esc_html__( 'Thank you for updating! bbPress %s is waxed, polished, and ready for you to take it for a lap or two around the block!', 'bbpress' ), $display_version ); ?></div>
+			<div class="bbp-badge"><?php printf( esc_html__( 'Version %s', 'bbpress' ), $display_version ); ?></div>
 
 			<h2 class="nav-tab-wrapper">
 				<a href="<?php echo esc_url( admin_url( add_query_arg( array( 'page' => 'bbp-about' ), 'index.php' ) ) ); ?>" class="nav-tab">
@@ -1513,7 +1498,7 @@ class BBP_Admin {
 				<li class="wp-person" id="wp-person-jmdodd">
 					<a href="http://profiles.wordpress.org/jmdodd"><img src="http://0.gravatar.com/avatar/6a7c997edea340616bcc6d0fe03f65dd?s=60" class="gravatar" alt="Jennifer M. Dodd" /></a>
 					<a class="web" href="http://profiles.wordpress.org/jmdodd">Jennifer M. Dodd</a>
-					<span class="title"></span>
+					<span class="title"><?php esc_html_e( 'Feature Developer', 'bbpress' ); ?></span>
 				</li>
 			</ul>
 
@@ -1522,58 +1507,48 @@ class BBP_Admin {
 				<li class="wp-person" id="wp-person-netweb">
 					<a href="http://profiles.wordpress.org/netweb"><img src="http://0.gravatar.com/avatar/97e1620b501da675315ba7cfb740e80f?s=60" class="gravatar" alt="Stephen Edgar" /></a>
 					<a class="web" href="http://profiles.wordpress.org/netweb">Stephen Edgar</a>
-					<span class="title"></span>
+					<span class="title"><?php esc_html_e( 'Converter Specialist', 'bbpress' ); ?></span>
 				</li>
 				<li class="wp-person" id="wp-person-jaredatch">
 					<a href="http://profiles.wordpress.org/jaredatch"><img src="http://0.gravatar.com/avatar/e341eca9e1a85dcae7127044301b4363?s=60" class="gravatar" alt="Jared Atchison" /></a>
 					<a class="web" href="http://profiles.wordpress.org/jaredatch">Jared Atchison</a>
-					<span class="title"></span>
+					<span class="title"><?php esc_html_e( 'Bug Testing', 'bbpress' ); ?></span>
 				</li>
 				<li class="wp-person" id="wp-person-gautamgupta">
 					<a href="http://profiles.wordpress.org/gautamgupta"><img src="http://0.gravatar.com/avatar/b0810422cbe6e4eead4def5ae7a90b34?s=60" class="gravatar" alt="Gautam Gupta" /></a>
 					<a class="web" href="http://profiles.wordpress.org/gautamgupta">Gautam Gupta</a>
-					<span class="title"></span>
+					<span class="title"><?php esc_html_e( 'Feature Developer', 'bbpress' ); ?></span>
 				</li>
 			</ul>
 
-			<h4 class="wp-people-group"><?php esc_html_e( 'Core Contributors to bbPress 2.3', 'bbpress' ); ?></h4>
+			<h4 class="wp-people-group"><?php esc_html_e( 'Core Contributors to bbPress 2.4', 'bbpress' ); ?></h4>
 			<p class="wp-credits-list">
-				<a href="http://profiles.wordpress.org/alexvorn2">alexvorn2</a>,
 				<a href="http://profiles.wordpress.org/alex-ye">alex-ye</a>,
-				<a href="http://profiles.wordpress.org/anointed">anointed</a>,
+				<a href="http://profiles.wordpress.org/alexvorn2">alexvorn2</a>,
+				<a href="http://profiles.wordpress.org/aliso">aliso</a>,
 				<a href="http://profiles.wordpress.org/boonebgorges">boonebgorges</a>,
-				<a href="http://profiles.wordpress.org/chexee">chexee</a>,
-				<a href="http://profiles.wordpress.org/cnorris23">cnorris23</a>,
-				<a href="http://profiles.wordpress.org/DanielJuhl">DanielJuhl</a>,
 				<a href="http://profiles.wordpress.org/daveshine">daveshine</a>,
-				<a href="http://profiles.wordpress.org/dimadin">dimadin</a>,
 				<a href="http://profiles.wordpress.org/DJPaul">DJPaul</a>,
-				<a href="http://profiles.wordpress.org/duck_">duck_</a>,
-				<a href="http://profiles.wordpress.org/gawain">gawain</a>,
-				<a href="http://profiles.wordpress.org/iamzippy">iamzippy</a>,
-				<a href="http://profiles.wordpress.org/isaacchapman">isaacchapman</a>,
-				<a href="http://profiles.wordpress.org/jane">jane</a>,
+				<a href="http://profiles.wordpress.org/ethitter">ethitter</a>,
+				<a href="http://profiles.wordpress.org/fanquake">fanquake</a>,
+				<a href="http://profiles.wordpress.org/GargajCNS">GargajCNS</a>,
+				<a href="http://profiles.wordpress.org/GautamGupta">GautamGupta</a>,
+				<a href="http://profiles.wordpress.org/imath">imath</a>,
 				<a href="http://profiles.wordpress.org/jkudish">jkudish</a>,
+				<a href="http://profiles.wordpress.org/kobenland">kobenland</a>,
+				<a href="http://profiles.wordpress.org/lakrisgubben">lakrisgubben</a>,
+				<a href="http://profiles.wordpress.org/loki_racer">loki_racer</a>,
 				<a href="http://profiles.wordpress.org/mamaduka">mamaduka</a>,
+				<a href="http://profiles.wordpress.org/Maty">Maty</a>,
 				<a href="http://profiles.wordpress.org/mercime">mercime</a>,
-				<a href="http://profiles.wordpress.org/mesayre">mesayre</a>,
 				<a href="http://profiles.wordpress.org/mordauk">mordauk</a>,
+				<a href="http://profiles.wordpress.org/mrcl">mrcl</a>,
 				<a href="http://profiles.wordpress.org/MZAWeb">MZAWeb</a>,
-				<a href="http://profiles.wordpress.org/nexia">nexia</a>,
-				<a href="http://profiles.wordpress.org/Omicron7">Omicron7</a>,
-				<a href="http://profiles.wordpress.org/otto42">otto42</a>,
-				<a href="http://profiles.wordpress.org/pavelevap">pavelevap</a>,
-				<a href="http://profiles.wordpress.org/plescheff">plescheff</a>,
-				<a href="http://profiles.wordpress.org/scribu">scribu</a>,
-				<a href="http://profiles.wordpress.org/sorich87">sorich87</a>,
-				<a href="http://profiles.wordpress.org/SteveAtty">SteveAtty</a>,
-				<a href="http://profiles.wordpress.org/tmoorewp">tmoorewp</a>,
-				<a href="http://profiles.wordpress.org/tott">tott</a>,
-				<a href="http://profiles.wordpress.org/tungdo">tungdo</a>,
-				<a href="http://profiles.wordpress.org/vibol">vibol</a>,
-				<a href="http://profiles.wordpress.org/wonderboymusic">wonderboymusic</a>,
-				<a href="http://profiles.wordpress.org/westi">westi</a>,
-				<a href="http://profiles.wordpress.org/xiosen">xiosen</a>,
+				<a href="http://profiles.wordpress.org/r-a-y">r-a-y</a>,
+				<a href="http://profiles.wordpress.org/strangerstudios">strangerstudios</a>,
+				<a href="http://profiles.wordpress.org/thebrandonallen">thebrandonallen</a>,
+				<a href="http://profiles.wordpress.org/tlovett1">tlovett1</a>,
+				<a href="http://profiles.wordpress.org/wpdennis">wpdennis</a>,
 			</p>
 
 			<div class="return-to-dashboard">

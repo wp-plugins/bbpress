@@ -487,7 +487,6 @@ function bbp_user_display_role( $user_id = 0 ) {
 	 *
 	 * @param int $user_id
 	 * @uses bbp_get_user_id() to verify the user ID
-	 * @uses bbp_is_user_keymaster() to check if user is a keymaster
 	 * @uses bbp_is_user_inactive() to check if user is inactive
 	 * @uses user_can() to check if user has special capabilities
 	 * @uses apply_filters() Calls 'bbp_get_user_display_role' with the
@@ -1505,16 +1504,16 @@ function bbp_user_can_view_forum( $args = '' ) {
 	), 'user_can_view_forum' );
 
 	// Validate parsed values
-	$user_id  = bbp_get_user_id ( $r['user_id'], false, false );
+	$user_id  = bbp_get_user_id( $r['user_id'], false, false );
 	$forum_id = bbp_get_forum_id( $r['forum_id'] );
 	$retval   = false;
 
 	// User is a keymaster
-	if ( bbp_is_user_keymaster() ) {
+	if ( bbp_is_user_keymaster( $user_id ) ) {
 		$retval = true;
 
 	// Forum is public, and user can read forums or is not logged in
-	} elseif ( bbp_is_forum_public ( $forum_id, $r['check_ancestors'] ) ) {
+	} elseif ( bbp_is_forum_public( $forum_id, $r['check_ancestors'] ) ) {
 		$retval = true;
 
 	// Forum is private, and user can see it
