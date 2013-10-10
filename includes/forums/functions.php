@@ -169,8 +169,9 @@ function bbp_new_forum_handler( $action = '' ) {
 	/** Forum Parent **********************************************************/
 
 	// Forum parent was passed (the norm)
-	if ( !empty( $_POST['bbp_forum_parent_id'] ) )
-		$forum_parent_id = (int) $_POST['bbp_forum_parent_id'];
+	if ( !empty( $_POST['bbp_forum_parent_id'] ) ) {
+		$forum_parent_id = bbp_get_forum_id( $_POST['bbp_forum_parent_id'] );
+	}
 
 	// Filter and sanitize
 	$forum_parent_id = apply_filters( 'bbp_new_forum_pre_parent_id', $forum_parent_id );
@@ -415,8 +416,8 @@ function bbp_edit_forum_handler( $action = '' ) {
 	/** Forum Parent ***********************************************************/
 
 	// Forum parent id was passed
-	if ( is_numeric( $_POST['bbp_forum_parent_id'] ) ) {
-		$forum_parent_id = (int) $_POST['bbp_forum_parent_id'];
+	if ( !empty( $_POST['bbp_forum_parent_id'] ) ) {
+		$forum_parent_id = bbp_get_forum_id( $_POST['bbp_forum_parent_id'] );
 	}
 
 	// Current forum this forum is in
@@ -801,10 +802,9 @@ function bbp_publicize_forum( $forum_id = 0, $current_visibility = '' ) {
 	if ( bbp_get_public_status_id() !== $current_visibility ) {
 
 		// Update forums visibility setting
-		wp_insert_post( array(
-			'ID'          => $forum_id,
-			'post_status' => bbp_get_public_status_id()
-		) );
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_status' => bbp_get_public_status_id() ), array( 'ID' => $forum_id ) );
+		wp_transition_post_status( bbp_get_public_status_id(), $current_visibility, get_post( $forum_id ) );
 	}
 
 	do_action( 'bbp_publicized_forum', $forum_id );
@@ -851,10 +851,9 @@ function bbp_privatize_forum( $forum_id = 0, $current_visibility = '' ) {
 		update_option( '_bbp_private_forums', array_unique( array_filter( array_values( $private ) ) ) );
 
 		// Update forums visibility setting
-		wp_insert_post( array(
-			'ID'          => $forum_id,
-			'post_status' => bbp_get_private_status_id()
-		) );
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_status' => bbp_get_private_status_id() ), array( 'ID' => $forum_id ) );
+		wp_transition_post_status( bbp_get_private_status_id(), $current_visibility, get_post( $forum_id ) );
 	}
 
 	do_action( 'bbp_privatized_forum', $forum_id );
@@ -901,10 +900,9 @@ function bbp_hide_forum( $forum_id = 0, $current_visibility = '' ) {
 		update_option( '_bbp_hidden_forums', array_unique( array_filter( array_values( $hidden ) ) ) );
 
 		// Update forums visibility setting
-		wp_insert_post( array(
-			'ID'          => $forum_id,
-			'post_status' => bbp_get_hidden_status_id()
-		) );
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_status' => bbp_get_hidden_status_id() ), array( 'ID' => $forum_id ) );
+		wp_transition_post_status( bbp_get_hidden_status_id(), $current_visibility, get_post( $forum_id ) );
 	}
 
 	do_action( 'bbp_hid_forum',  $forum_id );
