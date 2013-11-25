@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 5163 2013-11-23 09:45:06Z johnjamesjacoby $
+ * $Id: bbpress.php 5199 2013-11-25 06:37:25Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -17,7 +17,7 @@
  * Description: bbPress is forum software with a twist from the creators of WordPress.
  * Author:      The bbPress Community
  * Author URI:  http://bbpress.org
- * Version:     2.5-alpha
+ * Version:     2.5
  * Text Domain: bbpress
  * Domain Path: /languages/
  */
@@ -190,8 +190,8 @@ final class bbPress {
 
 		/** Versions **********************************************************/
 
-		$this->version    = '2.5-alpha-5129';
-		$this->db_version = '240';
+		$this->version    = '2.5-5199';
+		$this->db_version = '250';
 
 		/** Paths *************************************************************/
 
