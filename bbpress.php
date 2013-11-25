@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 5129 2013-10-10 23:23:32Z johnjamesjacoby $
+ * $Id: bbpress.php 5163 2013-11-23 09:45:06Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -243,6 +243,7 @@ final class bbPress {
 
 		/** Queries ***********************************************************/
 
+		$this->current_view_id      = 0; // Current view id
 		$this->current_forum_id     = 0; // Current forum id
 		$this->current_topic_id     = 0; // Current topic id
 		$this->current_reply_id     = 0; // Current reply id
@@ -456,6 +457,9 @@ final class bbPress {
 
 		// Look in local /wp-content/plugins/bbpress/bbp-languages/ folder
 		load_textdomain( $this->domain, $mofile_local );
+
+		// Look in global /wp-content/languages/plugins/
+		load_plugin_textdomain( $this->domain );
 	}
 
 	/**
@@ -468,50 +472,15 @@ final class bbPress {
 	 */
 	public static function register_post_types() {
 
-		// Define local variable(s)
-		$post_type = array();
-
 		/** Forums ************************************************************/
-
-		// Forum labels
-		$post_type['labels'] = array(
-			'name'               => __( 'Forums',                   'bbpress' ),
-			'menu_name'          => __( 'Forums',                   'bbpress' ),
-			'singular_name'      => __( 'Forum',                    'bbpress' ),
-			'all_items'          => __( 'All Forums',               'bbpress' ),
-			'add_new'            => __( 'New Forum',                'bbpress' ),
-			'add_new_item'       => __( 'Create New Forum',         'bbpress' ),
-			'edit'               => __( 'Edit',                     'bbpress' ),
-			'edit_item'          => __( 'Edit Forum',               'bbpress' ),
-			'new_item'           => __( 'New Forum',                'bbpress' ),
-			'view'               => __( 'View Forum',               'bbpress' ),
-			'view_item'          => __( 'View Forum',               'bbpress' ),
-			'search_items'       => __( 'Search Forums',            'bbpress' ),
-			'not_found'          => __( 'No forums found',          'bbpress' ),
-			'not_found_in_trash' => __( 'No forums found in Trash', 'bbpress' ),
-			'parent_item_colon'  => __( 'Parent Forum:',            'bbpress' )
-		);
-
-		// Forum rewrite
-		$post_type['rewrite'] = array(
-			'slug'       => bbp_get_forum_slug(),
-			'with_front' => false
-		);
-
-		// Forum supports
-		$post_type['supports'] = array(
-			'title',
-			'editor',
-			'revisions'
-		);
 
 		// Register Forum content type
 		register_post_type(
 			bbp_get_forum_post_type(),
 			apply_filters( 'bbp_register_forum_post_type', array(
-				'labels'              => $post_type['labels'],
-				'rewrite'             => $post_type['rewrite'],
-				'supports'            => $post_type['supports'],
+				'labels'              => bbp_get_forum_post_type_labels(),
+				'rewrite'             => bbp_get_forum_post_type_rewrite(),
+				'supports'            => bbp_get_forum_post_type_supports(),
 				'description'         => __( 'bbPress Forums', 'bbpress' ),
 				'capabilities'        => bbp_get_forum_caps(),
 				'capability_type'     => array( 'forum', 'forums' ),
@@ -530,45 +499,13 @@ final class bbPress {
 
 		/** Topics ************************************************************/
 
-		// Topic labels
-		$post_type['labels'] = array(
-			'name'               => __( 'Topics',                   'bbpress' ),
-			'menu_name'          => __( 'Topics',                   'bbpress' ),
-			'singular_name'      => __( 'Topic',                    'bbpress' ),
-			'all_items'          => __( 'All Topics',               'bbpress' ),
-			'add_new'            => __( 'New Topic',                'bbpress' ),
-			'add_new_item'       => __( 'Create New Topic',         'bbpress' ),
-			'edit'               => __( 'Edit',                     'bbpress' ),
-			'edit_item'          => __( 'Edit Topic',               'bbpress' ),
-			'new_item'           => __( 'New Topic',                'bbpress' ),
-			'view'               => __( 'View Topic',               'bbpress' ),
-			'view_item'          => __( 'View Topic',               'bbpress' ),
-			'search_items'       => __( 'Search Topics',            'bbpress' ),
-			'not_found'          => __( 'No topics found',          'bbpress' ),
-			'not_found_in_trash' => __( 'No topics found in Trash', 'bbpress' ),
-			'parent_item_colon'  => __( 'Forum:',                   'bbpress' )
-		);
-
-		// Topic rewrite
-		$post_type['rewrite'] = array(
-			'slug'       => bbp_get_topic_slug(),
-			'with_front' => false
-		);
-
-		// Topic supports
-		$post_type['supports'] = array(
-			'title',
-			'editor',
-			'revisions'
-		);
-
 		// Register Topic content type
 		register_post_type(
 			bbp_get_topic_post_type(),
 			apply_filters( 'bbp_register_topic_post_type', array(
-				'labels'              => $post_type['labels'],
-				'rewrite'             => $post_type['rewrite'],
-				'supports'            => $post_type['supports'],
+				'labels'              => bbp_get_topic_post_type_labels(),
+				'rewrite'             => bbp_get_topic_post_type_rewrite(),
+				'supports'            => bbp_get_topic_post_type_supports(),
 				'description'         => __( 'bbPress Topics', 'bbpress' ),
 				'capabilities'        => bbp_get_topic_caps(),
 				'capability_type'     => array( 'topic', 'topics' ),
@@ -587,45 +524,13 @@ final class bbPress {
 
 		/** Replies ***********************************************************/
 
-		// Reply labels
-		$post_type['labels'] = array(
-			'name'               => __( 'Replies',                   'bbpress' ),
-			'menu_name'          => __( 'Replies',                   'bbpress' ),
-			'singular_name'      => __( 'Reply',                     'bbpress' ),
-			'all_items'          => __( 'All Replies',               'bbpress' ),
-			'add_new'            => __( 'New Reply',                 'bbpress' ),
-			'add_new_item'       => __( 'Create New Reply',          'bbpress' ),
-			'edit'               => __( 'Edit',                      'bbpress' ),
-			'edit_item'          => __( 'Edit Reply',                'bbpress' ),
-			'new_item'           => __( 'New Reply',                 'bbpress' ),
-			'view'               => __( 'View Reply',                'bbpress' ),
-			'view_item'          => __( 'View Reply',                'bbpress' ),
-			'search_items'       => __( 'Search Replies',            'bbpress' ),
-			'not_found'          => __( 'No replies found',          'bbpress' ),
-			'not_found_in_trash' => __( 'No replies found in Trash', 'bbpress' ),
-			'parent_item_colon'  => __( 'Topic:',                    'bbpress' )
-		);
-
-		// Reply rewrite
-		$post_type['rewrite'] = array(
-			'slug'       => bbp_get_reply_slug(),
-			'with_front' => false
-		);
-
-		// Reply supports
-		$post_type['supports'] = array(
-			'title',
-			'editor',
-			'revisions'
-		);
-
 		// Register reply content type
 		register_post_type(
 			bbp_get_reply_post_type(),
 			apply_filters( 'bbp_register_reply_post_type', array(
-				'labels'              => $post_type['labels'],
-				'rewrite'             => $post_type['rewrite'],
-				'supports'            => $post_type['supports'],
+				'labels'              => bbp_get_reply_post_type_labels(),
+				'rewrite'             => bbp_get_reply_post_type_rewrite(),
+				'supports'            => bbp_get_reply_post_type_supports(),
 				'description'         => __( 'bbPress Replies', 'bbpress' ),
 				'capabilities'        => bbp_get_reply_caps(),
 				'capability_type'     => array( 'reply', 'replies' ),
@@ -739,36 +644,13 @@ final class bbPress {
 	 */
 	public static function register_taxonomies() {
 
-		// Define local variable(s)
-		$topic_tag = array();
-
-		// Topic tag labels
-		$topic_tag['labels'] = array(
-			'name'          => __( 'Topic Tags',     'bbpress' ),
-			'singular_name' => __( 'Topic Tag',      'bbpress' ),
-			'search_items'  => __( 'Search Tags',    'bbpress' ),
-			'popular_items' => __( 'Popular Tags',   'bbpress' ),
-			'all_items'     => __( 'All Tags',       'bbpress' ),
-			'edit_item'     => __( 'Edit Tag',       'bbpress' ),
-			'update_item'   => __( 'Update Tag',     'bbpress' ),
-			'add_new_item'  => __( 'Add New Tag',    'bbpress' ),
-			'new_item_name' => __( 'New Tag Name',   'bbpress' ),
-			'view_item'     => __( 'View Topic Tag', 'bbpress' )
-		);
-
-		// Topic tag rewrite
-		$topic_tag['rewrite'] = array(
-			'slug'       => bbp_get_topic_tag_tax_slug(),
-			'with_front' => false
-		);
-
-		// Register the topic tag taxonomy
+		// Register the topic-tag taxonomy
 		register_taxonomy(
 			bbp_get_topic_tag_tax_id(),
 			bbp_get_topic_post_type(),
 			apply_filters( 'bbp_register_topic_taxonomy', array(
-				'labels'                => $topic_tag['labels'],
-				'rewrite'               => $topic_tag['rewrite'],
+				'labels'                => bbp_get_topic_tag_tax_labels(),
+				'rewrite'               => bbp_get_topic_tag_tax_rewrite(),
 				'capabilities'          => bbp_get_topic_tag_caps(),
 				'update_count_callback' => '_update_post_term_count',
 				'query_var'             => true,
@@ -899,7 +781,7 @@ final class bbPress {
 
 		// Unique rewrite ID's
 		$feed_id            = 'feed';
-		$edit_id            = 'edit';
+		$edit_id            = bbp_get_edit_rewrite_id();
 		$view_id            = bbp_get_view_rewrite_id();
 		$paged_id           = bbp_get_paged_rewrite_id();
 		$search_id          = bbp_get_search_rewrite_id();

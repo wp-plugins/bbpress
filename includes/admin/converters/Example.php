@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Example converter base impoprter template for bbPress 
+ * Example converter base impoprter template for bbPress
  *
  * @since bbPress (r4689)
  * @link Codex Docs http://codex.bbpress.org/import-forums/custom-import
@@ -233,6 +233,15 @@ class Example extends BBP_Converter_Base {
 			'callback_method' => 'callback_forumid'
 		);
 
+		// Sticky status (Stored in postmeta))
+		$this->field_map[] = array(
+			'from_tablename'  => 'topics_table',
+			'from_fieldname'  => 'the_topic_sticky_status',
+			'to_type'         => 'topic',
+			'to_fieldname'    => '_bbp_old_sticky_status',
+			'callback_method' => 'callback_sticky_status'
+		);
+
 		// Topic dates.
 		$this->field_map[] = array(
 			'from_tablename'  => 'topics_table',
@@ -320,6 +329,23 @@ class Example extends BBP_Converter_Base {
 			'to_fieldname'    => 'name'
 		);
 
+		// Term slug.
+		$this->field_map[] = array(
+			'from_tablename'  => 'tag_table',
+			'from_fieldname'  => 'tagslug',
+			'to_type'         => 'tags',
+			'to_fieldname'    => 'slug',
+			'callback_method' => 'callback_slug'
+		);
+
+		// Term description.
+		$this->field_map[] = array(
+			'from_tablename'  => 'tag_table',
+			'from_fieldname'  => 'tagdescription',
+			'to_type'         => 'tags',
+			'to_fieldname'    => 'description'
+		);
+
 		/** Reply Section *****************************************************/
 
 		// Setup table joins for the reply section at the base of this section
@@ -357,7 +383,7 @@ class Example extends BBP_Converter_Base {
 			'to_type'         => 'reply',
 			'to_fieldname'    => '_bbp_author_ip'
 		);
-	
+
 		// Reply author.
 		$this->field_map[] = array(
 			'from_tablename'  => 'replies_table',
@@ -454,7 +480,7 @@ class Example extends BBP_Converter_Base {
 		/** User Section ******************************************************/
 
 		// Setup table joins for the user section at the base of this section
-		
+
 		// Store old User id (Stored in usermeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'users_table',

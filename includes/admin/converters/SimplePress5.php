@@ -23,7 +23,7 @@ class SimplePress5 extends BBP_Converter_Base {
 	 */
 	public function setup_globals() {
 
-		/** Forum Section ******************************************************/
+		/** Forum Section *****************************************************/
 
 		// Forum id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -129,7 +129,7 @@ class SimplePress5 extends BBP_Converter_Base {
 			'default'      => date('Y-m-d H:i:s')
 		);
 
-		/** Topic Section ******************************************************/
+		/** Topic Section *****************************************************/
 
 		// Topic id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -205,6 +205,24 @@ class SimplePress5 extends BBP_Converter_Base {
 			'callback_method' => 'callback_forumid'
 		);
 
+		// Topic status (Open or Closed)
+		$this->field_map[] = array(
+			'from_tablename'  => 'sftopics',
+			'from_fieldname'  => 'topic_status',
+			'to_type'         => 'topic',
+			'to_fieldname'    => 'post_status',
+			'callback_method' => 'callback_status'
+		);
+
+		// Sticky status (Stored in postmeta))
+		$this->field_map[] = array(
+			'from_tablename'  => 'sftopics',
+			'from_fieldname'  => 'topic_pinned',
+			'to_type'         => 'topic',
+			'to_fieldname'    => '_bbp_old_sticky_status',
+			'callback_method' => 'callback_sticky_status'
+		);
+
 		// Topic dates.
 		$this->field_map[] = array(
 			'from_tablename'  => 'sftopics',
@@ -235,15 +253,6 @@ class SimplePress5 extends BBP_Converter_Base {
 			'from_fieldname'  => 'topic_date',
 			'to_type'         => 'topic',
 			'to_fieldname'    => '_bbp_last_active_time'
-		);
-
-		// Topic status (Open or Closed)
-		$this->field_map[] = array(
-			'from_tablename'  => 'sftopics',
-			'from_fieldname'  => 'topic_status',
-			'to_type'         => 'topic',
-			'to_fieldname'    => 'post_status',
-			'callback_method' => 'callback_status'
 		);
 
 		/** Tags Section ******************************************************/
@@ -308,6 +317,19 @@ class SimplePress5 extends BBP_Converter_Base {
 			'to_type'         => 'reply',
 			'to_fieldname'    => 'post_title',
 			'callback_method' => 'callback_reply_title'
+		);
+
+		// Reply slug (Clean name to avoid conflicts)
+		// Note: We join the sftopics table because sfposts table does not include topic title.
+		$this->field_map[] = array(
+			'from_tablename'  => 'sftopics',
+			'from_fieldname'  => 'topic_name',
+			'join_tablename'  => 'sfposts',
+			'join_type'       => 'LEFT',
+			'join_expression' => 'USING (topic_id) WHERE sfposts.post_index != 1',
+			'to_type'         => 'reply',
+			'to_fieldname'    => 'post_name',
+			'callback_method' => 'callback_slug'
 		);
 
 		// Reply content.
@@ -475,6 +497,26 @@ class SimplePress5 extends BBP_Converter_Base {
 	}
 
 	/**
+	 * Translate the topic sticky status type from Simple:Press v5.x numeric's to WordPress's strings.
+	 *
+	 * @param int $status Simple:Press v5.x numeric forum type
+	 * @return string WordPress safe
+	 */
+	public function callback_sticky_status( $status = 0 ) {
+		switch ( $status ) {
+			case 1 :
+				$status = 'sticky';       // Simple:Press Sticky 'topic_sticky = 1'
+				break;
+
+			case 0  :
+			default :
+				$status = 'normal';       // Simple:Press Normal Topic 'topic_sticky = 0'
+				break;
+		}
+		return $status;
+	}
+
+	/**
 	 * Verify the topic reply count.
 	 *
 	 * @param int $count Simple:Press v5.x reply count
@@ -523,6 +565,9 @@ class SimplePress5 extends BBP_Converter_Base {
 
 		// Replace '<strong>username said </strong>' with '@username said:'
 		$simplepress_markup = preg_replace ( '/\<strong\>(.*?)\ said\ \<\/strong\>/',     '@$1 said:',        $simplepress_markup );
+
+		// Replace '<p>&nbsp;</p>' with '<p>&nbsp;</p>'
+		$simplepress_markup = preg_replace ( '/\n(&nbsp;|[\s\p{Z}\xA0\x{00A0}]+)\r/', '<br>', $simplepress_markup );
 
 		// Now that SimplePress' custom HTML codes have been stripped put the cleaned HTML back in $field
 		$field = $simplepress_markup;

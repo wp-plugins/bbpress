@@ -806,7 +806,7 @@ function bbp_is_search() {
 		$retval = true;
 
 	// Check query name
-	if ( empty( $retval ) && bbp_is_query_name( 'bbp_search' ) )
+	if ( empty( $retval ) && bbp_is_query_name( bbp_get_search_rewrite_id() ) )
 		$retval = true;
 
 	// Check $_GET
@@ -844,7 +844,7 @@ function bbp_is_search_results() {
 		$retval = true;
 
 	// Check $_REQUEST
-	if ( empty( $retval ) && !empty( $_REQUEST[bbp_get_search_rewrite_id()] ) )
+	if ( empty( $retval ) && !empty( $_REQUEST[ bbp_get_search_rewrite_id() ] ) )
 		$retval = true;
 
 	return (bool) apply_filters( 'bbp_is_search_results', $retval );
@@ -1579,7 +1579,6 @@ function bbp_reply_form_fields() {
 
 	if ( bbp_is_reply_edit() ) : ?>
 
-		<input type="hidden" name="bbp_reply_title" id="bbp_reply_title" value="<?php bbp_reply_title(); ?>" />
 		<input type="hidden" name="bbp_reply_id"    id="bbp_reply_id"    value="<?php bbp_reply_id(); ?>" />
 		<input type="hidden" name="bbp_reply_to"    id="bbp_reply_to"    value="<?php bbp_form_reply_to(); ?>" />
 		<input type="hidden" name="action"          id="bbp_post_action" value="bbp-edit-reply" />
@@ -1591,7 +1590,6 @@ function bbp_reply_form_fields() {
 
 	else : ?>
 
-		<input type="hidden" name="bbp_reply_title" id="bbp_reply_title" value="<?php printf( __( 'Reply To: %s', 'bbpress' ), bbp_get_topic_title() ); ?>" />
 		<input type="hidden" name="bbp_topic_id"    id="bbp_topic_id"    value="<?php bbp_topic_id(); ?>" />
 		<input type="hidden" name="bbp_reply_to"    id="bbp_reply_to"    value="<?php bbp_form_reply_to(); ?>" />
 		<input type="hidden" name="action"          id="bbp_post_action" value="bbp-new-reply" />
@@ -1888,23 +1886,30 @@ function bbp_view_id( $view = '' ) {
 	/**
 	 * Get the view id
 	 *
-	 * If a view id is supplied, that is used. Otherwise the 'bbp_view'
-	 * query var is checked for.
+	 * Use view id if supplied, otherwise bbp_get_view_rewrite_id() query var.
 	 *
 	 * @since bbPress (r2789)
 	 *
 	 * @param string $view Optional. View id.
 	 * @uses sanitize_title() To sanitize the view id
-	 * @uses get_query_var() To get the view id from query var 'bbp_view'
+	 * @uses get_query_var() To get the view id query variable
+	 * @uses bbp_get_view_rewrite_id() To get the view rewrite ID
 	 * @return bool|string ID on success, false on failure
 	 */
 	function bbp_get_view_id( $view = '' ) {
 		$bbp = bbpress();
 
-		$view = !empty( $view ) ? sanitize_title( $view ) : get_query_var( 'bbp_view' );
+		if ( !empty( $view ) ) {
+			$view = sanitize_title( $view );
+		} elseif ( ! empty( $bbp->current_view_id ) ) {
+			$view = $bbp->current_view_id;
+		} else {
+			$view = get_query_var( bbp_get_view_rewrite_id() );
+		}
 
-		if ( array_key_exists( $view, $bbp->views ) )
+		if ( array_key_exists( $view, $bbp->views ) ) {
 			return $view;
+		}
 
 		return false;
 	}
@@ -1981,7 +1986,7 @@ function bbp_view_url( $view = false ) {
 
 		// Unpretty permalinks
 		} else {
-			$url = add_query_arg( array( 'bbp_view' => $view ), home_url( '/' ) );
+			$url = add_query_arg( array( bbp_get_view_rewrite_id() => $view ), home_url( '/' ) );
 		}
 
 		return apply_filters( 'bbp_get_view_link', $url, $view );

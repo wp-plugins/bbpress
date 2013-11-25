@@ -124,14 +124,15 @@ class BBP_Admin {
 
 		/** General Actions ***************************************************/
 
-		add_action( 'bbp_admin_menu',              array( $this, 'admin_menus'                ) ); // Add menu item to settings menu
-		add_action( 'bbp_admin_head',              array( $this, 'admin_head'                 ) ); // Add some general styling to the admin area
-		add_action( 'bbp_admin_notices',           array( $this, 'activation_notice'          ) ); // Add notice if not using a bbPress theme
-		add_action( 'bbp_register_admin_style',    array( $this, 'register_admin_style'       ) ); // Add green admin style
-		add_action( 'bbp_register_admin_settings', array( $this, 'register_admin_settings'    ) ); // Add settings
-		add_action( 'bbp_activation',              array( $this, 'new_install'                ) ); // Add menu item to settings menu
-		add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_scripts'            ) ); // Add enqueued JS and CSS
-		add_action( 'wp_dashboard_setup',          array( $this, 'dashboard_widget_right_now' ) ); // Forums 'Right now' Dashboard widget
+		add_action( 'bbp_admin_menu',              array( $this, 'admin_menus'                )     ); // Add menu item to settings menu
+		add_action( 'bbp_admin_head',              array( $this, 'admin_head'                 )     ); // Add some general styling to the admin area
+		add_action( 'bbp_admin_notices',           array( $this, 'activation_notice'          )     ); // Add notice if not using a bbPress theme
+		add_action( 'bbp_register_admin_style',    array( $this, 'register_admin_style'       )     ); // Add green admin style
+		add_action( 'bbp_register_admin_settings', array( $this, 'register_admin_settings'    )     ); // Add settings
+		add_action( 'bbp_activation',              array( $this, 'new_install'                )     ); // Add menu item to settings menu
+		add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_scripts'            )     ); // Add enqueued JS and CSS
+		add_action( 'wp_dashboard_setup',          array( $this, 'dashboard_widget_right_now' )     ); // Forums 'Right now' Dashboard widget
+		add_action( 'admin_bar_menu',              array( $this, 'admin_bar_about_link'       ), 15 ); // Add a link to bbPress about page to the admin bar
 
 		/** Ajax **************************************************************/
 
@@ -487,14 +488,25 @@ class BBP_Admin {
 	public static function modify_plugin_action_links( $links, $file ) {
 
 		// Return normal links if not bbPress
-		if ( plugin_basename( bbpress()->file ) !== $file )
+		if ( plugin_basename( bbpress()->file ) !== $file ) {
 			return $links;
+		}
+
+		// New links to merge into existing links
+		$new_links = array();
+
+		// Settings page link
+		if ( current_user_can( 'bbp_settings_page' ) ) {
+			$new_links['settings'] = '<a href="' . add_query_arg( array( 'page' => 'bbpress'   ), admin_url( 'options-general.php' ) ) . '">' . esc_html__( 'Settings', 'bbpress' ) . '</a>';
+		}
+
+		// About page link
+		if ( current_user_can( 'bbp_about_page' ) ) {
+			$new_links['about']    = '<a href="' . add_query_arg( array( 'page' => 'bbp-about' ), admin_url( 'index.php'           ) ) . '">' . esc_html__( 'About',    'bbpress' ) . '</a>';
+		}
 
 		// Add a few links to the existing links array
-		return array_merge( $links, array(
-			'settings' => '<a href="' . add_query_arg( array( 'page' => 'bbpress'   ), admin_url( 'options-general.php' ) ) . '">' . esc_html__( 'Settings', 'bbpress' ) . '</a>',
-			'about'    => '<a href="' . add_query_arg( array( 'page' => 'bbp-about' ), admin_url( 'index.php'           ) ) . '">' . esc_html__( 'About',    'bbpress' ) . '</a>'
-		) );
+		return array_merge( $links, $new_links );
 	}
 
 	/**
@@ -509,8 +521,28 @@ class BBP_Admin {
 	}
 
 	/**
+	 * Add a link to bbPress about page to the admin bar
+	 *
+	 * @since bbPress (r5136)
+	 *
+	 * @param WP_Admin_Bar $wp_admin_bar
+	 */
+	public function admin_bar_about_link( $wp_admin_bar ) {
+
+		if ( is_user_logged_in() ) {
+
+			$wp_admin_bar->add_menu( array(
+				'parent' => 'wp-logo',
+				'id'     => 'bbp-about',
+				'title'  => esc_html__( 'About bbPress', 'bbpress' ),
+				'href'   => add_query_arg( array( 'page' => 'bbp-about' ), admin_url( 'index.php' ) )
+			) );
+		}
+	}
+
+	/**
 	 * Enqueue any admin scripts we might need
-	 * @since bbPress (4260)
+	 * @since bbPress (r4260)
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_script( 'suggest' );
@@ -1330,7 +1362,7 @@ class BBP_Admin {
 	 */
 	public function suggest_topic() {
 
-		// TRy to get some topics
+		// Try to get some topics
 		$topics = get_posts( array(
 			's'         => like_escape( $_REQUEST['q'] ),
 			'post_type' => bbp_get_topic_post_type()
@@ -1645,8 +1677,6 @@ class BBP_Admin {
 
 					<p><?php esc_html_e( 'All done!', 'bbpress' ); ?></p>
 					<a class="button" href="update-core.php?page=bbpress-update"><?php esc_html_e( 'Go Back', 'bbpress' ); ?></a>
-
-					<?php break; ?>
 
 				<?php
 

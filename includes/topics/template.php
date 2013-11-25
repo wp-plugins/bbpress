@@ -36,6 +36,62 @@ function bbp_topic_post_type() {
 	}
 
 /**
+ * Return array of labels used by the topic post type
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_topic_post_type_labels() {
+	return apply_filters( 'bbp_get_topic_post_type_labels', array(
+		'name'               => __( 'Topics',                   'bbpress' ),
+		'menu_name'          => __( 'Topics',                   'bbpress' ),
+		'singular_name'      => __( 'Topic',                    'bbpress' ),
+		'all_items'          => __( 'All Topics',               'bbpress' ),
+		'add_new'            => __( 'New Topic',                'bbpress' ),
+		'add_new_item'       => __( 'Create New Topic',         'bbpress' ),
+		'edit'               => __( 'Edit',                     'bbpress' ),
+		'edit_item'          => __( 'Edit Topic',               'bbpress' ),
+		'new_item'           => __( 'New Topic',                'bbpress' ),
+		'view'               => __( 'View Topic',               'bbpress' ),
+		'view_item'          => __( 'View Topic',               'bbpress' ),
+		'search_items'       => __( 'Search Topics',            'bbpress' ),
+		'not_found'          => __( 'No topics found',          'bbpress' ),
+		'not_found_in_trash' => __( 'No topics found in Trash', 'bbpress' ),
+		'parent_item_colon'  => __( 'Forum:',                   'bbpress' )
+	) );
+}
+
+/**
+ * Return array of topic post type rewrite settings
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_topic_post_type_rewrite() {
+	return apply_filters( 'bbp_get_topic_post_type_rewrite', array(
+		'slug'       => bbp_get_topic_slug(),
+		'with_front' => false
+	) );
+}
+
+/**
+ * Return array of features the topic post type supports
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_topic_post_type_supports() {
+	return apply_filters( 'bbp_get_topic_post_type_supports', array(
+		'title',
+		'editor',
+		'revisions'
+	) );
+}
+
+/**
  * The plugin version of bbPress comes with two topic display options:
  * - Traditional: Topics are included in the reply loop (default)
  * - New Style: Topics appear as "lead" posts, ahead of replies
@@ -1494,6 +1550,7 @@ function bbp_topic_author_url( $topic_id = 0 ) {
 	 * @uses bbp_get_topic_id() To get the topic id
 	 * @uses bbp_is_topic_anonymous() To check if the topic is by an anonymous
 	 *                                 user or not
+	 * @uses bbp_user_has_profile() To check if the user has a profile
 	 * @uses bbp_get_topic_author_id() To get topic author id
 	 * @uses bbp_get_user_profile_url() To get profile url
 	 * @uses get_post_meta() To get anonmous user's website
@@ -1504,8 +1561,8 @@ function bbp_topic_author_url( $topic_id = 0 ) {
 	function bbp_get_topic_author_url( $topic_id = 0 ) {
 		$topic_id = bbp_get_topic_id( $topic_id );
 
-		// Check for anonymous user
-		if ( !bbp_is_topic_anonymous( $topic_id ) ) {
+		// Check for anonymous user or non-existant user
+		if ( !bbp_is_topic_anonymous( $topic_id ) && bbp_user_has_profile( bbp_get_topic_author_id( $topic_id ) ) ) {
 			$author_url = bbp_get_user_profile_url( bbp_get_topic_author_id( $topic_id ) );
 		} else {
 			$author_url = get_post_meta( $topic_id, '_bbp_anonymous_website', true );
@@ -1749,6 +1806,96 @@ function bbp_topic_last_active_time( $topic_id = 0 ) {
 
 		// Return the time since
 		return apply_filters( 'bbp_get_topic_last_active', $last_active, $topic_id );
+	}
+
+/** Topic Subscriptions *******************************************************/
+
+/**
+ * Output the topic subscription link
+ *
+ * @since bbPress (r5156)
+ *
+ * @uses bbp_get_topic_subscription_link()
+ */
+function bbp_topic_subscription_link( $args = array() ) {
+	echo bbp_get_topic_subscription_link( $args );
+}
+
+	/**
+	 * Get the forum subscription link
+	 *
+	 * A custom wrapper for bbp_get_user_subscribe_link()
+	 *
+	 * @since bbPress (r5156)
+	 *
+	 * @uses bbp_parse_args()
+	 * @uses bbp_get_user_subscribe_link()
+	 * @uses apply_filters() Calls 'bbp_get_topic_subscribe_link'
+	 */
+	function bbp_get_topic_subscription_link( $args = array() ) {
+
+		// No link
+		$retval = false;
+
+		// Parse the arguments
+		$r = bbp_parse_args( $args, array(
+			'user_id'     => 0,
+			'topic_id'    => 0,
+			'before'      => '&nbsp;|&nbsp;',
+			'after'       => '',
+			'subscribe'   => __( 'Subscribe',   'bbpress' ),
+			'unsubscribe' => __( 'Unsubscribe', 'bbpress' )
+		), 'get_forum_subscribe_link' );
+
+		// Get the link
+		$retval = bbp_get_user_subscribe_link( $r );
+
+		return apply_filters( 'bbp_get_topic_subscribe_link', $retval, $r );
+	}
+
+/** Topic Favorites ***********************************************************/
+
+/**
+ * Output the topic favorite link
+ *
+ * @since bbPress (r5156)
+ *
+ * @uses bbp_get_topic_favorite_link()
+ */
+function bbp_topic_favorite_link( $args = array() ) {
+	echo bbp_get_topic_favorite_link( $args );
+}
+
+	/**
+	 * Get the forum favorite link
+	 *
+	 * A custom wrapper for bbp_get_user_favorite_link()
+	 *
+	 * @since bbPress (r5156)
+	 *
+	 * @uses bbp_parse_args()
+	 * @uses bbp_get_user_favorites_link()
+	 * @uses apply_filters() Calls 'bbp_get_topic_favorite_link'
+	 */
+	function bbp_get_topic_favorite_link( $args = array() ) {
+
+		// No link
+		$retval = false;
+
+		// Parse the arguments
+		$r = bbp_parse_args( $args, array(
+			'user_id'   => 0,
+			'topic_id'  => 0,
+			'before'    => '',
+			'after'     => '',
+			'favorite'  => __( 'Favorite',   'bbpress' ),
+			'favorited' => __( 'Unfavorite', 'bbpress' )
+		), 'get_forum_favorite_link' );
+
+		// Get the link
+		$retval = bbp_get_user_favorites_link( $r );
+
+		return apply_filters( 'bbp_get_topic_favorite_link', $retval, $r );
 	}
 
 /** Topic Last Reply **********************************************************/
@@ -3208,6 +3355,42 @@ function bbp_topic_tag_tax_id() {
 	function bbp_get_topic_tag_tax_id() {
 		return apply_filters( 'bbp_get_topic_tag_tax_id', bbpress()->topic_tag_tax_id );
 	}
+
+/**
+ * Return array of labels used by the topic-tag taxonomy
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_topic_tag_tax_labels() {
+	return apply_filters( 'bbp_get_topic_tag_tax_labels', array(
+		'name'          => __( 'Topic Tags',     'bbpress' ),
+		'singular_name' => __( 'Topic Tag',      'bbpress' ),
+		'search_items'  => __( 'Search Tags',    'bbpress' ),
+		'popular_items' => __( 'Popular Tags',   'bbpress' ),
+		'all_items'     => __( 'All Tags',       'bbpress' ),
+		'edit_item'     => __( 'Edit Tag',       'bbpress' ),
+		'update_item'   => __( 'Update Tag',     'bbpress' ),
+		'add_new_item'  => __( 'Add New Tag',    'bbpress' ),
+		'new_item_name' => __( 'New Tag Name',   'bbpress' ),
+		'view_item'     => __( 'View Topic Tag', 'bbpress' )
+	) );
+}
+
+/**
+ * Return an array of topic-tag taxonomy rewrite settings
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_topic_tag_tax_rewrite() {
+	return apply_filters( 'bbp_get_topic_tag_tax_rewrite', array(
+		'slug'       => bbp_get_topic_tag_tax_slug(),
+		'with_front' => false
+	) );
+}
 
 /**
  * Output the id of the current tag

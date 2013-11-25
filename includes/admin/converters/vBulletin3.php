@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Implementation of vBulletin v4.x Converter.
+ * Implementation of vBulletin v3.x Converter.
  *
- * @since bbPress (r4724)
+ * @since bbPress (r5151)
  * @link Codex Docs http://codex.bbpress.org/import-forums/vbulletin
  */
-class vBulletin extends BBP_Converter_Base {
+class vBulletin3 extends BBP_Converter_Base {
 
 	/**
 	 * Main constructor
@@ -294,8 +294,8 @@ class vBulletin extends BBP_Converter_Base {
 
 		// Topic id.
 		$this->field_map[] = array(
-			'from_tablename'  => 'tagcontent',
-			'from_fieldname'  => 'contentid',
+			'from_tablename'  => 'tagthread',
+			'from_fieldname'  => 'threadid',
 			'to_type'         => 'tags',
 			'to_fieldname'    => 'objectid',
 			'callback_method' => 'callback_topicid'
@@ -303,7 +303,7 @@ class vBulletin extends BBP_Converter_Base {
 
 		// Taxonomy ID.
 		$this->field_map[] = array(
-			'from_tablename'  => 'tagcontent',
+			'from_tablename'  => 'tagthread',
 			'from_fieldname'  => 'tagid',
 			'to_type'         => 'tags',
 			'to_fieldname'    => 'taxonomy'
@@ -313,7 +313,7 @@ class vBulletin extends BBP_Converter_Base {
 		$this->field_map[] = array(
 			'from_tablename'  => 'tag',
 			'from_fieldname'  => 'tagtext',
-			'join_tablename'  => 'tagcontent',
+			'join_tablename'  => 'tagthread',
 			'join_type'       => 'INNER',
 			'join_expression' => 'USING (tagid)',
 			'to_type'         => 'tags',
@@ -324,7 +324,7 @@ class vBulletin extends BBP_Converter_Base {
 		$this->field_map[] = array(
 			'from_tablename'  => 'tag',
 			'from_fieldname'  => 'tagtext',
-			'join_tablename'  => 'tagcontent',
+			'join_tablename'  => 'tagthread',
 			'join_type'       => 'INNER',
 			'join_expression' => 'USING (tagid)',
 			'to_type'         => 'tags',
@@ -355,7 +355,7 @@ class vBulletin extends BBP_Converter_Base {
 			'callback_method' => 'callback_topicid_to_forumid'
 		);
 
-		// Reply parent topic id (If no parent, then 0, Stored in postmeta)
+		// Reply parent topic id (If no parent, then 0. Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'post',
 			'from_fieldname'  => 'threadid',
@@ -397,15 +397,15 @@ class vBulletin extends BBP_Converter_Base {
         // Reply slug (Clean name to avoid conflicts)
         // Note: We join the 'thread' table because 'post' table does not include reply slug.
         $this->field_map[] = array(
-        	'from_tablename'  => 'thread',
-        	'from_fieldname'  => 'title',
-        	'join_tablename'  => 'post',
-        	'join_type'       => 'INNER',
-        	'join_expression' => 'USING (threadid) WHERE post.parentid != 0',
-        	'to_type'         => 'reply',
-        	'to_fieldname'    => 'post_name',
-        	'callback_method' => 'callback_slug'
-        );
+			'from_tablename'  => 'thread',
+			'from_fieldname'  => 'title',
+			'join_tablename'  => 'post',
+			'join_type'       => 'INNER',
+			'join_expression' => 'USING (threadid) WHERE post.parentid != 0',
+			'to_type'         => 'reply',
+			'to_fieldname'    => 'post_name',
+			'callback_method' => 'callback_slug'
+		);
 
 		// Reply content.
 		$this->field_map[] = array(
@@ -479,14 +479,14 @@ class vBulletin extends BBP_Converter_Base {
 			'from_tablename' => 'user',
 			'from_fieldname' => 'salt',
 			'to_type'        => 'user',
-			'to_fieldname'   => '_bbp_salt'
+			'to_fieldname'   => ''
 		);
 
 		// User password verify class (Stored in usermeta for verifying password)
 		$this->field_map[] = array(
 			'to_type'      => 'user',
 			'to_fieldname' => '_bbp_class',
-			'default'      => 'vBulletin'
+			'default'      => 'vBulletin3'
 		);
 
 		// User name.
@@ -543,7 +543,7 @@ class vBulletin extends BBP_Converter_Base {
 			'from_tablename' => 'user',
 			'from_fieldname' => 'icq',
 			'to_type'        => 'user',
-			'to_fieldname'   => '_bbp_vbulletin_user_icq'
+			'to_fieldname'   => '_bbp_vbulletin3_user_icq'
 		);
 
 		// User MSN (Stored in usermeta)
@@ -551,7 +551,7 @@ class vBulletin extends BBP_Converter_Base {
 			'from_tablename' => 'user',
 			'from_fieldname' => 'msn',
 			'to_type'        => 'user',
-			'to_fieldname'   => '_bbp_vbulletin_user_msn'
+			'to_fieldname'   => '_bbp_vbulletin3_user_msn'
 		);
 
 		// User Skype (Stored in usermeta)
@@ -559,7 +559,7 @@ class vBulletin extends BBP_Converter_Base {
 			'from_tablename' => 'user',
 			'from_fieldname' => 'skype',
 			'to_type'        => 'user',
-			'to_fieldname'   => '_bbp_vbulletin_user_skype'
+			'to_fieldname'   => '_bbp_vbulletin3_user_skype'
 		);
 	}
 
@@ -578,7 +578,7 @@ class vBulletin extends BBP_Converter_Base {
 	 * as one value. Array values are auto sanitized by WordPress.
 	 */
 	public function callback_savepass( $field, $row ) {
-		$pass_array = array( 'hash' => $field, 'salt' => $row['salt'] );
+		$pass_array = array( 'hash'	 => $field, 'salt'	 => $row['salt'] );
 		return $pass_array;
 	}
 
@@ -586,6 +586,10 @@ class vBulletin extends BBP_Converter_Base {
 	 * This method is to take the pass out of the database and compare
 	 * to a pass the user has typed in.
 	 *
+	 * vBulletin passwords do not work. Maybe use the below plugin's approach?
+	 *
+	 * @link http://wordpress.org/extend/plugins/vb-user-copy/
+	 * @link http://plugins.trac.wordpress.org/browser/vb-user-copy/trunk/vb_user_copy.php
 	 */
 	public function authenticate_pass( $password, $serialized_pass ) {
 		$pass_array = unserialize( $serialized_pass );
@@ -593,9 +597,9 @@ class vBulletin extends BBP_Converter_Base {
 	}
 
 	/**
-	 * Translate the forum type from vBulletin v4.x numeric's to WordPress's strings.
+	 * Translate the forum type from vBulletin v3.x numeric's to WordPress's strings.
 	 *
-	 * @param int $status vBulletin v4.x numeric forum type
+	 * @param int $status vBulletin v3.x numeric forum type
 	 * @return string WordPress safe
 	 */
 	public function callback_forum_type( $status = 0 ) {
@@ -608,24 +612,20 @@ class vBulletin extends BBP_Converter_Base {
 	}
 
 	/**
-	 * Translate the topic sticky status type from vBulletin v4.x numeric's to WordPress's strings.
+	 * Translate the topic sticky status type from vBulletin v3.x numeric's to WordPress's strings.
 	 *
-	 * @param int $status vBulletin v4.x numeric forum type
+	 * @param int $status vBulletin v3.x numeric forum type
 	 * @return string WordPress safe
 	 */
 	public function callback_sticky_status( $status = 0 ) {
 		switch ( $status ) {
-			case 2 :
-				$status = 'super-sticky'; // vBulletin Super Sticky 'sticky = 2'
-				break;
-
 			case 1 :
-				$status = 'sticky';       // vBulletin Sticky 'sticky = 1'
+				$status = 'sticky';       // vBulletin Sticky 'topic_sticky = 1'
 				break;
 
 			case 0  :
 			default :
-				$status = 'normal';       // vBulletin Normal Topic 'sticky = 0'
+				$status = 'normal';       // vBulletin Normal Topic 'topic_sticky = 0'
 				break;
 		}
 		return $status;
@@ -634,7 +634,7 @@ class vBulletin extends BBP_Converter_Base {
 	/**
 	 * Verify the topic reply count.
 	 *
-	 * @param int $count vBulletin v4.x reply count
+	 * @param int $count vBulletin v3.x reply count
 	 * @return string WordPress safe
 	 */
 	public function callback_topic_reply_count( $count = 1 ) {
@@ -645,7 +645,7 @@ class vBulletin extends BBP_Converter_Base {
 	/**
 	 * Set the reply title
 	 *
-	 * @param string $title vBulletin v4.x topic title of this reply
+	 * @param string $title vBulletin v3.x topic title of this reply
 	 * @return string Prefixed topic title, or empty string
 	 */
 	public function callback_reply_title( $title = '' ) {
@@ -654,9 +654,9 @@ class vBulletin extends BBP_Converter_Base {
 	}
 
 	/**
-	 * Translate the post status from vBulletin numeric's to WordPress's strings.
+	 * Translate the post status from vBulletin v3.x numeric's to WordPress's strings.
 	 *
-	 * @param int $status vBulletin v4.x numeric topic status
+	 * @param int $status vBulletin v3.x numeric topic status
 	 * @return string WordPress safe
 	 */
 	public function callback_topic_status( $status = 1 ) {

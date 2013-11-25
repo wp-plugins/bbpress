@@ -323,6 +323,8 @@ function bbp_forum_metabox() {
 		<input name="menu_order" type="number" step="1" size="4" id="menu_order" value="<?php echo esc_attr( $menu_order ); ?>" />
 	</p>
 
+	<input name="ping_status" type="hidden" id="ping_status" value="open" />
+
 	<?php
 	wp_nonce_field( 'bbp_forum_metabox_save', 'bbp_forum_metabox' );
 	do_action( 'bbp_forum_metabox', $post_id );
@@ -395,6 +397,8 @@ function bbp_topic_metabox() {
 		) ); ?>
 	</p>
 
+	<input name="ping_status" type="hidden" id="ping_status" value="open" />
+
 	<?php
 	wp_nonce_field( 'bbp_topic_metabox_save', 'bbp_topic_metabox' );
 	do_action( 'bbp_topic_metabox', $post_id );
@@ -460,6 +464,8 @@ function bbp_reply_metabox() {
 		<label class="screen-reader-text" for="bbp_reply_to"><?php esc_html_e( 'Reply To', 'bbpress' ); ?></label>
 		<input name="bbp_reply_to" id="bbp_reply_to" type="text" value="<?php echo esc_attr( $reply_to ); ?>" />
 	</p>
+
+	<input name="ping_status" type="hidden" id="ping_status" value="open" />
 
 	<?php
 	wp_nonce_field( 'bbp_reply_metabox_save', 'bbp_reply_metabox' );

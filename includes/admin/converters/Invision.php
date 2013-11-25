@@ -21,10 +21,9 @@ class Invision extends BBP_Converter_Base {
 	/**
 	 * Sets up the field mappings
 	 */
-
 	public function setup_globals()	{
 
-		/** Forum Section ******************************************************/
+		/** Forum Section *****************************************************/
 
 		// Forum id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -34,7 +33,7 @@ class Invision extends BBP_Converter_Base {
 			'to_fieldname'    => '_bbp_forum_id'
 		);
 
-		// Forum parent id (If no parent, then 0. Stored in postmeta)
+		// Forum parent id (If no parent, then 0, Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'forums',
 			'from_fieldname'  => 'parent_id',
@@ -85,7 +84,7 @@ class Invision extends BBP_Converter_Base {
 		// Forum slug (Clean name to avoid confilcts)
 		$this->field_map[] = array(
 			'from_tablename'  => 'forums',
-			'from_fieldname'  => 'name',
+			'from_fieldname'  => 'name_seo',
 			'to_type'         => 'forum',
 			'to_fieldname'    => 'post_name',
 			'callback_method' => 'callback_slug'
@@ -106,6 +105,15 @@ class Invision extends BBP_Converter_Base {
 			'from_fieldname'  => 'position',
 			'to_type'         => 'forum',
 			'to_fieldname'    => 'menu_order'
+		);
+
+		// Forum type (Forum = 0 or Category = -1, Stored in postmeta)
+		$this->field_map[] = array(
+			'from_tablename'  => 'forums',
+			'from_fieldname'  => 'parent_id',
+			'to_type'         => 'forum',
+			'to_fieldname'    => '_bbp_forum_type',
+			'callback_method' => 'callback_forum_type'
 		);
 
 		// Forum dates.
@@ -130,7 +138,7 @@ class Invision extends BBP_Converter_Base {
 			'default' => date('Y-m-d H:i:s')
 		);
 
-		/** Topic Section ******************************************************/
+		/** Topic Section *****************************************************/
 
 		// Topic id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -206,6 +214,15 @@ class Invision extends BBP_Converter_Base {
 			'callback_method' => 'callback_forumid'
 		);
 
+		// Sticky status (Stored in postmeta))
+		$this->field_map[] = array(
+			'from_tablename'  => 'topics',
+			'from_fieldname'  => 'pinned',
+			'to_type'         => 'topic',
+			'to_fieldname'    => '_bbp_old_sticky_status',
+			'callback_method' => 'callback_sticky_status'
+		);
+
 		// Topic dates.
 		$this->field_map[] = array(
 			'from_tablename'  => 'topics',
@@ -262,7 +279,7 @@ class Invision extends BBP_Converter_Base {
 			'to_fieldname'    => 'name'
 		);
 
-		/** Reply Section ******************************************************/
+		/** Reply Section *****************************************************/
 
 		// Reply id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -442,35 +459,6 @@ class Invision extends BBP_Converter_Base {
 			'to_type'        => 'user',
 			'to_fieldname'   => 'display_name'
 		);
-
-		/*
-		 * Table pfields_content AND pfields_data
-		 * These can be included once USER import JOIN bug is fixed
-		// User homepage.
-		$this->field_map[] = array(
-			'from_tablename'  => 'members',
-			'from_fieldname'  => 'homepage',
-			'to_type'         => 'user',
-			'to_fieldname'    => 'user_url'
-		);
-
-		// User AIM (Stored in usermeta)
-		$this->field_map[] = array(
-			'from_tablename'  => 'members',
-			'from_fieldname'  => 'aim',
-			'to_type'         => 'user',
-			'to_fieldname'    => 'aim'
-		);
-
-		// User Yahoo (Stored in usermeta)
-		$this->field_map[] = array(
-			'from_tablename'  => 'members',
-			'from_fieldname'  => 'yahoo',
-			'to_type'         => 'user',
-			'to_fieldname'    => 'yim'
-		);
-*/
-
 	}
 
 	/**
@@ -479,6 +467,41 @@ class Invision extends BBP_Converter_Base {
 	 */
 	public function info() {
 		return '';
+	}
+
+	/**
+	 * Translate the forum type from Invision numeric's to WordPress's strings.
+	 *
+	 * @param int $status Invision numeric forum type
+	 * @return string WordPress safe
+	 */
+	public function callback_forum_type( $status = 0 ) {
+		if ( $status == -1 ) {
+			$status = 'category';
+		} else {
+			$status = 'forum';
+		}
+		return $status;
+	}
+
+	/**
+	 * Translate the topic sticky status type from Invision numeric's to WordPress's strings.
+	 *
+	 * @param int $status Invision numeric forum type
+	 * @return string WordPress safe
+	 */
+	public function callback_sticky_status( $status = 0 ) {
+		switch ( $status ) {
+			case 1 :
+				$status = 'sticky';       // Invision Pinned Topic 'pinned = 1'
+				break;
+
+			case 0  :
+			default :
+				$status = 'normal';       // Invision Normal Topic 'pinned = 0'
+				break;
+		}
+		return $status;
 	}
 
 	/**

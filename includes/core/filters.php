@@ -60,6 +60,9 @@ add_filter( 'posts_where', 'bbp_query_post_parent__in', 10, 2 );
 // Remove forums roles from list of all roles
 add_filter( 'editable_roles', 'bbp_filter_blog_editable_roles' );
 
+// Reply title fallback
+add_filter( 'the_title', 'bbp_get_reply_title_fallback', 2, 2 );
+
 /**
  * Feeds
  *
@@ -253,11 +256,17 @@ add_filter( 'bbp_map_meta_caps', 'bbp_map_topic_tag_meta_caps', 10, 4 ); // Topi
  *
  * @since bbPress (r4213)
  *
- * @param type $locale
- * @return type
+ * @param string $locale
+ * @return string  $domain
  */
-function _bbp_filter_locale( $locale = '' ) {
-	return apply_filters( 'bbpress_locale', $locale );
+function _bbp_filter_locale( $locale = '', $domain = '' ) {
+
+	// Only apply to the bbPress text-domain
+	if ( bbpress()->domain !== $domain ) {
+		return $locale;
+	}
+
+	return apply_filters( 'bbpress_locale', $locale, $domain );
 }
 add_filter( 'bbp_plugin_locale', '_bbp_filter_locale', 10, 1 );
 
@@ -265,8 +274,8 @@ add_filter( 'bbp_plugin_locale', '_bbp_filter_locale', 10, 1 );
  * Deprecated forums query filter
  *
  * @since bbPress (r3961)
- * @param type $args
- * @return type
+ * @param array $args
+ * @return array
  */
 function _bbp_has_forums_query( $args = array() ) {
 	return apply_filters( 'bbp_has_forums_query', $args );
@@ -277,8 +286,8 @@ add_filter( 'bbp_after_has_forums_parse_args', '_bbp_has_forums_query' );
  * Deprecated topics query filter
  *
  * @since bbPress (r3961)
- * @param type $args
- * @return type
+ * @param array $args
+ * @return array
  */
 function _bbp_has_topics_query( $args = array() ) {
 	return apply_filters( 'bbp_has_topics_query', $args );
@@ -289,8 +298,8 @@ add_filter( 'bbp_after_has_topics_parse_args', '_bbp_has_topics_query' );
  * Deprecated replies query filter
  *
  * @since bbPress (r3961)
- * @param type $args
- * @return type
+ * @param array $args
+ * @return array
  */
 function _bbp_has_replies_query( $args = array() ) {
 	return apply_filters( 'bbp_has_replies_query', $args );

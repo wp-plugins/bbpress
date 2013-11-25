@@ -158,22 +158,23 @@ function bbp_admin_tools_feedback( $message, $class = false ) {
  */
 function bbp_admin_repair_list() {
 	$repair_list = array(
-		0  => array( 'bbp-sync-topic-meta',        __( 'Recalculate the parent topic for each post',        'bbpress' ), 'bbp_admin_repair_topic_meta'               ),
-		5  => array( 'bbp-sync-forum-meta',        __( 'Recalculate the parent forum for each post',        'bbpress' ), 'bbp_admin_repair_forum_meta'               ),
-		10 => array( 'bbp-sync-forum-visibility',  __( 'Recalculate private and hidden forums',             'bbpress' ), 'bbp_admin_repair_forum_visibility'         ),
-		15 => array( 'bbp-sync-all-topics-forums', __( 'Recalculate last activity in each topic and forum', 'bbpress' ), 'bbp_admin_repair_freshness'                ),
-		20 => array( 'bbp-sync-all-topics-sticky', __( 'Recalculate the sticky relationship of each topic', 'bbpress' ), 'bbp_admin_repair_sticky'                   ),
-		25 => array( 'bbp-group-forums',           __( 'Repair BuddyPress Group Forum relationships',       'bbpress' ), 'bbp_admin_repair_group_forum_relationship' ),
-		30 => array( 'bbp-forum-topics',           __( 'Count topics in each forum',                        'bbpress' ), 'bbp_admin_repair_forum_topic_count'        ),
-		35 => array( 'bbp-forum-replies',          __( 'Count replies in each forum',                       'bbpress' ), 'bbp_admin_repair_forum_reply_count'        ),
-		40 => array( 'bbp-topic-replies',          __( 'Count replies in each topic',                       'bbpress' ), 'bbp_admin_repair_topic_reply_count'        ),
-		45 => array( 'bbp-topic-voices',           __( 'Count voices in each topic',                        'bbpress' ), 'bbp_admin_repair_topic_voice_count'        ),
-		50 => array( 'bbp-topic-hidden-replies',   __( 'Count spammed & trashed replies in each topic',     'bbpress' ), 'bbp_admin_repair_topic_hidden_reply_count' ),
-		55 => array( 'bbp-user-topics',            __( 'Count topics for each user',                        'bbpress' ), 'bbp_admin_repair_user_topic_count'         ),
-		60 => array( 'bbp-user-replies',           __( 'Count replies for each user',                       'bbpress' ), 'bbp_admin_repair_user_reply_count'         ),
-		65 => array( 'bbp-user-favorites',         __( 'Remove trashed topics from user favorites',         'bbpress' ), 'bbp_admin_repair_user_favorites'           ),
-		70 => array( 'bbp-user-subscriptions',     __( 'Remove trashed topics from user subscriptions',     'bbpress' ), 'bbp_admin_repair_user_subscriptions'       ),
-		75 => array( 'bbp-user-role-map',          __( 'Remap existing users to default forum roles',       'bbpress' ), 'bbp_admin_repair_user_roles'               )
+		0  => array( 'bbp-sync-topic-meta',          __( 'Recalculate the parent topic for each post',        'bbpress' ), 'bbp_admin_repair_topic_meta'               ),
+		5  => array( 'bbp-sync-forum-meta',          __( 'Recalculate the parent forum for each post',        'bbpress' ), 'bbp_admin_repair_forum_meta'               ),
+		10 => array( 'bbp-sync-forum-visibility',    __( 'Recalculate private and hidden forums',             'bbpress' ), 'bbp_admin_repair_forum_visibility'         ),
+		15 => array( 'bbp-sync-all-topics-forums',   __( 'Recalculate last activity in each topic and forum', 'bbpress' ), 'bbp_admin_repair_freshness'                ),
+		20 => array( 'bbp-sync-all-topics-sticky',   __( 'Recalculate the sticky relationship of each topic', 'bbpress' ), 'bbp_admin_repair_sticky'                   ),
+		25 => array( 'bbp-group-forums',             __( 'Repair BuddyPress Group Forum relationships',       'bbpress' ), 'bbp_admin_repair_group_forum_relationship' ),
+		30 => array( 'bbp-forum-topics',             __( 'Count topics in each forum',                        'bbpress' ), 'bbp_admin_repair_forum_topic_count'        ),
+		35 => array( 'bbp-forum-replies',            __( 'Count replies in each forum',                       'bbpress' ), 'bbp_admin_repair_forum_reply_count'        ),
+		40 => array( 'bbp-topic-replies',            __( 'Count replies in each topic',                       'bbpress' ), 'bbp_admin_repair_topic_reply_count'        ),
+		45 => array( 'bbp-topic-voices',             __( 'Count voices in each topic',                        'bbpress' ), 'bbp_admin_repair_topic_voice_count'        ),
+		50 => array( 'bbp-topic-hidden-replies',     __( 'Count spammed & trashed replies in each topic',     'bbpress' ), 'bbp_admin_repair_topic_hidden_reply_count' ),
+		55 => array( 'bbp-user-topics',              __( 'Count topics for each user',                        'bbpress' ), 'bbp_admin_repair_user_topic_count'         ),
+		60 => array( 'bbp-user-replies',             __( 'Count replies for each user',                       'bbpress' ), 'bbp_admin_repair_user_reply_count'         ),
+		65 => array( 'bbp-user-favorites',           __( 'Remove trashed topics from user favorites',         'bbpress' ), 'bbp_admin_repair_user_favorites'           ),
+		70 => array( 'bbp-user-topic-subscriptions', __( 'Remove trashed topics from user subscriptions',     'bbpress' ), 'bbp_admin_repair_user_topic_subscriptions' ),
+		75 => array( 'bbp-user-forum-subscriptions', __( 'Remove trashed forums from user subscriptions',     'bbpress' ), 'bbp_admin_repair_user_forum_subscriptions' ),
+		80 => array( 'bbp-user-role-map',            __( 'Remap existing users to default forum roles',       'bbpress' ), 'bbp_admin_repair_user_roles'               )
 	);
 	ksort( $repair_list );
 
@@ -646,7 +647,7 @@ function bbp_admin_repair_user_favorites() {
 }
 
 /**
- * Clean the users' subscriptions
+ * Clean the users' topic subscriptions
  *
  * @since bbPress (r2668)
  *
@@ -655,7 +656,7 @@ function bbp_admin_repair_user_favorites() {
  * @uses is_wp_error() To check if the executed query returned {@link WP_Error}
  * @return array An array of the status code and the message
  */
-function bbp_admin_repair_user_subscriptions() {
+function bbp_admin_repair_user_topic_subscriptions() {
 	global $wpdb;
 
 	$statement = __( 'Removing trashed topics from user subscriptions&hellip; %s', 'bbpress' );
@@ -676,6 +677,67 @@ function bbp_admin_repair_user_subscriptions() {
 			continue;
 
 		$subscriptions = array_intersect( $topics, explode( ',', $user->subscriptions ) );
+		if ( empty( $subscriptions ) || !is_array( $subscriptions ) )
+			continue;
+
+		$subscriptions_joined = implode( ',', $subscriptions );
+		$values[]             = "('{$user->user_id}', '{$key}', '{$subscriptions_joined}')";
+
+		// Cleanup
+		unset( $subscriptions, $subscriptions_joined );
+	}
+
+	if ( !count( $values ) ) {
+		$result = __( 'Nothing to remove!', 'bbpress' );
+		return array( 0, sprintf( $statement, $result ) );
+	}
+
+	$sql_delete = "DELETE FROM `{$wpdb->usermeta}` WHERE `meta_key` = '{$key}';";
+	if ( is_wp_error( $wpdb->query( $sql_delete ) ) )
+		return array( 4, sprintf( $statement, $result ) );
+
+	foreach ( array_chunk( $values, 10000 ) as $chunk ) {
+		$chunk = "\n" . implode( ",\n", $chunk );
+		$sql_insert = "INSERT INTO `{$wpdb->usermeta}` (`user_id`, `meta_key`, `meta_value`) VALUES $chunk;";
+		if ( is_wp_error( $wpdb->query( $sql_insert ) ) ) {
+			return array( 5, sprintf( $statement, $result ) );
+		}
+	}
+
+	return array( 0, sprintf( $statement, __( 'Complete!', 'bbpress' ) ) );
+}
+
+/**
+ * Clean the users' forum subscriptions
+ *
+ * @since bbPress (r5155)
+ *
+ * @uses bbp_get_forum_post_type() To get the topic post type
+ * @uses wpdb::query() To run our recount sql queries
+ * @uses is_wp_error() To check if the executed query returned {@link WP_Error}
+ * @return array An array of the status code and the message
+ */
+function bbp_admin_repair_user_forum_subscriptions() {
+	global $wpdb;
+
+	$statement = __( 'Removing trashed forums from user subscriptions&hellip; %s', 'bbpress' );
+	$result    = __( 'Failed!', 'bbpress' );
+	$key       = $wpdb->prefix . '_bbp_forum_subscriptions';
+	$users     = $wpdb->get_results( "SELECT `user_id`, `meta_value` AS `subscriptions` FROM `{$wpdb->usermeta}` WHERE `meta_key` = '{$key}';" );
+
+	if ( is_wp_error( $users ) )
+		return array( 1, sprintf( $statement, $result ) );
+
+	$forums = $wpdb->get_col( "SELECT `ID` FROM `{$wpdb->posts}` WHERE `post_type` = '" . bbp_get_forum_post_type() . "' AND `post_status` = '" . bbp_get_public_status_id() . "';" );
+	if ( is_wp_error( $forums ) )
+		return array( 2, sprintf( $statement, $result ) );
+
+	$values = array();
+	foreach ( $users as $user ) {
+		if ( empty( $user->subscriptions ) || !is_string( $user->subscriptions ) )
+			continue;
+
+		$subscriptions = array_intersect( $forums, explode( ',', $user->subscriptions ) );
 		if ( empty( $subscriptions ) || !is_array( $subscriptions ) )
 			continue;
 
@@ -1068,7 +1130,8 @@ function bbp_admin_reset() {
 		<?php screen_icon( 'tools' ); ?>
 
 		<h2 class="nav-tab-wrapper"><?php bbp_tools_admin_tabs( __( 'Reset Forums', 'bbpress' ) ); ?></h2>
-		<p><?php esc_html_e( 'This will revert your forums back to a brand new installation. This process cannot be undone. <strong>Backup your database before proceeding</strong>.', 'bbpress' ); ?></p>
+		<p><?php esc_html_e( 'Revert your forums back to a brand new installation. This process cannot be undone.', 'bbpress' ); ?></p>
+		<p><strong><?php esc_html_e( 'Backup your database before proceeding.', 'bbpress' ); ?></strong></p>
 
 		<form class="settings" method="post" action="">
 			<table class="form-table">
@@ -1088,11 +1151,22 @@ function bbp_admin_reset() {
 						</td>
 					</tr>
 					<tr valign="top">
-						<th scope="row"><?php esc_html_e( 'Are you sure you want to do this?', 'bbpress' ) ?></th>
+						<th scope="row"><?php esc_html_e( 'Delete imported users?', 'bbpress' ); ?></th>
 						<td>
 							<fieldset>
-								<legend class="screen-reader-text"><span><?php esc_html_e( "Say it ain't so!", 'bbpress' ) ?></span></legend>
+								<legend class="screen-reader-text"><span><?php esc_html_e( "Say it ain't so!", 'bbpress' ); ?></span></legend>
+								<label><input type="checkbox" class="checkbox" name="bbpress-delete-imported-users" id="bbpress-delete-imported-users" value="1" /> <?php esc_html_e( 'This option will delete all previously imported users, and cannot be undone.', 'bbpress' ); ?></label>
+								<p class="description"><?php esc_html_e( 'Note: Resetting without this checked will delete the meta-data necessary to delete these users.', 'bbpress' ); ?></p>
+							</fieldset>
+						</td>
+					</tr>
+					<tr valign="top">
+						<th scope="row"><?php esc_html_e( 'Are you sure you want to do this?', 'bbpress' ); ?></th>
+						<td>
+							<fieldset>
+								<legend class="screen-reader-text"><span><?php esc_html_e( "Say it ain't so!", 'bbpress' ); ?></span></legend>
 								<label><input type="checkbox" class="checkbox" name="bbpress-are-you-sure" id="bbpress-are-you-sure" value="1" /> <?php esc_html_e( 'This process cannot be undone.', 'bbpress' ); ?></label>
+								<p class="description"><?php esc_html_e( 'Human sacrifice, dogs and cats living together... mass hysteria!', 'bbpress' ); ?></p>
 							</fieldset>
 						</td>
 					</tr>
@@ -1139,7 +1213,7 @@ function bbp_admin_reset_handler() {
 	// Flush the cache; things are about to get ugly.
 	wp_cache_flush();
 
-	/** Posts *************************************************************/
+	/** Posts *****************************************************************/
 
 	$statement  = __( 'Deleting Posts&hellip; %s', 'bbpress' );
 	$sql_posts  = $wpdb->get_results( "SELECT `ID` FROM `{$wpdb->posts}` WHERE `post_type` IN ('forum', 'topic', 'reply')", OBJECT_K );
@@ -1147,10 +1221,10 @@ function bbp_admin_reset_handler() {
 	$result     = is_wp_error( $wpdb->query( $sql_delete ) ) ? $failed : $success;
 	$messages[] = sprintf( $statement, $result );
 
-
-	/** Post Meta *********************************************************/
+	/** Post Meta *************************************************************/
 
 	if ( !empty( $sql_posts ) ) {
+		$sql_meta = array();
 		foreach ( $sql_posts as $key => $value ) {
 			$sql_meta[] = $key;
 		}
@@ -1161,21 +1235,43 @@ function bbp_admin_reset_handler() {
 		$messages[] = sprintf( $statement, $result );
 	}
 
-	/** Topic Tags ********************************************************/
+	/** Topic Tags ************************************************************/
 
 	$statement  = __( 'Deleting Topic Tags&hellip; %s', 'bbpress' );
 	$sql_delete = "DELETE a,b,c FROM `{$wpdb->terms}` AS a LEFT JOIN `{$wpdb->term_taxonomy}` AS c ON a.term_id = c.term_id LEFT JOIN `{$wpdb->term_relationships}` AS b ON b.term_taxonomy_id = c.term_taxonomy_id WHERE c.taxonomy = 'topic-tag';";
 	$result     = is_wp_error( $wpdb->query( $sql_delete ) ) ? $failed : $success;
 	$messages[] = sprintf( $statement, $result );
 
-	/** User Meta *********************************************************/
+	/** User ******************************************************************/
 
-	$statement  = __( 'Deleting User Meta&hellip; %s', 'bbpress' );
-	$sql_delete = "DELETE FROM `{$wpdb->usermeta}` WHERE `meta_key` LIKE '%%_bbp_%%';";
-	$result     = is_wp_error( $wpdb->query( $sql_delete ) ) ? $failed : $success;
-	$messages[] = sprintf( $statement, $result );
+	// Delete users
+	if ( !empty( $_POST['bbpress-delete-imported-users'] ) ) {
+		$sql_users  = $wpdb->get_results( "SELECT `user_id` FROM `{$wpdb->usermeta}` WHERE `meta_key` = '_bbp_user_id'", OBJECT_K );
+		if ( !empty( $sql_users ) ) {
+			$sql_meta = array();
+			foreach ( $sql_users as $key => $value ) {
+				$sql_meta[] = $key;
+			}
+			$statement  = __( 'Deleting User&hellip; %s', 'bbpress' );
+			$sql_meta   = implode( "', '", $sql_meta );
+			$sql_delete = "DELETE FROM `{$wpdb->users}` WHERE `ID` IN ('{$sql_meta}');";
+			$result     = is_wp_error( $wpdb->query( $sql_delete ) ) ? $failed : $success;
+			$messages[] = sprintf( $statement, $result );
+			$statement  = __( 'Deleting User Meta&hellip; %s', 'bbpress' );
+			$sql_delete = "DELETE FROM `{$wpdb->usermeta}` WHERE `user_id` IN ('{$sql_meta}');";
+			$result     = is_wp_error( $wpdb->query( $sql_delete ) ) ? $failed : $success;
+			$messages[] = sprintf( $statement, $result );
+		}
 
-	/** Converter *********************************************************/
+	// Delete imported user metadata
+	} else {
+		$statement  = __( 'Deleting User Meta&hellip; %s', 'bbpress' );
+		$sql_delete = "DELETE FROM `{$wpdb->usermeta}` WHERE `meta_key` LIKE '%%_bbp_%%';";
+		$result     = is_wp_error( $wpdb->query( $sql_delete ) ) ? $failed : $success;
+		$messages[] = sprintf( $statement, $result );
+	}
+
+	/** Converter *************************************************************/
 
 	$statement  = __( 'Deleting Conversion Table&hellip; %s', 'bbpress' );
 	$table_name = $wpdb->prefix . 'bbp_converter_translator';
@@ -1187,13 +1283,13 @@ function bbp_admin_reset_handler() {
 	}
 	$messages[] = sprintf( $statement, $result );
 
-	/** Options ***********************************************************/
+	/** Options ***************************************************************/
 
 	$statement  = __( 'Deleting Settings&hellip; %s', 'bbpress' );
 	bbp_delete_options();
 	$messages[] = sprintf( $statement, $success );
 
-	/** Roles *************************************************************/
+	/** Roles *****************************************************************/
 
 	$statement  = __( 'Deleting Roles and Capabilities&hellip; %s', 'bbpress' );
 	remove_role( bbp_get_moderator_role() );
@@ -1201,7 +1297,7 @@ function bbp_admin_reset_handler() {
 	bbp_remove_caps();
 	$messages[] = sprintf( $statement, $success );
 
-	/** Output ************************************************************/
+	/** Output ****************************************************************/
 
 	if ( count( $messages ) ) {
 		foreach ( $messages as $message ) {

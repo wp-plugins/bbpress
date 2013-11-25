@@ -802,10 +802,10 @@ function bbp_publicize_forum( $forum_id = 0, $current_visibility = '' ) {
 	if ( bbp_get_public_status_id() !== $current_visibility ) {
 
 		// Update forums visibility setting
-		wp_insert_post( array(
-			'ID'          => $forum_id,
-			'post_status' => bbp_get_public_status_id()
-		) );
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_status' => bbp_get_public_status_id() ), array( 'ID' => $forum_id ) );
+		wp_transition_post_status( bbp_get_public_status_id(), $current_visibility, get_post( $forum_id ) );
+		bbp_clean_post_cache( $forum_id );
 	}
 
 	do_action( 'bbp_publicized_forum', $forum_id );
@@ -852,10 +852,10 @@ function bbp_privatize_forum( $forum_id = 0, $current_visibility = '' ) {
 		update_option( '_bbp_private_forums', array_unique( array_filter( array_values( $private ) ) ) );
 
 		// Update forums visibility setting
-		wp_insert_post( array(
-			'ID'          => $forum_id,
-			'post_status' => bbp_get_private_status_id()
-		) );
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_status' => bbp_get_private_status_id() ), array( 'ID' => $forum_id ) );
+		wp_transition_post_status( bbp_get_private_status_id(), $current_visibility, get_post( $forum_id ) );
+		bbp_clean_post_cache( $forum_id );
 	}
 
 	do_action( 'bbp_privatized_forum', $forum_id );
@@ -902,10 +902,10 @@ function bbp_hide_forum( $forum_id = 0, $current_visibility = '' ) {
 		update_option( '_bbp_hidden_forums', array_unique( array_filter( array_values( $hidden ) ) ) );
 
 		// Update forums visibility setting
-		wp_insert_post( array(
-			'ID'          => $forum_id,
-			'post_status' => bbp_get_hidden_status_id()
-		) );
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_status' => bbp_get_hidden_status_id() ), array( 'ID' => $forum_id ) );
+		wp_transition_post_status( bbp_get_hidden_status_id(), $current_visibility, get_post( $forum_id ) );
+		bbp_clean_post_cache( $forum_id );
 	}
 
 	do_action( 'bbp_hid_forum',  $forum_id );
@@ -959,6 +959,48 @@ function bbp_repair_forum_visibility() {
 
 	// Complete results
 	return true;
+}
+
+/** Subscriptions *************************************************************/
+
+/**
+ * Remove a deleted forum from all users' subscriptions
+ *
+ * @since bbPress (r5156)
+ *
+ * @param int $forum_id Get the forum ID to remove
+ * @uses bbp_is_subscriptions_active() To check if the subscriptions are active
+ * @uses bbp_get_forum_id To get the forum id
+ * @uses bbp_get_forum_subscribers() To get the forum subscribers
+ * @uses bbp_remove_user_subscription() To remove the user subscription
+ */
+function bbp_remove_forum_from_all_subscriptions( $forum_id = 0 ) {
+
+	// Subscriptions are not active
+	if ( ! bbp_is_subscriptions_active() ) {
+		return;
+	}
+
+	$forum_id = bbp_get_forum_id( $forum_id );
+
+	// Bail if no forum
+	if ( empty( $forum_id ) ) {
+		return;
+	}
+
+	// Get users
+	$users = (array) bbp_get_forum_subscribers( $forum_id );
+
+	// Users exist
+	if ( !empty( $users ) ) {
+
+		// Loop through users
+		foreach ( $users as $user ) {
+
+			// Remove each user
+			bbp_remove_user_subscription( $user, $forum_id );
+		}
+	}
 }
 
 /** Count Bumpers *************************************************************/

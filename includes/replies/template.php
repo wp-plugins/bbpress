@@ -35,6 +35,62 @@ function bbp_reply_post_type() {
 		return apply_filters( 'bbp_get_reply_post_type', bbpress()->reply_post_type );
 	}
 
+/**
+ * Return array of labels used by the reply post type
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_reply_post_type_labels() {
+	return apply_filters( 'bbp_get_reply_post_type_labels', array(
+		'name'               => __( 'Replies',                   'bbpress' ),
+		'menu_name'          => __( 'Replies',                   'bbpress' ),
+		'singular_name'      => __( 'Reply',                     'bbpress' ),
+		'all_items'          => __( 'All Replies',               'bbpress' ),
+		'add_new'            => __( 'New Reply',                 'bbpress' ),
+		'add_new_item'       => __( 'Create New Reply',          'bbpress' ),
+		'edit'               => __( 'Edit',                      'bbpress' ),
+		'edit_item'          => __( 'Edit Reply',                'bbpress' ),
+		'new_item'           => __( 'New Reply',                 'bbpress' ),
+		'view'               => __( 'View Reply',                'bbpress' ),
+		'view_item'          => __( 'View Reply',                'bbpress' ),
+		'search_items'       => __( 'Search Replies',            'bbpress' ),
+		'not_found'          => __( 'No replies found',          'bbpress' ),
+		'not_found_in_trash' => __( 'No replies found in Trash', 'bbpress' ),
+		'parent_item_colon'  => __( 'Topic:',                    'bbpress' )
+	) );
+}
+
+/**
+ * Return array of reply post type rewrite settings
+ *
+ * @since bbPress (r5129)
+ *
+ * @return array
+ */
+function bbp_get_reply_post_type_rewrite() {
+	return apply_filters( 'bbp_get_reply_post_type_rewrite', array(
+		'slug'       => bbp_get_reply_slug(),
+		'with_front' => false
+	) );
+}
+
+/**
+ * Return array of features the reply post type supports
+ *
+ * @since bbPress (rx5129)
+ *
+ * @return array
+ */
+function bbp_get_reply_post_type_supports() {
+	return apply_filters( 'bbp_get_reply_post_type_supports', array(
+		'title',
+		'editor',
+		'revisions'
+	) );
+}
+
 /** Reply Loop Functions ******************************************************/
 
 /**
@@ -488,6 +544,33 @@ function bbp_reply_title( $reply_id = 0 ) {
 		$reply_id = bbp_get_reply_id( $reply_id );
 
 		return apply_filters( 'bbp_get_reply_title', get_the_title( $reply_id ), $reply_id );
+	}
+
+	/**
+	 * Get empty reply title fallback.
+	 *
+	 * @since bbPress (r5177)
+	 *
+	 * @param string $reply_title Required. Reply Title
+	 * @param int $reply_id Required. Reply ID
+	 * @uses bbp_get_reply_topic_title() To get the reply topic title
+	 * @uses apply_filters() Calls 'bbp_get_reply_title_fallback' with the title and reply ID
+	 * @return string Title of reply
+	 */
+	function bbp_get_reply_title_fallback( $post_title = '', $post_id = 0 ) {
+
+		// Bail if title not empty, or post is not a reply
+		if ( ! empty( $post_title ) || ! bbp_is_reply( $post_id ) ) {
+			return $post_title;
+		}
+
+		// Get reply topic title.
+		$topic_title = bbp_get_reply_topic_title( $post_id );
+
+		// Get empty reply title fallback.
+		$reply_title = sprintf( __( 'Reply To: %s', 'bbpress' ), $topic_title );
+
+		return apply_filters( 'bbp_get_reply_title_fallback', $reply_title, $post_id, $topic_title );
 	}
 
 /**
@@ -1148,7 +1231,7 @@ function bbp_reply_author_link( $args = '' ) {
 			// Link class
 			$link_class = ' class="bbp-author-' . esc_attr( $r['type'] ) . '"';
 
-			// Add links if not anonymous
+			// Add links if not anonymous and existing user
 			if ( empty( $anonymous ) && bbp_user_has_profile( bbp_get_reply_author_id( $reply_id ) ) ) {
 
 				// Assemble the links
@@ -1196,6 +1279,7 @@ function bbp_reply_author_url( $reply_id = 0 ) {
 	 * @uses bbp_get_reply_id() To get the reply id
 	 * @uses bbp_is_reply_anonymous() To check if the reply is by an anonymous
 	 *                                 user
+	 * @uses bbp_user_has_profile() To check if the user has a profile
 	 * @uses bbp_get_reply_author_id() To get the reply author id
 	 * @uses bbp_get_user_profile_url() To get the user profile url
 	 * @uses get_post_meta() To get the anonymous poster's website url
@@ -1206,8 +1290,8 @@ function bbp_reply_author_url( $reply_id = 0 ) {
 	function bbp_get_reply_author_url( $reply_id = 0 ) {
 		$reply_id = bbp_get_reply_id( $reply_id );
 
-		// Check for anonymous user
-		if ( !bbp_is_reply_anonymous( $reply_id ) ) {
+		// Check for anonymous user or non-existant user
+		if ( !bbp_is_reply_anonymous( $reply_id ) && bbp_user_has_profile( bbp_get_reply_author_id( $reply_id ) ) ) {
 			$author_url = bbp_get_user_profile_url( bbp_get_reply_author_id( $reply_id ) );
 		} else {
 			$author_url = get_post_meta( $reply_id, '_bbp_anonymous_website', true );
@@ -1523,7 +1607,7 @@ function bbp_reply_to_link( $args = array() ) {
 	 * @uses bbp_get_reply() To get the reply
 	 * @uses apply_filters() Calls 'bbp_get_reply_to_link' with the formatted link,
 	 *                        the arguments array, and the reply
-	 * @return string Link for a reply to a reply 
+	 * @return string Link for a reply to a reply
 	 */
 	function bbp_get_reply_to_link( $args = array() ) {
 

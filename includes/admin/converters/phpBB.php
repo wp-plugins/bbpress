@@ -23,7 +23,7 @@ class phpBB extends BBP_Converter_Base {
 	 */
 	public function setup_globals() {
 
-		/** Forum Section ******************************************************/
+		/** Forum Section *****************************************************/
 
 		// Forum id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -65,7 +65,7 @@ class phpBB extends BBP_Converter_Base {
 			'to_fieldname'   => '_bbp_total_topic_count'
 		);
 
-		// Forum total reply count (Stored in postmeta)
+		// Forum total reply count (Includes unpublished replies, Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename' => 'forums',
 			'from_fieldname' => 'forum_posts',
@@ -107,7 +107,16 @@ class phpBB extends BBP_Converter_Base {
 			'to_fieldname'   => 'menu_order'
 		);
 
-		// Forum status (Locked =1 Unlocked =0, Stored in postmeta)
+		// Forum type (Category = 0 or Forum = 1, Stored in postmeta)
+		$this->field_map[] = array(
+			'from_tablename'  => 'forums',
+			'from_fieldname'  => 'forum_type',
+			'to_type'         => 'forum',
+			'to_fieldname'    => '_bbp_forum_type',
+			'callback_method' => 'callback_forum_type'
+		);
+
+		// Forum status (Unlocked = 0 or Locked = 1, Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'forums',
 			'from_fieldname'  => 'forum_status',
@@ -138,7 +147,7 @@ class phpBB extends BBP_Converter_Base {
 			'default'      => date('Y-m-d H:i:s')
 		);
 
-		/** Topic Section ******************************************************/
+		/** Topic Section *****************************************************/
 
 		// Topic id (Stored in postmeta)
 		$this->field_map[] = array(
@@ -184,8 +193,19 @@ class phpBB extends BBP_Converter_Base {
 			'callback_method' => 'callback_userid'
 		);
 
+		// Topic Author ip (Stored in postmeta)
+		$this->field_map[] = array(
+			'from_tablename'  => 'posts',
+			'from_fieldname'  => 'poster_ip',
+			'join_tablename'  => 'topics',
+			'join_type'       => 'INNER',
+			'join_expression' => 'USING (topic_id) WHERE posts.post_id = topics.topic_first_post_id',
+			'to_type'         => 'topic',
+			'to_fieldname'    => '_bbp_author_ip'
+		);
+
 		// Topic content.
-		// Note: We join the posts table because topics do not have content.
+		// Note: We join the 'posts' table because 'topics' does not include topic content.
 		$this->field_map[] = array(
 			'from_tablename'  => 'posts',
 			'from_fieldname'  => 'post_text',
@@ -214,6 +234,15 @@ class phpBB extends BBP_Converter_Base {
 			'callback_method' => 'callback_slug'
 		);
 
+		// Topic status (Open or Closed)
+		$this->field_map[] = array(
+			'from_tablename'  => 'topics',
+			'from_fieldname'  => 'topic_status',
+			'to_type'         => 'topic',
+			'to_fieldname'    => 'post_status',
+			'callback_method' => 'callback_topic_status'
+		);
+
 		// Topic parent forum id (If no parent, then 0)
 		$this->field_map[] = array(
 			'from_tablename'  => 'topics',
@@ -221,6 +250,15 @@ class phpBB extends BBP_Converter_Base {
 			'to_type'         => 'topic',
 			'to_fieldname'    => 'post_parent',
 			'callback_method' => 'callback_forumid'
+		);
+
+		// Sticky status (Stored in postmeta))
+		$this->field_map[] = array(
+			'from_tablename'  => 'topics',
+			'from_fieldname'  => 'topic_type',
+			'to_type'         => 'topic',
+			'to_fieldname'    => '_bbp_old_sticky_status',
+			'callback_method' => 'callback_sticky_status'
 		);
 
 		// Topic dates.
@@ -259,28 +297,6 @@ class phpBB extends BBP_Converter_Base {
 			'to_fieldname'   => '_bbp_last_active_time',
 			'callback_method' => 'callback_datetime'
 		);
-
-		// Topic status (Open or Closed)
-		$this->field_map[] = array(
-			'from_tablename'  => 'topics',
-			'from_fieldname'  => 'topic_status',
-			'to_type'         => 'topic',
-			'to_fieldname'    => 'post_status',
-			'callback_method' => 'callback_topic_status'
-		);
-
-		// Topic Author ip (Stored in postmeta)
-		$this->field_map[] = array(
-			'from_tablename'  => 'posts',
-			'from_fieldname'  => 'poster_ip',
-			'join_tablename'  => 'topics',
-			'join_type'       => 'INNER',
-			'join_expression' => 'USING (topic_id) WHERE posts.post_id = topics.topic_first_post_id',
-			'to_type'         => 'topic',
-			'to_fieldname'    => '_bbp_author_ip'
-		);
-
-		// Sticky Status
 
 		/** Tags Section ******************************************************/
 
@@ -345,10 +361,11 @@ class phpBB extends BBP_Converter_Base {
 
 		// Reply title.
 		$this->field_map[] = array(
-			'from_tablename' => 'posts',
-			'from_fieldname' => 'post_subject',
-			'to_type'        => 'reply',
-			'to_fieldname'   => 'post_title'
+			'from_tablename'  => 'posts',
+			'from_fieldname'  => 'post_subject',
+			'to_type'         => 'reply',
+			'to_fieldname'    => 'post_title',
+			'callback_method' => 'callback_reply_title'
 		);
 
 		// Reply slug (Clean name to avoid conflicts)
@@ -691,6 +708,26 @@ class phpBB extends BBP_Converter_Base {
 	}
 
 	/**
+	 * Translate the forum type from phpBB v3.x numeric's to WordPress's strings.
+	 *
+	 * @param int $status phpBB v3.x numeric forum type
+	 * @return string WordPress safe
+	 */
+	public function callback_forum_type( $status = 1 ) {
+		switch ( $status ) {
+			case 0 :
+				$status = 'category';
+				break;
+
+			case 1  :
+			default :
+				$status = 'forum';
+				break;
+		}
+		return $status;
+	}
+
+	/**
 	 * Translate the forum status from phpBB v3.x numeric's to WordPress's strings.
 	 *
 	 * @param int $status phpBB v3.x numeric forum status
@@ -722,9 +759,37 @@ class phpBB extends BBP_Converter_Base {
 				$status = 'closed';
 				break;
 
-			case 0  :
+			case 0 :
 			default :
 				$status = 'publish';
+				break;
+		}
+		return $status;
+	}
+
+	/**
+	 * Translate the topic sticky status type from phpBB 3.x numeric's to WordPress's strings.
+	 *
+	 * @param int $status phpBB 3.x numeric forum type
+	 * @return string WordPress safe
+	 */
+	public function callback_sticky_status( $status = 0 ) {
+		switch ( $status ) {
+			case 3 :
+				$status = 'super-sticky'; // phpBB Global Sticky 'topic_type = 3'
+				break;
+
+			case 2 :
+				$status = 'super-sticky'; // phpBB Announcement Sticky 'topic_type = 2'
+				break;
+
+			case 1 :
+				$status = 'sticky';       // phpBB Sticky 'topic_type = 1'
+				break;
+
+			case 0  :
+			default :
+				$status = 'normal';       // phpBB normal topic 'topic_type = 0'
 				break;
 		}
 		return $status;
@@ -739,6 +804,17 @@ class phpBB extends BBP_Converter_Base {
 	public function callback_topic_reply_count( $count = 1 ) {
 		$count = absint( (int) $count - 1 );
 		return $count;
+	}
+
+	/**
+	 * Set the reply title
+	 *
+	 * @param string $title phpBB v3.x topic title of this reply
+	 * @return string Prefixed topic title, or empty string
+	 */
+	public function callback_reply_title( $title = '' ) {
+		$title = !empty( $title ) ? __( 'Re: ', 'bbpress' ) . html_entity_decode( $title ) : '';
+		return $title;
 	}
 
 	/**
