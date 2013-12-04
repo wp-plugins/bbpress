@@ -9,8 +9,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2013-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Last-Translator: JOHN JAMES JACOBY <jjj@bbpress.org>\n"
+"Language-Team: ENGLISH <jjj@bbpress.org>\n"
 
 #: bbpress.php:133 bbpress.php:140
 msgid "Cheatin&#8217; huh?"
@@ -1479,7 +1479,7 @@ msgid "Allow users to mark topics as favorites"
 msgstr ""
 
 #: includes/admin/settings.php:581
-msgid "Allow users to subscribe to topics"
+msgid "Allow users to subscribe to forums and topics"
 msgstr ""
 
 #: includes/admin/settings.php:597
