@@ -893,7 +893,6 @@ function bbp_is_edit() {
  * @uses bbp_is_subscriptions()
  * @uses bbp_is_favorites()
  * @uses bbp_is_topics_created()
- * @uses bbp_is_replies_created()
  * @uses bbp_is_forum_archive()
  * @uses bbp_is_topic_archive()
  * @uses bbp_is_topic_tag()
@@ -982,11 +981,6 @@ function bbp_body_class( $wp_classes, $custom_classes = false ) {
 		$bbp_classes[] = 'single';
 		$bbp_classes[] = 'singular';
 
-	} elseif ( bbp_is_replies_created() ) {
-		$bbp_classes[] = 'bbp-replies-created';
-		$bbp_classes[] = 'single';
-		$bbp_classes[] = 'singular';
-
 	} elseif ( bbp_is_favorites() ) {
 		$bbp_classes[] = 'bbp-favorites';
 		$bbp_classes[] = 'single';
@@ -1044,7 +1038,6 @@ function bbp_body_class( $wp_classes, $custom_classes = false ) {
  * @uses bbp_is_subscriptions()
  * @uses bbp_is_favorites()
  * @uses bbp_is_topics_created()
- * @uses bbp_is_replies_created()
  * @return bool In a bbPress page
  */
 function is_bbpress() {
@@ -1112,9 +1105,6 @@ function is_bbpress() {
 		$retval = true;
 
 	} elseif ( bbp_is_topics_created() ) {
-		$retval = true;
-
-	} elseif ( bbp_is_replies_created() ) {
 		$retval = true;
 
 	} elseif ( bbp_is_favorites() ) {
