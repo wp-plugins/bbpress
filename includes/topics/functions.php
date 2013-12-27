@@ -887,7 +887,7 @@ function bbp_update_topic( $topic_id = 0, $forum_id = 0, $anonymous_data = false
 		update_post_meta( $topic_id, '_bbp_author_ip', bbp_current_author_ip(), false );
 
 		// Last active time
-		$last_active = current_time( 'mysql' );
+		$last_active = get_post_field( 'post_date', $topic_id );
 
 		// Reply topic meta
 		bbp_update_topic_last_reply_id      ( $topic_id, 0            );
@@ -965,7 +965,7 @@ function bbp_update_topic_walker( $topic_id, $last_active_time = '', $forum_id =
 					'last_topic_id'      => $topic_id,
 					'last_reply_id'      => $reply_id,
 					'last_active_id'     => $active_id,
-					'last_active_time'   => 0,
+					'last_active_time'   => $last_active_time,
 					'last_active_status' => $topic_status
 				) );
 			}
