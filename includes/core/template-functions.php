@@ -159,7 +159,7 @@ function bbp_enqueue_style( $handle = '', $file = '', $dependencies = array(), $
 	if ( !empty( $located ) ) {
 
 		$content_dir = constant( 'WP_CONTENT_DIR' );
- 
+
 		// IIS (Windows) here
 		// Replace back slashes with forward slash
 		if ( strpos( $located, '\\' ) !== false ) {
@@ -227,7 +227,7 @@ function bbp_enqueue_script( $handle = '', $file = '', $dependencies = array(), 
 	if ( !empty( $located ) ) {
 
 		$content_dir = constant( 'WP_CONTENT_DIR' );
- 
+
 		// IIS (Windows) here
 		// Replace back slashes with forward slash
 		if ( strpos( $located, '\\' ) !== false ) {
