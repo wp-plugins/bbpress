@@ -101,7 +101,7 @@ function bbp_locate_template( $template_names, $load = false, $require_once = tr
 	do_action( 'bbp_locate_template', $located, $template_name, $template_names, $template_locations, $load, $require_once );
 
 	// Maybe load the template if one was located
-	if ( ( true === $load ) && !empty( $located ) ) {
+	if ( ( defined( 'WP_USE_THEMES' ) && WP_USE_THEMES ) && ( true === $load ) && !empty( $located ) ) {
 		load_template( $located, $require_once );
 	}
 
@@ -168,7 +168,7 @@ function bbp_enqueue_style( $handle = '', $file = '', $dependencies = array(), $
 		}
 
  		// Make path to file relative to site URL
-		$located = str_replace( $content_dir, WP_CONTENT_URL, $located );
+		$located = str_replace( $content_dir, content_url(), $located );
 
 		// Enqueue the style
 		wp_enqueue_style( $handle, $located, $dependencies, $version, $media );
@@ -236,7 +236,7 @@ function bbp_enqueue_script( $handle = '', $file = '', $dependencies = array(), 
 		}
 
  		// Make path to file relative to site URL
-		$located = str_replace( $content_dir, WP_CONTENT_URL, $located );
+		$located = str_replace( $content_dir, content_url(), $located );
 
 		// Enqueue the style
 		wp_enqueue_script( $handle, $located, $dependencies, $version, $in_footer );

@@ -126,25 +126,17 @@ class BBP_Default extends BBP_Theme_Compat {
 	 */
 	public function enqueue_styles() {
 
-		// Setup styles array
-		$styles = array();
+		// RTL and/or minified
+		$suffix  = is_rtl() ? '-rtl' : '';
+		$suffix .= defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-		// LTR
-		$styles['bbp-default'] = array(
-			'file'         => 'css/bbpress.css',
-			'dependencies' => array()
-		);
-
-		// RTL helpers
-		if ( is_rtl() ) {
-			$styles['bbp-default-rtl'] = array(
-				'file'         => 'css/bbpress-rtl.css',
-				'dependencies' => array( 'bbp-default' )
-			);
-		}
-
-		// Filter the scripts
-		$styles = apply_filters( 'bbp_default_styles', $styles );
+		// Get and filter the bbp-default style
+		$styles = apply_filters( 'bbp_default_styles', array(
+			'bbp-default' => array(
+				'file'         => 'css/bbpress' . $suffix . '.css',
+				'dependencies' => array()
+			)
+		) );
 
 		// Enqueue the styles
 		foreach ( $styles as $handle => $attributes ) {
@@ -168,10 +160,13 @@ class BBP_Default extends BBP_Theme_Compat {
 		// Setup scripts array
 		$scripts = array();
 
+		// Minified
+		$suffix  = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
 		// Always pull in jQuery for TinyMCE shortcode usage
 		if ( bbp_use_wp_editor() ) {
 			$scripts['bbpress-editor'] = array(
-				'file'         => 'js/editor.js',
+				'file'         => 'js/editor' . $suffix . '.js',
 				'dependencies' => array( 'jquery' )
 			);
 		}
@@ -179,7 +174,7 @@ class BBP_Default extends BBP_Theme_Compat {
 		// Forum-specific scripts
 		if ( bbp_is_single_forum() ) {
 			$scripts['bbpress-forum'] = array(
-				'file'         => 'js/forum.js',
+				'file'         => 'js/forum' . $suffix . '.js',
 				'dependencies' => array( 'jquery' )
 			);
 		}
@@ -189,14 +184,14 @@ class BBP_Default extends BBP_Theme_Compat {
 
 			// Topic favorite/unsubscribe
 			$scripts['bbpress-topic'] = array(
-				'file'         => 'js/topic.js',
+				'file'         => 'js/topic' . $suffix . '.js',
 				'dependencies' => array( 'jquery' )
 			);
 
 			// Hierarchical replies
 			if ( bbp_thread_replies() ) {
 				$scripts['bbpress-reply'] = array(
-					'file'         => 'js/reply.js',
+					'file'         => 'js/reply' . $suffix . '.js',
 					'dependencies' => array( 'jquery' )
 				);
 			}
@@ -205,7 +200,7 @@ class BBP_Default extends BBP_Theme_Compat {
 		// User Profile edit
 		if ( bbp_is_single_user_edit() ) {
 			$scripts['bbpress-user'] = array(
-				'file'         => 'js/user.js',
+				'file'         => 'js/user' . $suffix . '.js',
 				'dependencies' => array( 'user-query' )
 			);
 		}

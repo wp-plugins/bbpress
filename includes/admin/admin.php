@@ -136,16 +136,15 @@ class BBP_Admin {
 
 		/** General Actions ***************************************************/
 
-		add_action( 'bbp_admin_menu',              array( $this, 'admin_menus'                )     ); // Add menu item to settings menu
-		add_action( 'bbp_admin_head',              array( $this, 'admin_head'                 )     ); // Add some general styling to the admin area
-		add_action( 'bbp_admin_notices',           array( $this, 'activation_notice'          )     ); // Add notice if not using a bbPress theme
-		add_action( 'bbp_register_admin_style',    array( $this, 'register_admin_style'       )     ); // Add green admin style
-		add_action( 'bbp_register_admin_settings', array( $this, 'register_admin_settings'    )     ); // Add settings
-		add_action( 'bbp_activation',              array( $this, 'new_install'                )     ); // Add menu item to settings menu
-		add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_styles'             )     ); // Add enqueued CSS
-		add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_scripts'            )     ); // Add enqueued JS
-		add_action( 'wp_dashboard_setup',          array( $this, 'dashboard_widget_right_now' )     ); // Forums 'Right now' Dashboard widget
-		add_action( 'admin_bar_menu',              array( $this, 'admin_bar_about_link'       ), 15 ); // Add a link to bbPress about page to the admin bar
+		add_action( 'bbp_admin_menu',              array( $this, 'admin_menus'             )     ); // Add menu item to settings menu
+		add_action( 'bbp_admin_head',              array( $this, 'admin_head'              )     ); // Add some general styling to the admin area
+		add_action( 'bbp_admin_notices',           array( $this, 'activation_notice'       )     ); // Add notice if not using a bbPress theme
+		add_action( 'bbp_register_admin_style',    array( $this, 'register_admin_style'    )     ); // Add green admin style
+		add_action( 'bbp_register_admin_settings', array( $this, 'register_admin_settings' )     ); // Add settings
+		add_action( 'bbp_activation',              array( $this, 'new_install'             )     ); // Add menu item to settings menu
+		add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_styles'          )     ); // Add enqueued CSS
+		add_action( 'admin_enqueue_scripts',       array( $this, 'enqueue_scripts'         )     ); // Add enqueued JS
+		add_action( 'admin_bar_menu',              array( $this, 'admin_bar_about_link'    ), 15 ); // Add a link to bbPress about page to the admin bar
 
 		/** Ajax **************************************************************/
 
@@ -522,17 +521,6 @@ class BBP_Admin {
 	}
 
 	/**
-	 * Add the 'Right now in Forums' dashboard widget
-	 *
-	 * @since bbPress (r2770)
-	 *
-	 * @uses wp_add_dashboard_widget() To add the dashboard widget
-	 */
-	public static function dashboard_widget_right_now() {
-		wp_add_dashboard_widget( 'bbp-dashboard-right-now', __( 'Right Now in Forums', 'bbpress' ), 'bbp_dashboard_widget_right_now' );
-	}
-
-	/**
 	 * Add a link to bbPress about page to the admin bar
 	 *
 	 * @since bbPress (r5136)
@@ -558,8 +546,13 @@ class BBP_Admin {
 	 * @since bbPress (r4260)
 	 */
 	public function enqueue_scripts() {
+
+		// Enqueue suggest for forum/topic/reply autocmopletes
 		wp_enqueue_script( 'suggest' );
-		
+
+		// Minified
+		$suffix  = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
 		// Get the version to use for JS
 		$version = bbp_get_version();
 
@@ -570,15 +563,15 @@ class BBP_Admin {
 				case bbp_get_topic_post_type() :
 
 					// Enqueue the common JS
-					wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'common.js', array( 'jquery' ), $version );
+					wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'common' . $suffix . '.js', array( 'jquery' ), $version );
 
 					// Topics admin
 					if ( bbp_get_topic_post_type() === get_current_screen()->post_type ) {
-						wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'topics.js', array( 'jquery' ), $version );
+						wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'topics' . $suffix . '.js', array( 'jquery' ), $version );
 
 					// Replies admin
 					} elseif ( bbp_get_reply_post_type() === get_current_screen()->post_type ) {
-						wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'replies.js', array( 'jquery' ), $version );
+						wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'replies' . $suffix . '.js', array( 'jquery' ), $version );
 					}
 
 					break;
@@ -592,7 +585,13 @@ class BBP_Admin {
 	 * @since bbPress (r5224)
 	 */
 	public function enqueue_styles() {
-		wp_enqueue_style( 'bbp-admin-css', $this->css_url . 'admin.css', array( 'dashicons' ), bbp_get_version() );
+
+		// RTL and/or minified
+		$suffix  = is_rtl() ? '-rtl' : '';
+		$suffix .= defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+
+		// Enqueue admin CSS with dashicons dependency
+		wp_enqueue_style( 'bbp-admin-css', $this->css_url . 'admin' . $suffix . '.css', array( 'dashicons' ), bbp_get_version() );
 	}
 
 	/**
@@ -625,14 +624,14 @@ class BBP_Admin {
 	public function register_admin_style () {
 
 		// RTL and/or minified
-		$suffix = is_rtl() ? '-rtl' : '';
-		//$suffix .= defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$suffix  = is_rtl() ? '-rtl' : '';
+		$suffix .= defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		// Mint
 		wp_admin_css_color(
 			'bbp-mint',
-			esc_html_x( 'Mint',      'admin color scheme', 'bbpress' ),
-			$this->styles_url . 'mint' . $suffix . '.css',
+			esc_html_x( 'Mint', 'admin color scheme', 'bbpress' ),
+			$this->styles_url . 'mint/colors' . $suffix . '.css',
 			array( '#4f6d59', '#33834e', '#5FB37C', '#81c498' ),
 			array( 'base' => '#f1f3f2', 'focus' => '#fff', 'current' => '#fff' )
 		);
@@ -641,19 +640,10 @@ class BBP_Admin {
 		wp_admin_css_color(
 			'bbp-evergreen',
 			esc_html_x( 'Evergreen', 'admin color scheme', 'bbpress' ),
-			$this->styles_url . 'evergreen' . $suffix . '.css',
+			$this->styles_url . 'evergreen/colors' . $suffix . '.css',
 			array( '#324d3a', '#446950', '#56b274', '#324d3a' ),
 			array( 'base' => '#f1f3f2', 'focus' => '#fff', 'current' => '#fff' )
 		);
-
-		// Bail if already using the fresh color scheme
-		if ( 'fresh' === get_user_option( 'admin_color' ) ) {
-			return;
-		}
-
-		// Force 'colors-fresh' dependency
-		global $wp_styles;
-		$wp_styles->registered[ 'colors' ]->deps[] = 'colors-fresh';
 	}
 
 	/**
@@ -751,7 +741,7 @@ class BBP_Admin {
 		<div class="wrap about-wrap">
 			<h1><?php printf( esc_html__( 'Welcome to bbPress %s', 'bbpress' ), $display_version ); ?></h1>
 			<div class="about-text"><?php printf( esc_html__( 'Thank you for updating! bbPress %s is bundled up and ready to weather the storm of users in your community!', 'bbpress' ), $display_version ); ?></div>
-			<div class="bbp-badge"><?php printf( esc_html__( 'Version %s', 'bbpress' ), $display_version ); ?></div>
+			<div class="bbp-badge"></div>
 
 			<h2 class="nav-tab-wrapper">
 				<a class="nav-tab nav-tab-active" href="<?php echo esc_url( admin_url( add_query_arg( array( 'page' => 'bbp-about' ), 'index.php' ) ) ); ?>">
@@ -828,7 +818,7 @@ class BBP_Admin {
 		<div class="wrap about-wrap">
 			<h1><?php printf( esc_html__( 'Welcome to bbPress %s', 'bbpress' ), $display_version ); ?></h1>
 			<div class="about-text"><?php printf( esc_html__( 'Thank you for updating! bbPress %s is waxed, polished, and ready for you to take it for a lap or two around the block!', 'bbpress' ), $display_version ); ?></div>
-			<div class="bbp-badge"><?php printf( esc_html__( 'Version %s', 'bbpress' ), $display_version ); ?></div>
+			<div class="bbp-badge"></div>
 
 			<h2 class="nav-tab-wrapper">
 				<a href="<?php echo esc_url( admin_url( add_query_arg( array( 'page' => 'bbp-about' ), 'index.php' ) ) ); ?>" class="nav-tab">

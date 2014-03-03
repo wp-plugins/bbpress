@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 5235 2013-12-27 22:27:22Z johnjamesjacoby $
+ * $Id: bbpress.php 5256 2014-01-13 01:13:05Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -431,9 +431,9 @@ final class bbPress {
 	}
 
 	/**
-	 * Load the translation file for current language. Checks the languages
-	 * folder inside the bbPress plugin first, and then the default WordPress
-	 * languages folder.
+	 * Load the translation file for current language. Checks the deprecated
+	 * languages folder inside the bbPress plugin first, and then the default
+	 * WordPress languages folder.
 	 *
 	 * Note that custom translation files inside the bbPress plugin folder
 	 * will be removed on bbPress updates. If you're creating custom

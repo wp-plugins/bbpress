@@ -21,11 +21,11 @@
 .about-wrap .bbp-badge {
 	position: absolute;
 	top: 0;
-	right: 0;
+	left: 0;
 }
 	body.rtl .about-wrap .bbp-badge {
-		right: auto;
-		left: 0;
+		left: auto;
+		right: 0;
 	}
 
 /* Dashicons */
@@ -69,11 +69,11 @@
 	font-size: 14px;
 	position: absolute;
 	top: -17px;
-	left: 15px;
+	right: 15px;
 }
 	body.rtl #bbp-dashboard-right-now p.sub {
-		right: 15px;
-		left: 0;
+		left: 15px;
+		right: 0;
 	}
 
 #bbp-dashboard-right-now .table {
@@ -83,21 +83,21 @@
 }
 
 #bbp-dashboard-right-now .table_content {
-	float: left;
-	border-top: #ececec 1px solid;
-	width: 45%;
-}
-	body.rtl #bbp-dashboard-right-now .table_content {
-		float: right;
-	}
-
-#bbp-dashboard-right-now .table_discussion {
 	float: right;
 	border-top: #ececec 1px solid;
 	width: 45%;
 }
-	body.rtl #bbp-dashboard-right-now .table_discussion {
+	body.rtl #bbp-dashboard-right-now .table_content {
 		float: left;
+	}
+
+#bbp-dashboard-right-now .table_discussion {
+	float: left;
+	border-top: #ececec 1px solid;
+	width: 45%;
+}
+	body.rtl #bbp-dashboard-right-now .table_discussion {
+		float: right;
 	}
 
 #bbp-dashboard-right-now table td {
@@ -110,15 +110,15 @@
 }
 
 #bbp-dashboard-right-now td.b {
-	padding-right: 6px;
-	text-align: right;
+	padding-left: 6px;
+	text-align: left;
 	font-family: Georgia, "Times New Roman", "Bitstream Charter", Times, serif;
 	font-size: 14px;
 	width: 1%;
 }
 	body.rtl #bbp-dashboard-right-now td.b {
-		padding-left: 6px;
-		padding-right: 0;
+		padding-right: 6px;
+		padding-left: 0;
 	}
 
 #bbp-dashboard-right-now td.b a {
@@ -131,13 +131,13 @@
 
 #bbp-dashboard-right-now .t {
 	font-size: 12px;
-	padding-right: 12px;
+	padding-left: 12px;
 	padding-top: 6px;
 	color: #777;
 }
 	body.rtl #bbp-dashboard-right-now .t {
-		padding-left: 12px;
-		padding-right: 0;
+		padding-right: 12px;
+		padding-left: 0;
 	}
 
 #bbp-dashboard-right-now .t a {
@@ -166,12 +166,12 @@
 }
 
 #bbp-dashboard-right-now a.button {
-	float: right;
-	clear: right;
+	float: left;
+	clear: left;
 	position: relative;
 	top: -5px;
 }
 	body.rtl #bbp-dashboard-right-now a.button {
-		float: left;
-		clear: left;
+		float: right;
+		clear: right;
 	}
