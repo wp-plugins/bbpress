@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bbPress 2.6-alpha\n"
 "Report-Msgid-Bugs-To: https://bbpress.trac.wordpress.org\n"
-"POT-Creation-Date: 2014-03-31 20:02:24+00:00\n"
+"POT-Creation-Date: 2014-04-03 21:36:03+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -4013,6 +4013,10 @@ msgstr ""
 
 #: includes/topics/template.php:3379
 msgid "View Topic Tag"
+msgstr ""
+
+#: includes/topics/template.php:3380
+msgid "Separate topic tags with commas"
 msgstr ""
 
 #: includes/users/functions.php:405
