@@ -197,7 +197,7 @@ li.bbp-header div.bbp-reply-content span#favorite-toggle {
 #bbpress-forums div.bbp-topic-author a.bbp-author-name,
 #bbpress-forums div.bbp-reply-author a.bbp-author-name {
 	margin: 0 12px;
-	word-break: break-word;
+	word-wrap: break-word;
 	display: inline-block;
 }
 
@@ -1136,9 +1136,6 @@ body.my-account #bbpress-forums {
 
 /* =Standard Mobile Landscape
 -------------------------------------------------------------- */
-@media screen and (max-device-width: 480px), screen and (-webkit-min-device-pixel-ratio: 2) {
-	-webkit-text-size-adjust: none;
-}
 @media only screen and (max-width: 480px) {
 	#bbpress-forums div.bbp-topic-tags {
 		clear: right;

@@ -381,32 +381,6 @@ class vBulletin extends BBP_Converter_Base {
 			'callback_method' => 'callback_userid'
 		);
 
-		// Reply title.
-		// Note: We join the 'thread' table because 'post' table does not include reply title.
-		$this->field_map[] = array(
-			'from_tablename'  => 'thread',
-			'from_fieldname'  => 'title',
-			'join_tablename'  => 'post',
-			'join_type'       => 'INNER',
-			'join_expression' => 'USING (threadid) WHERE post.parentid != 0',
-			'to_type'         => 'reply',
-			'to_fieldname'    => 'post_title',
-			'callback_method' => 'callback_reply_title'
-		);
-
-        // Reply slug (Clean name to avoid conflicts)
-        // Note: We join the 'thread' table because 'post' table does not include reply slug.
-        $this->field_map[] = array(
-        	'from_tablename'  => 'thread',
-        	'from_fieldname'  => 'title',
-        	'join_tablename'  => 'post',
-        	'join_type'       => 'INNER',
-        	'join_expression' => 'USING (threadid) WHERE post.parentid != 0',
-        	'to_type'         => 'reply',
-        	'to_fieldname'    => 'post_name',
-        	'callback_method' => 'callback_slug'
-        );
-
 		// Reply content.
 		$this->field_map[] = array(
 			'from_tablename'  => 'post',
@@ -643,17 +617,6 @@ class vBulletin extends BBP_Converter_Base {
 	}
 
 	/**
-	 * Set the reply title
-	 *
-	 * @param string $title vBulletin v4.x topic title of this reply
-	 * @return string Prefixed topic title, or empty string
-	 */
-	public function callback_reply_title( $title = '' ) {
-		$title = !empty( $title ) ? __( 'Re: ', 'bbpress' ) . html_entity_decode( $title ) : '';
-		return $title;
-	}
-
-	/**
 	 * Translate the post status from vBulletin numeric's to WordPress's strings.
 	 *
 	 * @param int $status vBulletin v4.x numeric topic status
@@ -685,7 +648,7 @@ class vBulletin extends BBP_Converter_Base {
 		// Replace '[QUOTE]' with '<blockquote>'
 		$vbulletin_markup = preg_replace( '/\[QUOTE\]/', '<blockquote>', $vbulletin_markup );
 		// Replace '[QUOTE=User Name($1);PostID($2)]' with '<em>@$1 $2 wrote:</em><blockquote>"
-		$vbulletin_markup = preg_replace( '/\[QUOTE=(.*?);(.*?)\]/' , '<em>@$1 $2 wrote:</em><blockquote>', $vbulletin_markup );
+		$vbulletin_markup = preg_replace( '/\[QUOTE=(.*?);(.*?)\]/', '<em>@$1 $2 wrote:</em><blockquote>', $vbulletin_markup );
 		// Replace '[/QUOTE]' with '</blockquote>'
 		$vbulletin_markup = preg_replace( '/\[\/QUOTE\]/', '</blockquote>', $vbulletin_markup );
 		// Replace '[MENTION=###($1)]User Name($2)[/MENTION]' with '@$2"
@@ -693,6 +656,8 @@ class vBulletin extends BBP_Converter_Base {
 
 		// Replace '[video=youtube;$1]$2[/video]' with '$2"
 		$vbulletin_markup = preg_replace( '/\[video\=youtube;(.*?)\](.*?)\[\/video\]/', '$2', $vbulletin_markup );
+		// Replace '[video=youtube_share;$1]$2[/video]' with '$2"
+		$vbulletin_markup = preg_replace( '/\[video\=youtube_share;(.*?)\](.*?)\[\/video\]/', '$2', $vbulletin_markup );
 
 		// Now that vBulletin custom HTML has been stripped put the cleaned HTML back in $field
 		$field = $vbulletin_markup;

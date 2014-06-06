@@ -1,5 +1,5 @@
 /*
- * Button mixin- creates 3d-ish button effect with correct 
+ * Button mixin- creates 3d-ish button effect with correct
  * highlights/shadows, based on a base color.
  */
 html {
@@ -29,21 +29,18 @@ input[type=radio]:checked:before {
   background: #4f6d59;
   border-color: #3a4f41;
   color: white;
-  -webkit-box-shadow: inset 0 1px 0 #71977e, 0 1px 0 rgba(0, 0, 0, 0.15);
   box-shadow: inset 0 1px 0 #71977e, 0 1px 0 rgba(0, 0, 0, 0.15); }
   .wp-core-ui .button-primary:hover, .wp-core-ui .button-primary:focus {
     background: #455e4d;
     border-color: #2f4035;
     color: white;
-    -webkit-box-shadow: inset 0 1px 0 #658a71, 0 1px 0 rgba(0, 0, 0, 0.15);
     box-shadow: inset 0 1px 0 #658a71, 0 1px 0 rgba(0, 0, 0, 0.15); }
   .wp-core-ui .button-primary:active {
     background: #3a4f41;
     border-color: #2f4035;
     color: white;
-    -webkit-box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
     box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5); }
-  .wp-core-ui .button-primary[disabled], .wp-core-ui .button-primary:disabled, .wp-core-ui .button-primary.button-primary-disabled {
+  .wp-core-ui .button-primary[disabled], .wp-core-ui .button-primary:disabled, .wp-core-ui .button-primary.button-primary-disabled, .wp-core-ui .button-primary.disabled {
     color: #c7d1ca !important;
     background: #3e5546 !important;
     border-color: #2f4035 !important;
@@ -109,6 +106,7 @@ strong .post-com-count span {
 
 /* Active tabs use a bottom border color that matches the page background color. */
 .about-wrap h2 .nav-tab-active, .nav-tab-active, .nav-tab-active:hover {
+  background-color: #f1f1f1;
   border-bottom-color: #f1f1f1; }
 
 /* Admin Menu: submenu */
@@ -244,7 +242,8 @@ ul#adminmenu a.wp-has-current-submenu:after, ul#adminmenu > li.current > a.curre
 
 /* Pointers */
 .wp-pointer .wp-pointer-content h3 {
-  background-color: #4f6d59; }
+  background-color: #4f6d59;
+  border-color: #455e4d; }
 
 .wp-pointer .wp-pointer-content h3:before {
   color: #4f6d59; }
@@ -273,11 +272,34 @@ ul#adminmenu a.wp-has-current-submenu:after, ul#adminmenu > li.current > a.curre
 .theme-overlay .theme-header .close:hover, .theme-overlay .theme-header .right:hover, .theme-overlay .theme-header .left:hover {
   background: #4f6d59; }
 
+.theme-section.current, .theme-filter.current {
+  border-bottom-color: #5fb37b; }
+
+body.more-filters-opened .more-filters, body.more-filters-opened .more-filters:before {
+  color: #fff;
+  background-color: #5fb37b; }
+
+body.more-filters-opened .more-filters:hover, body.more-filters-opened .more-filters:focus, body.more-filters-opened .more-filters:hover:before, body.more-filters-opened .more-filters:focus:before {
+  background-color: #4f6d59;
+  color: #fff; }
+
+/* Widgets */
+.widgets-chooser li.widgets-chooser-selected {
+  background-color: #4f6d59;
+  color: #fff; }
+
+.widgets-chooser li.widgets-chooser-selected:before, .widgets-chooser li.widgets-chooser-selected:focus:before {
+  color: #fff; }
+
+/* Customize */
+#customize-theme-controls .widget-area-select .selected {
+  background-color: #4f6d59;
+  color: #fff; }
+
 /* jQuery UI Slider */
 .wp-slider .ui-slider-handle, .wp-slider .ui-slider-handle.ui-state-hover, .wp-slider .ui-slider-handle.focus {
   background: #4f6d59;
   border-color: #3a4f41;
-  -webkit-box-shadow: inset 0 1px 0 #71977e, 0 1px 0 rgba(0, 0, 0, 0.15);
   box-shadow: inset 0 1px 0 #71977e, 0 1px 0 rgba(0, 0, 0, 0.15); }
 
 /* Thickbox: Plugin information */
