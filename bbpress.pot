@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bbPress 2.6-alpha\n"
 "Report-Msgid-Bugs-To: https://bbpress.trac.wordpress.org\n"
-"POT-Creation-Date: 2014-06-06 03:48:03+00:00\n"
+"POT-Creation-Date: 2014-06-06 20:07:01+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -59,7 +59,7 @@ msgid "Forum Import"
 msgstr ""
 
 #: includes/admin/admin.php:219 includes/admin/functions.php:281
-#: includes/admin/tools.php:159 includes/admin/tools.php:1375
+#: includes/admin/tools.php:159 includes/admin/tools.php:1380
 msgid "Reset Forums"
 msgstr ""
 
@@ -819,7 +819,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: includes/admin/metaboxes.php:130 includes/admin/settings.php:325
-#: includes/replies/template.php:49 includes/replies/template.php:1619
+#: includes/replies/template.php:49 includes/replies/template.php:1621
 #: includes/topics/template.php:2925
 msgid "Reply"
 msgid_plural "Replies"
@@ -1205,32 +1205,32 @@ msgid "Mark this reply as spam"
 msgstr ""
 
 #: includes/admin/replies.php:739 includes/admin/topics.php:810
-#: includes/replies/template.php:2103 includes/topics/template.php:2876
+#: includes/replies/template.php:2105 includes/topics/template.php:2876
 msgid "Spam"
 msgstr ""
 
 #: includes/admin/replies.php:748 includes/admin/topics.php:818
-#: includes/replies/template.php:2045 includes/topics/template.php:2632
+#: includes/replies/template.php:2047 includes/topics/template.php:2632
 msgid "Restore this item from the Trash"
 msgstr ""
 
 #: includes/admin/replies.php:748 includes/admin/topics.php:818
-#: includes/replies/template.php:2033 includes/topics/template.php:2620
+#: includes/replies/template.php:2035 includes/topics/template.php:2620
 msgid "Restore"
 msgstr ""
 
 #: includes/admin/replies.php:750 includes/admin/topics.php:820
-#: includes/replies/template.php:2047 includes/topics/template.php:2634
+#: includes/replies/template.php:2049 includes/topics/template.php:2634
 msgid "Move this item to the Trash"
 msgstr ""
 
 #: includes/admin/replies.php:750 includes/admin/topics.php:820
-#: includes/replies/template.php:2032 includes/topics/template.php:2619
+#: includes/replies/template.php:2034 includes/topics/template.php:2619
 msgid "Trash"
 msgstr ""
 
 #: includes/admin/replies.php:754 includes/admin/topics.php:824
-#: includes/replies/template.php:2051 includes/topics/template.php:2638
+#: includes/replies/template.php:2053 includes/topics/template.php:2638
 msgid "Delete this item permanently"
 msgstr ""
 
@@ -2005,7 +2005,7 @@ msgid "Recalculate sticky relationship of each topic"
 msgstr ""
 
 #: includes/admin/tools.php:291
-msgid "Recalculate reply position hierarchy"
+msgid "Recalculate the position of each reply"
 msgstr ""
 
 #: includes/admin/tools.php:292
@@ -2079,7 +2079,7 @@ msgstr ""
 #: includes/admin/tools.php:872 includes/admin/tools.php:934
 #: includes/admin/tools.php:1109 includes/admin/tools.php:1171
 #: includes/admin/tools.php:1191 includes/admin/tools.php:1254
-#: includes/admin/tools.php:1305 includes/admin/tools.php:1356
+#: includes/admin/tools.php:1305 includes/admin/tools.php:1361
 msgid "Complete!"
 msgstr ""
 
@@ -2173,132 +2173,132 @@ msgid "Recalculating reply menu order &hellip; %s"
 msgstr ""
 
 #: includes/admin/tools.php:1323
-msgid "No reply hierachy to recalculate!"
+msgid "No reply positions to recalculate!"
 msgstr ""
 
-#: includes/admin/tools.php:1376
+#: includes/admin/tools.php:1381
 msgid ""
 "Revert your forums back to a brand new installation. This process cannot be "
 "undone."
 msgstr ""
 
-#: includes/admin/tools.php:1377
+#: includes/admin/tools.php:1382
 msgid "Backup your database before proceeding."
 msgstr ""
 
-#: includes/admin/tools.php:1383
+#: includes/admin/tools.php:1388
 msgid "The following data will be removed:"
 msgstr ""
 
-#: includes/admin/tools.php:1385 includes/forums/template.php:50
+#: includes/admin/tools.php:1390 includes/forums/template.php:50
 msgid "All Forums"
 msgstr ""
 
-#: includes/admin/tools.php:1386 includes/topics/functions.php:3441
+#: includes/admin/tools.php:1391 includes/topics/functions.php:3441
 #: includes/topics/template.php:50
 msgid "All Topics"
 msgstr ""
 
-#: includes/admin/tools.php:1387 includes/replies/functions.php:1995
+#: includes/admin/tools.php:1392 includes/replies/functions.php:1996
 #: includes/replies/template.php:50
 msgid "All Replies"
 msgstr ""
 
-#: includes/admin/tools.php:1388
+#: includes/admin/tools.php:1393
 msgid "All Topic Tags"
 msgstr ""
 
-#: includes/admin/tools.php:1389
+#: includes/admin/tools.php:1394
 msgid "Related Meta Data"
 msgstr ""
 
-#: includes/admin/tools.php:1390
+#: includes/admin/tools.php:1395
 msgid "Forum Settings"
 msgstr ""
 
-#: includes/admin/tools.php:1391
+#: includes/admin/tools.php:1396
 msgid "Forum Activity"
 msgstr ""
 
-#: includes/admin/tools.php:1392
+#: includes/admin/tools.php:1397
 msgid "Forum User Roles"
 msgstr ""
 
-#: includes/admin/tools.php:1393
+#: includes/admin/tools.php:1398
 msgid "Importer Helper Data"
 msgstr ""
 
-#: includes/admin/tools.php:1397
+#: includes/admin/tools.php:1402
 msgid "Delete imported users?"
 msgstr ""
 
-#: includes/admin/tools.php:1400 includes/admin/tools.php:1410
+#: includes/admin/tools.php:1405 includes/admin/tools.php:1415
 msgid "Say it ain't so!"
 msgstr ""
 
-#: includes/admin/tools.php:1401
+#: includes/admin/tools.php:1406
 msgid "This option will delete all previously imported users, and cannot be undone."
 msgstr ""
 
-#: includes/admin/tools.php:1402
+#: includes/admin/tools.php:1407
 msgid ""
 "Note: Resetting without this checked will delete the meta-data necessary to "
 "delete these users."
 msgstr ""
 
-#: includes/admin/tools.php:1407
+#: includes/admin/tools.php:1412
 msgid "Are you sure you want to do this?"
 msgstr ""
 
-#: includes/admin/tools.php:1411
+#: includes/admin/tools.php:1416
 msgid "This process cannot be undone."
 msgstr ""
 
-#: includes/admin/tools.php:1412
+#: includes/admin/tools.php:1417
 msgid "Human sacrifice, dogs and cats living together... mass hysteria!"
 msgstr ""
 
-#: includes/admin/tools.php:1420
+#: includes/admin/tools.php:1425
 msgid "Reset bbPress"
 msgstr ""
 
-#: includes/admin/tools.php:1456
+#: includes/admin/tools.php:1461
 msgid "Failed"
 msgstr ""
 
-#: includes/admin/tools.php:1457
+#: includes/admin/tools.php:1462
 msgid "Success!"
 msgstr ""
 
-#: includes/admin/tools.php:1469
+#: includes/admin/tools.php:1474
 msgid "Deleting Posts&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1482
+#: includes/admin/tools.php:1487
 msgid "Deleting Post Meta&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1491
+#: includes/admin/tools.php:1496
 msgid "Deleting Topic Tags&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1506
+#: includes/admin/tools.php:1511
 msgid "Deleting User&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1511 includes/admin/tools.php:1519
+#: includes/admin/tools.php:1516 includes/admin/tools.php:1524
 msgid "Deleting User Meta&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1527
+#: includes/admin/tools.php:1532
 msgid "Deleting Conversion Table&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1539
+#: includes/admin/tools.php:1544
 msgid "Deleting Settings&hellip; %s"
 msgstr ""
 
-#: includes/admin/tools.php:1545
+#: includes/admin/tools.php:1550
 msgid "Deleting Roles and Capabilities&hellip; %s"
 msgstr ""
 
@@ -2785,7 +2785,7 @@ msgid "Topic Tag: %s"
 msgstr ""
 
 #: includes/common/template.php:2210 includes/forums/template.php:53
-#: includes/replies/template.php:53 includes/replies/template.php:1908
+#: includes/replies/template.php:53 includes/replies/template.php:1910
 #: includes/topics/template.php:53 includes/topics/template.php:2495
 #: templates/default/bbpress/user-details.php:65
 msgid "Edit"
@@ -3167,8 +3167,8 @@ msgstr ""
 #: includes/extend/buddypress/groups.php:494
 #: includes/extend/buddypress/notifications.php:161
 #: includes/forums/functions.php:118 includes/forums/functions.php:395
-#: includes/replies/functions.php:116 includes/replies/functions.php:518
-#: includes/replies/functions.php:1245 includes/topics/functions.php:122
+#: includes/replies/functions.php:116 includes/replies/functions.php:516
+#: includes/replies/functions.php:1246 includes/topics/functions.php:122
 #: includes/topics/functions.php:520 includes/topics/functions.php:1153
 #: includes/topics/functions.php:1456 includes/topics/functions.php:1820
 #: includes/topics/functions.php:1860 includes/topics/functions.php:1917
@@ -3255,7 +3255,7 @@ msgid ""
 "capability to read or create new forums in it."
 msgstr ""
 
-#: includes/forums/functions.php:210 includes/replies/functions.php:293
+#: includes/forums/functions.php:210 includes/replies/functions.php:284
 #: includes/topics/functions.php:260
 msgid "<strong>ERROR</strong>: Slow down; you move too fast."
 msgstr ""
@@ -3412,150 +3412,150 @@ msgstr ""
 msgid "<strong>ERROR</strong>: Forum does not exist."
 msgstr ""
 
-#: includes/replies/functions.php:227 includes/replies/functions.php:574
+#: includes/replies/functions.php:227 includes/replies/functions.php:568
 msgid ""
 "<strong>ERROR</strong>: This forum is a category. No replies can be created "
 "in this forum."
 msgstr ""
 
-#: includes/replies/functions.php:234 includes/replies/functions.php:581
+#: includes/replies/functions.php:234 includes/replies/functions.php:575
 msgid "<strong>ERROR</strong>: This forum has been closed to new replies."
 msgstr ""
 
-#: includes/replies/functions.php:240 includes/replies/functions.php:587
+#: includes/replies/functions.php:240 includes/replies/functions.php:581
 msgid ""
 "<strong>ERROR</strong>: This forum is private and you do not have the "
 "capability to read or create new replies in it."
 msgstr ""
 
-#: includes/replies/functions.php:246 includes/replies/functions.php:593
+#: includes/replies/functions.php:246 includes/replies/functions.php:587
 msgid ""
 "<strong>ERROR</strong>: This forum is hidden and you do not have the "
 "capability to read or create new replies in it."
 msgstr ""
 
-#: includes/replies/functions.php:288 includes/replies/functions.php:617
+#: includes/replies/functions.php:279 includes/replies/functions.php:611
 msgid "<strong>ERROR</strong>: Your reply cannot be empty."
 msgstr ""
 
-#: includes/replies/functions.php:298
+#: includes/replies/functions.php:289
 msgid ""
 "<strong>ERROR</strong>: Duplicate reply detected; it looks as though "
 "you&#8217;ve already said that!"
 msgstr ""
 
-#: includes/replies/functions.php:303
+#: includes/replies/functions.php:294
 msgid "<strong>ERROR</strong>: Your reply cannot be created at this time."
 msgstr ""
 
-#: includes/replies/functions.php:320
+#: includes/replies/functions.php:318
 msgid "<strong>ERROR</strong>: Topic is closed."
 msgstr ""
 
-#: includes/replies/functions.php:379 includes/replies/functions.php:701
+#: includes/replies/functions.php:377 includes/replies/functions.php:702
 msgid "<strong>ERROR</strong>: There was a problem adding the tags to the topic."
 msgstr ""
 
-#: includes/replies/functions.php:507
+#: includes/replies/functions.php:505
 msgid "<strong>ERROR</strong>: Reply ID not found."
 msgstr ""
 
-#: includes/replies/functions.php:524
+#: includes/replies/functions.php:522
 msgid "<strong>ERROR</strong>: The reply you want to edit was not found."
 msgstr ""
 
-#: includes/replies/functions.php:535
+#: includes/replies/functions.php:533
 msgid "<strong>ERROR</strong>: You do not have permission to edit that reply."
 msgstr ""
 
-#: includes/replies/functions.php:622
+#: includes/replies/functions.php:616
 msgid "<strong>ERROR</strong>: Your reply cannot be edited at this time."
 msgstr ""
 
-#: includes/replies/functions.php:1222
+#: includes/replies/functions.php:1223
 msgid "<strong>ERROR</strong>: Reply ID to move not found!"
 msgstr ""
 
-#: includes/replies/functions.php:1231
+#: includes/replies/functions.php:1232
 msgid "<strong>ERROR</strong>: The reply you want to move was not found."
 msgstr ""
 
-#: includes/replies/functions.php:1240
+#: includes/replies/functions.php:1241
 msgid "<strong>ERROR</strong>: The topic you want to move from was not found."
 msgstr ""
 
-#: includes/replies/functions.php:1251 includes/topics/functions.php:1164
+#: includes/replies/functions.php:1252 includes/topics/functions.php:1164
 #: includes/topics/functions.php:1462
 msgid ""
 "<strong>ERROR</strong>: You do not have the permissions to edit the source "
 "topic."
 msgstr ""
 
-#: includes/replies/functions.php:1261
+#: includes/replies/functions.php:1262
 msgid "<strong>ERROR</strong>: You need to choose a valid move option."
 msgstr ""
 
-#: includes/replies/functions.php:1274 includes/topics/functions.php:1483
+#: includes/replies/functions.php:1275 includes/topics/functions.php:1483
 msgid "<strong>ERROR</strong>: Destination topic ID not found!"
 msgstr ""
 
-#: includes/replies/functions.php:1284
+#: includes/replies/functions.php:1285
 msgid "<strong>ERROR</strong>: The topic you want to move to was not found!"
 msgstr ""
 
-#: includes/replies/functions.php:1289 includes/topics/functions.php:1496
+#: includes/replies/functions.php:1290 includes/topics/functions.php:1496
 msgid ""
 "<strong>ERROR</strong>: You do not have the permissions to edit the "
 "destination topic!"
 msgstr ""
 
-#: includes/replies/functions.php:1298 includes/replies/template.php:571
+#: includes/replies/functions.php:1299 includes/replies/template.php:571
 #: includes/topics/functions.php:1294 includes/topics/functions.php:1652
 #: templates/default/bbpress/form-reply.php:29
 msgid "Reply To: %s"
 msgstr ""
 
-#: includes/replies/functions.php:1343 includes/topics/functions.php:1533
+#: includes/replies/functions.php:1344 includes/topics/functions.php:1533
 msgid ""
 "<strong>ERROR</strong>: There was a problem converting the reply into the "
 "topic. Please try again."
 msgstr ""
 
-#: includes/replies/functions.php:1348 includes/topics/functions.php:1538
+#: includes/replies/functions.php:1349 includes/topics/functions.php:1538
 msgid ""
 "<strong>ERROR</strong>: You do not have the permissions to create new "
 "topics. The reply could not be converted into a topic."
 msgstr ""
 
-#: includes/replies/functions.php:1531
+#: includes/replies/functions.php:1532
 msgid "<strong>ERROR:</strong> You do not have the permission to do that!"
 msgstr ""
 
-#: includes/replies/functions.php:1544
+#: includes/replies/functions.php:1545
 msgid "<strong>ERROR</strong>: There was a problem unmarking the reply as spam!"
 msgstr ""
 
-#: includes/replies/functions.php:1544
+#: includes/replies/functions.php:1545
 msgid "<strong>ERROR</strong>: There was a problem marking the reply as spam!"
 msgstr ""
 
-#: includes/replies/functions.php:1563
+#: includes/replies/functions.php:1564
 msgid "<strong>ERROR</strong>: There was a problem trashing the reply!"
 msgstr ""
 
-#: includes/replies/functions.php:1571
+#: includes/replies/functions.php:1572
 msgid "<strong>ERROR</strong>: There was a problem untrashing the reply!"
 msgstr ""
 
-#: includes/replies/functions.php:1579
+#: includes/replies/functions.php:1580
 msgid "<strong>ERROR</strong>: There was a problem deleting the reply!"
 msgstr ""
 
-#: includes/replies/functions.php:1993
+#: includes/replies/functions.php:1994
 msgid "All Posts"
 msgstr ""
 
-#: includes/replies/functions.php:2035 includes/topics/functions.php:3466
+#: includes/replies/functions.php:2036 includes/topics/functions.php:3466
 msgid "Replies: %s"
 msgstr ""
 
@@ -3610,65 +3610,65 @@ msgstr ""
 msgid "Visit %s's website"
 msgstr ""
 
-#: includes/replies/template.php:1693
+#: includes/replies/template.php:1695
 msgid "Cancel"
 msgstr ""
 
-#: includes/replies/template.php:2034 includes/topics/template.php:2621
+#: includes/replies/template.php:2036 includes/topics/template.php:2621
 #: templates/default/bbpress/form-topic-tag.php:93
 #: templates/default/bbpress/form-topic-tag.php:106
 msgid "Delete"
 msgstr ""
 
-#: includes/replies/template.php:2051 includes/topics/template.php:2638
+#: includes/replies/template.php:2053 includes/topics/template.php:2638
 msgid "Are you sure you want to delete that permanently?"
 msgstr ""
 
-#: includes/replies/template.php:2104 includes/topics/template.php:2877
+#: includes/replies/template.php:2106 includes/topics/template.php:2877
 msgid "Unspam"
 msgstr ""
 
-#: includes/replies/template.php:2167
+#: includes/replies/template.php:2169
 msgid "Move"
 msgstr ""
 
-#: includes/replies/template.php:2168
+#: includes/replies/template.php:2170
 msgid "Move this reply"
 msgstr ""
 
-#: includes/replies/template.php:2234
+#: includes/replies/template.php:2236
 msgid "Split"
 msgstr ""
 
-#: includes/replies/template.php:2235
+#: includes/replies/template.php:2237
 msgid "Split the topic from this reply"
 msgstr ""
 
-#: includes/replies/template.php:2341
+#: includes/replies/template.php:2343
 msgid "Viewing %1$s reply thread"
 msgid_plural "Viewing %1$s reply threads"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/replies/template.php:2348
+#: includes/replies/template.php:2350
 msgid "Viewing %1$s reply"
 msgid_plural "Viewing %1$s replies"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/replies/template.php:2352
+#: includes/replies/template.php:2354
 msgid "Viewing %2$s replies (of %4$s total)"
 msgid_plural "Viewing %1$s replies - %2$s through %3$s (of %4$s total)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/replies/template.php:2360
+#: includes/replies/template.php:2362
 msgid "Viewing %1$s post"
 msgid_plural "Viewing %1$s posts"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/replies/template.php:2364
+#: includes/replies/template.php:2366
 msgid "Viewing %2$s post (of %4$s total)"
 msgid_plural "Viewing %1$s posts - %2$s through %3$s (of %4$s total)"
 msgstr[0] ""
