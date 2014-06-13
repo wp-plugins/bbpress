@@ -353,7 +353,7 @@ function bbp_new_reply_handler( $action = '' ) {
 		'post_parent'    => $topic_id,
 		'post_type'      => bbp_get_reply_post_type(),
 		'comment_status' => 'closed',
-		'menu_order'     => bbp_get_topic_reply_count( $topic_id, false ) + 1
+		'menu_order'     => bbp_get_topic_reply_count( $topic_id, true ) + 1
 	) );
 
 	// Insert reply
@@ -495,7 +495,7 @@ function bbp_edit_reply_handler( $action = '' ) {
 
 	// Define local variable(s)
 	$revisions_removed = false;
-	$reply = $reply_id = $reply_author = $topic_id = $forum_id = $anonymous_data = 0;
+	$reply = $reply_id = $reply_to = $reply_author = $topic_id = $forum_id = $anonymous_data = 0;
 	$reply_title = $reply_content = $reply_edit_reason = $terms = '';
 
 	/** Reply *****************************************************************/
@@ -634,7 +634,7 @@ function bbp_edit_reply_handler( $action = '' ) {
 
 	// Handle Reply To of the reply; $_REQUEST for non-JS submissions
 	if ( isset( $_REQUEST['bbp_reply_to'] ) ) {
-		$reply_to = bbp_validate_reply_to( $_REQUEST['bbp_reply_to'] );
+		$reply_to = bbp_validate_reply_to( $_REQUEST['bbp_reply_to'], $reply_id );
 	}
 
 	/** Topic Tags ************************************************************/
@@ -794,7 +794,7 @@ function bbp_update_reply( $reply_id = 0, $topic_id = 0, $forum_id = 0, $anonymo
 	$reply_id = bbp_get_reply_id( $reply_id );
 	$topic_id = bbp_get_topic_id( $topic_id );
 	$forum_id = bbp_get_forum_id( $forum_id );
-	$reply_to = bbp_validate_reply_to( $reply_to );
+	$reply_to = bbp_validate_reply_to( $reply_to, $reply_id );
 
 	// Bail if there is no reply
 	if ( empty( $reply_id ) )
@@ -1113,7 +1113,7 @@ function bbp_update_reply_to( $reply_id = 0, $reply_to = 0 ) {
 
 	// Validation
 	$reply_id = bbp_get_reply_id( $reply_id );
-	$reply_to = bbp_validate_reply_to( $reply_to );
+	$reply_to = bbp_validate_reply_to( $reply_to, $reply_id );
 
 	// Update or delete the `reply_to` postmeta
 	if ( ! empty( $reply_id ) ) {
@@ -1129,6 +1129,55 @@ function bbp_update_reply_to( $reply_id = 0, $reply_to = 0 ) {
 	}
 
 	return (int) apply_filters( 'bbp_update_reply_to', (int) $reply_to, $reply_id );
+}
+
+/**
+ * Get all ancestors to a reply
+ *
+ * Because settings can be changed, this function does not care if hierarchical
+ * replies are active or to what depth.
+ *
+ * @since bbPress (r5390)
+ *
+ * @param int $reply_id
+ * @return array
+ */
+function bbp_get_reply_ancestors( $reply_id = 0 ) {
+	
+	// Validation
+	$reply_id  = bbp_get_reply_id( $reply_id );
+	$ancestors = array();
+
+	// Reply id is valid
+	if ( ! empty( $reply_id ) ) {
+
+		// Try to get reply parent
+		$reply_to = bbp_get_reply_to( $reply_id );
+
+		// Reply has a hierarchical parent
+		if ( ! empty( $reply_to ) ) {
+
+			// Setup the current ID and current post as an ancestor
+			$id        = $reply_to;
+			$ancestors = array( $reply_to );
+
+			// Get parent reply
+			while ( $ancestor = bbp_get_reply( $id ) ) {
+
+				// Does parent have a parent?
+				$grampy_id = bbp_get_reply_to( $ancestor->ID );
+
+				// Loop detection: If the ancestor has been seen before, break.
+				if ( empty( $ancestor->post_parent ) || ( $grampy_id === $reply_id ) || in_array( $grampy_id, $ancestors ) ) {
+					break;
+				}
+
+				$id = $ancestors[] = $grampy_id;
+			}
+		}
+	}
+
+	return apply_filters( 'bbp_get_reply_ancestors', $ancestors, $reply_id );
 }
 
 /**

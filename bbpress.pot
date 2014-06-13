@@ -4,13 +4,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bbPress 2.6-alpha\n"
 "Report-Msgid-Bugs-To: https://bbpress.trac.wordpress.org\n"
-"POT-Creation-Date: 2014-06-06 20:07:01+00:00\n"
+"POT-Creation-Date: 2014-06-13 14:09:35+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2014-MO-DA HO:MI+ZONE\n"
 "Last-Translator: JOHN JAMES JACOBY <jjj@bbpress.org>\n"
 "Language-Team: ENGLISH <jjj@bbpress.org>\n"
+"X-Generator: grunt-wp-i18n 0.4.5\n"
 
 #: bbpress.php:134 bbpress.php:141
 msgid "Cheatin&#8217; huh?"
@@ -921,6 +922,7 @@ msgid "Topic:"
 msgstr ""
 
 #: includes/admin/metaboxes.php:509
+#: templates/default/bbpress/form-reply.php:114
 msgid "Reply To:"
 msgstr ""
 
@@ -1356,7 +1358,7 @@ msgid "Topic tags"
 msgstr ""
 
 #: includes/admin/settings.php:166 includes/admin/settings.php:333
-#: includes/common/template.php:2324 includes/search/template.php:225
+#: includes/common/template.php:2331 includes/search/template.php:225
 #: templates/default/bbpress/form-search.php:17
 msgid "Search"
 msgstr ""
@@ -1485,7 +1487,8 @@ msgstr ""
 msgid "How your forum content is displayed within your existing theme."
 msgstr ""
 
-#: includes/admin/settings.php:722
+#: includes/admin/settings.php:722 includes/common/classes.php:513
+#: includes/replies/template.php:2543
 msgid "%1$s - %2$s"
 msgstr ""
 
@@ -2199,7 +2202,7 @@ msgstr ""
 msgid "All Topics"
 msgstr ""
 
-#: includes/admin/tools.php:1392 includes/replies/functions.php:1996
+#: includes/admin/tools.php:1392 includes/replies/functions.php:2045
 #: includes/replies/template.php:50
 msgid "All Replies"
 msgstr ""
@@ -2757,106 +2760,106 @@ msgid ""
 "they always return false."
 msgstr ""
 
-#: includes/common/template.php:1451
+#: includes/common/template.php:1459
 msgid "No topics available"
 msgstr ""
 
-#: includes/common/template.php:1456
+#: includes/common/template.php:1464
 msgid "No forums available"
 msgstr ""
 
-#: includes/common/template.php:1461
+#: includes/common/template.php:1469
 msgid "None available"
 msgstr ""
 
-#: includes/common/template.php:2132
+#: includes/common/template.php:2139
 msgid "Home"
 msgstr ""
 
-#: includes/common/template.php:2202
+#: includes/common/template.php:2209
 msgid "(Edit)"
 msgstr ""
 
-#: includes/common/template.php:2206 includes/common/template.php:2320
-#: includes/common/template.php:2585 includes/core/theme-compat.php:739
+#: includes/common/template.php:2213 includes/common/template.php:2327
+#: includes/common/template.php:2592 includes/core/theme-compat.php:739
 #: templates/default/extras/taxonomy-topic-tag-edit.php:17
 #: templates/default/extras/taxonomy-topic-tag.php:17
 msgid "Topic Tag: %s"
 msgstr ""
 
-#: includes/common/template.php:2210 includes/forums/template.php:53
+#: includes/common/template.php:2217 includes/forums/template.php:53
 #: includes/replies/template.php:53 includes/replies/template.php:1910
 #: includes/topics/template.php:53 includes/topics/template.php:2495
 #: templates/default/bbpress/user-details.php:65
 msgid "Edit"
 msgstr ""
 
-#: includes/common/template.php:2227
+#: includes/common/template.php:2234
 msgid "&lsaquo;"
 msgstr ""
 
-#: includes/common/template.php:2227
+#: includes/common/template.php:2234
 msgid "&rsaquo;"
 msgstr ""
 
-#: includes/common/template.php:2495
+#: includes/common/template.php:2502
 msgid "Log Out"
 msgstr ""
 
-#: includes/common/template.php:2549
+#: includes/common/template.php:2556
 msgid "Forum Edit: %s"
 msgstr ""
 
-#: includes/common/template.php:2554
+#: includes/common/template.php:2561
 msgid "Topic Edit: %s"
 msgstr ""
 
-#: includes/common/template.php:2559
+#: includes/common/template.php:2566
 msgid "Reply Edit: %s"
 msgstr ""
 
-#: includes/common/template.php:2564
+#: includes/common/template.php:2571
 msgid "Topic Tag Edit: %s"
 msgstr ""
 
-#: includes/common/template.php:2571
+#: includes/common/template.php:2578
 msgid "Forum: %s"
 msgstr ""
 
-#: includes/common/template.php:2576
+#: includes/common/template.php:2583
 msgid "Topic: %s"
 msgstr ""
 
-#: includes/common/template.php:2603
+#: includes/common/template.php:2610
 msgid "%s Topics"
 msgstr ""
 
-#: includes/common/template.php:2607
+#: includes/common/template.php:2614
 msgid "%s Replies"
 msgstr ""
 
-#: includes/common/template.php:2611
+#: includes/common/template.php:2618
 msgid "%s Favorites"
 msgstr ""
 
-#: includes/common/template.php:2615
+#: includes/common/template.php:2622
 msgid "%s Subscriptions"
 msgstr ""
 
-#: includes/common/template.php:2619
+#: includes/common/template.php:2626
 msgid "%s Profile"
 msgstr ""
 
-#: includes/common/template.php:2627
+#: includes/common/template.php:2634
 msgid "Edit Your Profile"
 msgstr ""
 
-#: includes/common/template.php:2632
+#: includes/common/template.php:2639
 #: templates/default/bbpress/user-details.php:65
 msgid "Edit %s's Profile"
 msgstr ""
 
-#: includes/common/template.php:2640
+#: includes/common/template.php:2647
 msgid "View: %s"
 msgstr ""
 
@@ -3168,7 +3171,7 @@ msgstr ""
 #: includes/extend/buddypress/notifications.php:161
 #: includes/forums/functions.php:118 includes/forums/functions.php:395
 #: includes/replies/functions.php:116 includes/replies/functions.php:516
-#: includes/replies/functions.php:1246 includes/topics/functions.php:122
+#: includes/replies/functions.php:1295 includes/topics/functions.php:122
 #: includes/topics/functions.php:520 includes/topics/functions.php:1153
 #: includes/topics/functions.php:1456 includes/topics/functions.php:1820
 #: includes/topics/functions.php:1860 includes/topics/functions.php:1917
@@ -3472,90 +3475,90 @@ msgstr ""
 msgid "<strong>ERROR</strong>: Your reply cannot be edited at this time."
 msgstr ""
 
-#: includes/replies/functions.php:1223
+#: includes/replies/functions.php:1272
 msgid "<strong>ERROR</strong>: Reply ID to move not found!"
 msgstr ""
 
-#: includes/replies/functions.php:1232
+#: includes/replies/functions.php:1281
 msgid "<strong>ERROR</strong>: The reply you want to move was not found."
 msgstr ""
 
-#: includes/replies/functions.php:1241
+#: includes/replies/functions.php:1290
 msgid "<strong>ERROR</strong>: The topic you want to move from was not found."
 msgstr ""
 
-#: includes/replies/functions.php:1252 includes/topics/functions.php:1164
+#: includes/replies/functions.php:1301 includes/topics/functions.php:1164
 #: includes/topics/functions.php:1462
 msgid ""
 "<strong>ERROR</strong>: You do not have the permissions to edit the source "
 "topic."
 msgstr ""
 
-#: includes/replies/functions.php:1262
+#: includes/replies/functions.php:1311
 msgid "<strong>ERROR</strong>: You need to choose a valid move option."
 msgstr ""
 
-#: includes/replies/functions.php:1275 includes/topics/functions.php:1483
+#: includes/replies/functions.php:1324 includes/topics/functions.php:1483
 msgid "<strong>ERROR</strong>: Destination topic ID not found!"
 msgstr ""
 
-#: includes/replies/functions.php:1285
+#: includes/replies/functions.php:1334
 msgid "<strong>ERROR</strong>: The topic you want to move to was not found!"
 msgstr ""
 
-#: includes/replies/functions.php:1290 includes/topics/functions.php:1496
+#: includes/replies/functions.php:1339 includes/topics/functions.php:1496
 msgid ""
 "<strong>ERROR</strong>: You do not have the permissions to edit the "
 "destination topic!"
 msgstr ""
 
-#: includes/replies/functions.php:1299 includes/replies/template.php:571
+#: includes/replies/functions.php:1348 includes/replies/template.php:571
 #: includes/topics/functions.php:1294 includes/topics/functions.php:1652
 #: templates/default/bbpress/form-reply.php:29
 msgid "Reply To: %s"
 msgstr ""
 
-#: includes/replies/functions.php:1344 includes/topics/functions.php:1533
+#: includes/replies/functions.php:1393 includes/topics/functions.php:1533
 msgid ""
 "<strong>ERROR</strong>: There was a problem converting the reply into the "
 "topic. Please try again."
 msgstr ""
 
-#: includes/replies/functions.php:1349 includes/topics/functions.php:1538
+#: includes/replies/functions.php:1398 includes/topics/functions.php:1538
 msgid ""
 "<strong>ERROR</strong>: You do not have the permissions to create new "
 "topics. The reply could not be converted into a topic."
 msgstr ""
 
-#: includes/replies/functions.php:1532
+#: includes/replies/functions.php:1581
 msgid "<strong>ERROR:</strong> You do not have the permission to do that!"
 msgstr ""
 
-#: includes/replies/functions.php:1545
+#: includes/replies/functions.php:1594
 msgid "<strong>ERROR</strong>: There was a problem unmarking the reply as spam!"
 msgstr ""
 
-#: includes/replies/functions.php:1545
+#: includes/replies/functions.php:1594
 msgid "<strong>ERROR</strong>: There was a problem marking the reply as spam!"
 msgstr ""
 
-#: includes/replies/functions.php:1564
+#: includes/replies/functions.php:1613
 msgid "<strong>ERROR</strong>: There was a problem trashing the reply!"
 msgstr ""
 
-#: includes/replies/functions.php:1572
+#: includes/replies/functions.php:1621
 msgid "<strong>ERROR</strong>: There was a problem untrashing the reply!"
 msgstr ""
 
-#: includes/replies/functions.php:1580
+#: includes/replies/functions.php:1629
 msgid "<strong>ERROR</strong>: There was a problem deleting the reply!"
 msgstr ""
 
-#: includes/replies/functions.php:1994
+#: includes/replies/functions.php:2043
 msgid "All Posts"
 msgstr ""
 
-#: includes/replies/functions.php:2036 includes/topics/functions.php:3466
+#: includes/replies/functions.php:2085 includes/topics/functions.php:3466
 msgid "Replies: %s"
 msgstr ""
 
@@ -4217,7 +4220,7 @@ msgstr ""
 
 #: templates/default/bbpress/form-forum.php:138
 #: templates/default/bbpress/form-reply-move.php:72
-#: templates/default/bbpress/form-reply.php:135
+#: templates/default/bbpress/form-reply.php:152
 #: templates/default/bbpress/form-topic-merge.php:94
 #: templates/default/bbpress/form-topic-split.php:98
 #: templates/default/bbpress/form-topic.php:203
@@ -4308,30 +4311,30 @@ msgstr ""
 msgid "Notify me of follow-up replies via email"
 msgstr ""
 
-#: templates/default/bbpress/form-reply.php:114
+#: templates/default/bbpress/form-reply.php:129
 #: templates/default/bbpress/form-topic.php:184
 msgid "Keep a log of this edit:"
 msgstr ""
 
-#: templates/default/bbpress/form-reply.php:118
+#: templates/default/bbpress/form-reply.php:133
 #: templates/default/bbpress/form-topic.php:188
 msgid "Optional reason for editing:"
 msgstr ""
 
-#: templates/default/bbpress/form-reply.php:158
+#: templates/default/bbpress/form-reply.php:175
 msgid "The topic &#8216;%s&#8217; is closed to new replies."
 msgstr ""
 
-#: templates/default/bbpress/form-reply.php:166
+#: templates/default/bbpress/form-reply.php:183
 #: templates/default/bbpress/form-topic.php:226
 msgid "The forum &#8216;%s&#8217; is closed to new topics and replies."
 msgstr ""
 
-#: templates/default/bbpress/form-reply.php:174
+#: templates/default/bbpress/form-reply.php:191
 msgid "You cannot reply to this topic."
 msgstr ""
 
-#: templates/default/bbpress/form-reply.php:174
+#: templates/default/bbpress/form-reply.php:191
 msgid "You must be logged in to reply to this topic."
 msgstr ""
 
@@ -4947,12 +4950,12 @@ msgctxt "Separator in time since"
 msgid ","
 msgstr ""
 
-#: includes/common/template.php:2594
+#: includes/common/template.php:2601
 msgctxt "User viewing his/her own profile"
 msgid "Your"
 msgstr ""
 
-#: includes/common/template.php:2598
+#: includes/common/template.php:2605
 msgctxt "User viewing another users profile"
 msgid "%s's"
 msgstr ""
