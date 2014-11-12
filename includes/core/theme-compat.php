@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /** Theme Compat **************************************************************/
 
@@ -183,8 +183,9 @@ function bbp_get_theme_compat_url() {
 function bbp_is_theme_compat_active() {
 	$bbp = bbpress();
 
-	if ( empty( $bbp->theme_compat->active ) )
+	if ( empty( $bbp->theme_compat->active ) ) {
 		return false;
+	}
 
 	return $bbp->theme_compat->active;
 }
@@ -255,8 +256,9 @@ function bbp_set_theme_compat_original_template( $template = '' ) {
 function bbp_is_theme_compat_original_template( $template = '' ) {
 	$bbp = bbpress();
 
-	if ( empty( $bbp->theme_compat->original_template ) )
+	if ( empty( $bbp->theme_compat->original_template ) ) {
 		return false;
+	}
 
 	return (bool) ( $bbp->theme_compat->original_template === $template );
 }
@@ -270,12 +272,14 @@ function bbp_is_theme_compat_original_template( $template = '' ) {
 function bbp_register_theme_package( $theme = array(), $override = true ) {
 
 	// Create new BBP_Theme_Compat object from the $theme array
-	if ( is_array( $theme ) )
+	if ( is_array( $theme ) ) {
 		$theme = new BBP_Theme_Compat( $theme );
+	}
 
 	// Bail if $theme isn't a proper object
-	if ( ! is_a( $theme, 'BBP_Theme_Compat' ) )
+	if ( ! is_a( $theme, 'BBP_Theme_Compat' ) ) {
 		return;
+	}
 
 	// Load up bbPress
 	$bbp = bbpress();
@@ -386,6 +390,10 @@ function bbp_theme_compat_reset_post( $args = array() ) {
 	$wp_query->is_archive = $dummy['is_archive'];
 	$wp_query->is_tax     = $dummy['is_tax'];
 
+	// Reset is_singular based on page/single args
+	// https://bbpress.trac.wordpress.org/ticket/2545
+	$wp_query->is_singular = $wp_query->is_single;
+
 	// Clean up the dummy post
 	unset( $dummy );
 
@@ -450,15 +458,17 @@ function bbp_template_include_theme_compat( $template = '' ) {
 	 * This is a bit more brute-force than is probably necessary, but gets the
 	 * job done while we work towards something more elegant.
 	 */
-	if ( function_exists( 'is_buddypress' ) && is_buddypress() )
+	if ( function_exists( 'is_buddypress' ) && is_buddypress() ) {
 		return $template;
+	}
 
 	// Define local variable(s)
 	$bbp_shortcodes = bbpress()->shortcodes;
 
 	// Bail if shortcodes are unset somehow
-	if ( !is_a( $bbp_shortcodes, 'BBP_Shortcodes' ) )
+	if ( !is_a( $bbp_shortcodes, 'BBP_Shortcodes' ) ) {
 		return $template;
+	}
 
 	/** Users *************************************************************/
 
@@ -473,6 +483,7 @@ function bbp_template_include_theme_compat( $template = '' ) {
 			'post_type'      => '',
 			'post_title'     => bbp_get_displayed_user_field( 'display_name' ),
 			'post_status'    => bbp_get_public_status_id(),
+			'is_single'      => true,
 			'is_archive'     => false,
 			'comment_status' => 'closed'
 		) );

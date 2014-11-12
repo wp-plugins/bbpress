@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Get the default user options and their values
@@ -115,7 +115,7 @@ function bbp_filter_get_user_option( $value = false, $option = '', $user = 0 ) {
 	$bbp = bbpress();
 
 	// Check the options global for preset value
-	if ( isset( $user->ID ) && isset( $bbp->user_options[$user->ID] ) && !empty( $bbp->user_options[$user->ID][$option] ) ) {
+	if ( isset( $user->ID ) && isset( $bbp->user_options[$user->ID] ) && ! empty( $bbp->user_options[$user->ID][$option] ) ) {
 		$value = $bbp->user_options[$user->ID][$option];
 	}
 

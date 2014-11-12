@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 if ( !class_exists( 'BBP_Admin' ) ) :
 /**
@@ -131,8 +131,9 @@ class BBP_Admin {
 	private function setup_actions() {
 
 		// Bail to prevent interfering with the deactivation process
-		if ( bbp_is_deactivation() )
+		if ( bbp_is_deactivation() ) {
 			return;
+		}
 
 		/** General Actions ***************************************************/
 
@@ -273,8 +274,9 @@ class BBP_Admin {
 		}
 
 		// Bail if plugin is not network activated
-		if ( ! is_plugin_active_for_network( bbpress()->basename ) )
+		if ( ! is_plugin_active_for_network( bbpress()->basename ) ) {
 			return;
+		}
 
 		add_submenu_page(
 			'index.php',
@@ -295,8 +297,9 @@ class BBP_Admin {
 	public function network_admin_menus() {
 
 		// Bail if plugin is not network activated
-		if ( ! is_plugin_active_for_network( bbpress()->basename ) )
+		if ( ! is_plugin_active_for_network( bbpress()->basename ) ) {
 			return;
+		}
 
 		add_submenu_page(
 			'upgrade.php',
@@ -315,8 +318,9 @@ class BBP_Admin {
 	 * @return type
 	 */
 	public static function new_install() {
-		if ( !bbp_is_install() )
+		if ( !bbp_is_install() ) {
 			return;
+		}
 
 		bbp_create_initial_content();
 	}
@@ -335,8 +339,9 @@ class BBP_Admin {
 
 		// Bail if no sections available
 		$sections = bbp_admin_get_settings_sections();
-		if ( empty( $sections ) )
+		if ( empty( $sections ) ) {
 			return false;
+		}
 
 		// Are we using settings integration?
 		$settings_integration = bbp_settings_integration();
@@ -345,13 +350,15 @@ class BBP_Admin {
 		foreach ( (array) $sections as $section_id => $section ) {
 
 			// Only proceed if current user can see this section
-			if ( ! current_user_can( $section_id ) )
+			if ( ! current_user_can( $section_id ) ) {
 				continue;
+			}
 
 			// Only add section and fields if section has fields
 			$fields = bbp_admin_get_settings_fields_for_section( $section_id );
-			if ( empty( $fields ) )
+			if ( empty( $fields ) ) {
 				continue;
+			}
 
 			// Toggle the section if core integration is on
 			if ( ( true === $settings_integration ) && !empty( $section['page'] ) ) {
@@ -449,8 +456,9 @@ class BBP_Admin {
 	public function register_importers() {
 
 		// Leave if we're not in the import section
-		if ( !defined( 'WP_LOAD_IMPORTERS' ) )
+		if ( !defined( 'WP_LOAD_IMPORTERS' ) ) {
 			return;
+		}
 
 		// Load Importer API
 		require_once( ABSPATH . 'wp-admin/includes/import.php' );
@@ -563,15 +571,15 @@ class BBP_Admin {
 				case bbp_get_topic_post_type() :
 
 					// Enqueue the common JS
-					wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'common' . $suffix . '.js', array( 'jquery' ), $version );
+					wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'common' . $suffix . '.js', array( 'jquery', 'suggest' ), $version );
 
 					// Topics admin
 					if ( bbp_get_topic_post_type() === get_current_screen()->post_type ) {
-						wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'topics' . $suffix . '.js', array( 'jquery' ), $version );
+						wp_enqueue_script( 'bbp-admin-topics-js', $this->js_url . 'topics' . $suffix . '.js', array( 'jquery' ), $version );
 
 					// Replies admin
 					} elseif ( bbp_get_reply_post_type() === get_current_screen()->post_type ) {
-						wp_enqueue_script( 'bbp-admin-common-js', $this->js_url . 'replies' . $suffix . '.js', array( 'jquery' ), $version );
+						wp_enqueue_script( 'bbp-admin-replies-js', $this->js_url . 'replies' . $suffix . '.js', array( 'jquery', 'suggest' ), $version );
 					}
 
 					break;
@@ -655,8 +663,9 @@ class BBP_Admin {
 	 * @return array
 	 */
 	public function hide_theme_compat_packages( $sections = array() ) {
-		if ( count( bbpress()->theme_compat->packages ) <= 1 )
+		if ( count( bbpress()->theme_compat->packages ) <= 1 ) {
 			unset( $sections['bbp_settings_theme_compat'] );
+		}
 
 		return $sections;
 	}
@@ -687,10 +696,19 @@ class BBP_Admin {
 	 * @uses bbp_get_topic_title()
 	 */
 	public function suggest_topic() {
+		global $wpdb;
+
+		// Bail early if no request
+		if ( empty( $_REQUEST['q'] ) ) {
+			wp_die( '0' );
+		}
+
+		// Check the ajax nonce
+		check_ajax_referer( 'bbp_suggest_topic_nonce' );
 
 		// Try to get some topics
 		$topics = get_posts( array(
-			's'         => like_escape( $_REQUEST['q'] ),
+			's'         => $wpdb->esc_like( $_REQUEST['q'] ),
 			'post_type' => bbp_get_topic_post_type()
 		) );
 
@@ -709,10 +727,19 @@ class BBP_Admin {
 	 * @since bbPress (r5014)
 	 */
 	public function suggest_user() {
+		global $wpdb;
+
+		// Bail early if no request
+		if ( empty( $_REQUEST['q'] ) ) {
+			wp_die( '0' );
+		}
+
+		// Check the ajax nonce
+		check_ajax_referer( 'bbp_suggest_user_nonce' );
 
 		// Try to get some users
 		$users_query = new WP_User_Query( array(
-			'search'         => '*' . like_escape( $_REQUEST['q'] ) . '*',
+			'search'         => '*' . $wpdb->esc_like( $_REQUEST['q'] ) . '*',
 			'fields'         => array( 'ID', 'user_nicename' ),
 			'search_columns' => array( 'ID', 'user_nicename', 'user_email' ),
 			'orderby'        => 'ID'
@@ -1015,8 +1042,9 @@ class BBP_Admin {
 							);
 
 							// Site errored out, no response?
-							if ( is_wp_error( $response ) )
+							if ( is_wp_error( $response ) ) {
 								wp_die( sprintf( __( 'Warning! Problem updating %1$s. Your server may not be able to connect to sites running on it. Error message: <em>%2$s</em>', 'bbpress' ), $siteurl, $response->get_error_message() ) );
+							}
 
 							// Switch to the new blog
 							switch_to_blog( $details[ 'blog_id' ] );

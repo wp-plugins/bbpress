@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /** Kses **********************************************************************/
 
@@ -39,13 +39,20 @@ function bbp_kses_allowed_tags() {
 
 		// Code
 		'code'         => array(),
-		'pre'          => array(),
+		'pre'          => array(
+			'class'    => true
+		),
 
 		// Formatting
 		'em'           => array(),
 		'strong'       => array(),
 		'del'          => array(
 			'datetime' => true,
+			'cite'     => true
+		),
+		'ins' => array(
+			'datetime' => true,
+			'cite'     => true
 		),
 
 		// Lists
@@ -75,7 +82,7 @@ function bbp_kses_allowed_tags() {
  * @return string Filtered content
  */
 function bbp_filter_kses( $data = '' ) {
-	return addslashes( wp_kses( stripslashes( $data ), bbp_kses_allowed_tags() ) );
+	return wp_slash( wp_kses( wp_unslash( $data ), bbp_kses_allowed_tags() ) );
 }
 
 /**
@@ -352,19 +359,21 @@ function bbp_make_clickable( $text ) {
 			$ret = " $piece "; // Pad with whitespace to simplify the regexes
 
 			$url_clickable = '~
-				([\\s(<.,;:!?])                                        # 1: Leading whitespace, or punctuation
-				(                                                      # 2: URL
-					[\\w]{1,20}+://                                # Scheme and hier-part prefix
-					(?=\S{1,2000}\s)                               # Limit to URLs less than about 2000 characters long
-					[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]*+         # Non-punctuation URL character
-					(?:                                            # Unroll the Loop: Only allow puctuation URL character if followed by a non-punctuation URL character
+				([\\s(<.,;:!?])                                # 1: Leading whitespace, or punctuation
+				(                                              # 2: URL
+					[\\w]{1,20}+://                            # Scheme and hier-part prefix
+					(?=\S{1,2000}\s)                           # Limit to URLs less than about 2000 characters long
+					[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]*+     # Non-punctuation URL character
+					(?:                                        # Unroll the Loop: Only allow puctuation URL character if followed by a non-punctuation URL character
 						[\'.,;:!?)]                            # Punctuation URL character
 						[\\w\\x80-\\xff#%\\~/@\\[\\]*(+=&$-]++ # Non-punctuation URL character
 					)*
 				)
-				(\)?)                                                  # 3: Trailing closing parenthesis (for parethesis balancing post processing)
-			~xS'; // The regex is a non-anchored pattern and does not have a single fixed starting character.
-			      // Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
+				(\)?)                                          # 3: Trailing closing parenthesis (for parethesis balancing post processing)
+			~xS';
+
+			// The regex is a non-anchored pattern and does not have a single fixed starting character.
+			// Tell PCRE to spend more time optimizing since, when used on a page load, it will probably be used several times.
 
 			$ret = preg_replace_callback( $url_clickable, '_make_url_clickable_cb', $ret );
 

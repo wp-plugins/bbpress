@@ -11,7 +11,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Output the URL to use for theme-side bbPress AJAX requests
@@ -62,14 +62,15 @@ function bbp_is_ajax() {
 function bbp_do_ajax() {
 
 	// Bail if not an ajax request
-	if ( ! bbp_is_ajax() )
+	if ( ! bbp_is_ajax() ) {
 		return;
+	}
 
 	// Set WordPress core ajax constant
 	define( 'DOING_AJAX', true );
 
 	// Set the header content type
-	@header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
+	@header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 
 	// Disable content sniffing in browsers that support it
 	send_nosniff_header();
@@ -93,8 +94,9 @@ function bbp_do_ajax() {
 function bbp_ajax_response( $success = false, $content = '', $status = -1, $extras = array() ) {
 
 	// Set status to 200 if setting response as successful
-	if ( ( true === $success ) && ( -1 === $status ) )
+	if ( ( true === $success ) && ( -1 === $status ) ) {
 		$status = 200;
+	}
 
 	// Setup the response array
 	$response = array(

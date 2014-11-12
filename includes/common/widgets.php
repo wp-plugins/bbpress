@@ -10,7 +10,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * bbPress Login Widget
@@ -90,16 +90,16 @@ class BBP_Login_Widget extends WP_Widget {
 
 					<div class="bbp-username">
 						<label for="user_login"><?php _e( 'Username', 'bbpress' ); ?>: </label>
-						<input type="text" name="log" value="<?php bbp_sanitize_val( 'user_login', 'text' ); ?>" size="20" id="user_login" tabindex="<?php bbp_tab_index(); ?>" />
+						<input type="text" name="log" value="<?php bbp_sanitize_val( 'user_login', 'text' ); ?>" size="20" id="user_login" />
 					</div>
 
 					<div class="bbp-password">
 						<label for="user_pass"><?php _e( 'Password', 'bbpress' ); ?>: </label>
-						<input type="password" name="pwd" value="<?php bbp_sanitize_val( 'user_pass', 'password' ); ?>" size="20" id="user_pass" tabindex="<?php bbp_tab_index(); ?>" />
+						<input type="password" name="pwd" value="<?php bbp_sanitize_val( 'user_pass', 'password' ); ?>" size="20" id="user_pass" />
 					</div>
 
 					<div class="bbp-remember-me">
-						<input type="checkbox" name="rememberme" value="forever" <?php checked( bbp_get_sanitize_val( 'rememberme', 'checkbox' ), true, true ); ?> id="rememberme" tabindex="<?php bbp_tab_index(); ?>" />
+						<input type="checkbox" name="rememberme" value="forever" <?php checked( bbp_get_sanitize_val( 'rememberme', 'checkbox' ), true, true ); ?> id="rememberme" />
 						<label for="rememberme"><?php _e( 'Remember Me', 'bbpress' ); ?></label>
 					</div>
 
@@ -107,7 +107,7 @@ class BBP_Login_Widget extends WP_Widget {
 
 						<?php do_action( 'login_form' ); ?>
 
-						<button type="submit" name="user-submit" id="user-submit" tabindex="<?php bbp_tab_index(); ?>" class="button submit user-submit"><?php _e( 'Log In', 'bbpress' ); ?></button>
+						<button type="submit" name="user-submit" id="user-submit" class="button submit user-submit"><?php _e( 'Log In', 'bbpress' ); ?></button>
 
 						<?php bbp_user_login_fields(); ?>
 
@@ -409,8 +409,9 @@ class BBP_Search_Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
 
 		// Bail if search is disabled
-		if ( ! bbp_allow_search() )
+		if ( ! bbp_allow_search() ) {
 			return;
+		}
 
 		// Get widget settings
 		$settings = $this->parse_settings( $instance );
@@ -689,7 +690,7 @@ class BBP_Topics_Widget extends WP_Widget {
 	public function __construct() {
 		$widget_ops = apply_filters( 'bbp_topics_widget_options', array(
 			'classname'   => 'widget_display_topics',
-			'description' => __( 'A list of recent topics, sorted by popularity or freshness.', 'bbpress' )
+			'description' => __( 'A list of recent topics, sorted by: newness, popularity, or recent replies.', 'bbpress' )
 		) );
 
 		parent::__construct( false, __( '(bbPress) Recent Topics', 'bbpress' ), $widget_ops );

@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /** Post Type *****************************************************************/
 
@@ -16,6 +16,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
  * Output the unique id of the custom post type for forums
  *
  * @since bbPress (r2857)
+ *
  * @uses bbp_get_forum_post_type() To get the forum post type
  */
 function bbp_forum_post_type() {
@@ -160,8 +161,9 @@ function bbp_forums() {
 	$have_posts = bbpress()->forum_query->have_posts();
 
 	// Reset the post data when finished
-	if ( empty( $have_posts ) )
+	if ( empty( $have_posts ) ) {
 		wp_reset_postdata();
+	}
 
 	return $have_posts;
 }
@@ -262,17 +264,20 @@ function bbp_forum_id( $forum_id = 0 ) {
 function bbp_get_forum( $forum, $output = OBJECT, $filter = 'raw' ) {
 
 	// Use forum ID
-	if ( empty( $forum ) || is_numeric( $forum ) )
+	if ( empty( $forum ) || is_numeric( $forum ) ) {
 		$forum = bbp_get_forum_id( $forum );
+	}
 
 	// Attempt to load the forum
 	$forum = get_post( $forum, OBJECT, $filter );
-	if ( empty( $forum ) )
+	if ( empty( $forum ) ) {
 		return $forum;
+	}
 
 	// Bail if post_type is not a forum
-	if ( $forum->post_type !== bbp_get_forum_post_type() )
+	if ( $forum->post_type !== bbp_get_forum_post_type() ) {
 		return null;
+	}
 
 	// Tweak the data type to return
 	if ( $output === OBJECT ) {
@@ -297,10 +302,12 @@ function bbp_get_forum( $forum, $output = OBJECT, $filter = 'raw' ) {
  * @since bbPress (r2464)
  *
  * @param int $forum_id Optional. Forum id
+ * @param string $redirect_to Optional. Pass a redirect value for use with
+ *                              shortcodes and other fun things.
  * @uses bbp_get_forum_permalink() To get the permalink
  */
-function bbp_forum_permalink( $forum_id = 0 ) {
-	echo esc_url( bbp_get_forum_permalink( $forum_id ) );
+function bbp_forum_permalink( $forum_id = 0, $redirect_to = '' ) {
+	echo esc_url( bbp_get_forum_permalink( $forum_id, $redirect_to ) );
 }
 	/**
 	 * Return the link to the forum
@@ -308,7 +315,7 @@ function bbp_forum_permalink( $forum_id = 0 ) {
 	 * @since bbPress (r2464)
 	 *
 	 * @param int $forum_id Optional. Forum id
-	 * @param $string $redirect_to Optional. Pass a redirect value for use with
+	 * @param string $redirect_to Optional. Pass a redirect value for use with
 	 *                              shortcodes and other fun things.
 	 * @uses bbp_get_forum_id() To get the forum id
 	 * @uses get_permalink() Get the permalink of the forum
@@ -435,8 +442,9 @@ function bbp_forum_content( $forum_id = 0 ) {
 		$forum_id = bbp_get_forum_id( $forum_id );
 
 		// Check if password is required
-		if ( post_password_required( $forum_id ) )
+		if ( post_password_required( $forum_id ) ) {
 			return get_the_password_form();
+		}
 
 		$content = get_post_field( 'post_content', $forum_id );
 
@@ -447,6 +455,7 @@ function bbp_forum_content( $forum_id = 0 ) {
  * Allow forum rows to have adminstrative actions
  *
  * @since bbPress (r3653)
+ *
  * @uses do_action()
  * @todo Links and filter
  */
@@ -579,11 +588,13 @@ function bbp_forum_freshness_link( $forum_id = 0) {
 		$active_id = bbp_get_forum_last_active_id( $forum_id );
 		$link_url  = $title = '';
 
-		if ( empty( $active_id ) )
+		if ( empty( $active_id ) ) {
 			$active_id = bbp_get_forum_last_reply_id( $forum_id );
+		}
 
-		if ( empty( $active_id ) )
+		if ( empty( $active_id ) ) {
 			$active_id = bbp_get_forum_last_topic_id( $forum_id );
+		}
 
 		if ( bbp_is_topic( $active_id ) ) {
 			$link_url = bbp_get_forum_last_topic_permalink( $forum_id );
@@ -595,10 +606,11 @@ function bbp_forum_freshness_link( $forum_id = 0) {
 
 		$time_since = bbp_get_forum_last_active_time( $forum_id );
 
-		if ( !empty( $time_since ) && !empty( $link_url ) )
+		if ( !empty( $time_since ) && !empty( $link_url ) ) {
 			$anchor = '<a href="' . esc_url( $link_url ) . '" title="' . esc_attr( $title ) . '">' . esc_html( $time_since ) . '</a>';
-		else
+		} else {
 			$anchor = esc_html__( 'No Topics', 'bbpress' );
+		}
 
 		return apply_filters( 'bbp_get_forum_freshness_link', $anchor, $forum_id, $time_since, $link_url, $title, $active_id );
 	}
@@ -676,10 +688,11 @@ function bbp_get_forum_ancestors( $forum_id = 0 ) {
 function bbp_forum_get_subforums( $args = '' ) {
 
 	// Use passed integer as post_parent
-	if ( is_numeric( $args ) )
+	if ( is_numeric( $args ) ) {
 		$args = array( 'post_parent' => $args );
+	}
 
-	// Setup possible post__not_in array
+	// Setup post status array
 	$post_stati[] = bbp_get_public_status_id();
 
 	// Super admin get whitelisted post statuses
@@ -1026,8 +1039,9 @@ function bbp_forum_last_reply_id( $forum_id = 0 ) {
 		$forum_id = bbp_get_forum_id( $forum_id );
 		$reply_id = get_post_meta( $forum_id, '_bbp_last_reply_id', true );
 
-		if ( empty( $reply_id ) )
+		if ( empty( $reply_id ) ) {
 			$reply_id = bbp_get_forum_last_topic_id( $forum_id );
+		}
 
 		return (int) apply_filters( 'bbp_get_forum_last_reply_id', (int) $reply_id, $forum_id );
 	}
@@ -1240,10 +1254,11 @@ function bbp_forum_topics_link( $forum_id = 0 ) {
 		$retval   = '';
 
 		// First link never has view=all
-		if ( bbp_get_view_all( 'edit_others_topics' ) )
+		if ( bbp_get_view_all( 'edit_others_topics' ) ) {
 			$retval .= "<a href='" . esc_url( bbp_remove_view_all( bbp_get_forum_permalink( $forum_id ) ) ) . "'>" . esc_html( $topics ) . "</a>";
-		else
+		} else {
 			$retval .= esc_html( $topics );
+		}
 
 		// Get deleted topics
 		$deleted = bbp_get_forum_topic_count_hidden( $forum_id );
@@ -1414,8 +1429,8 @@ function bbp_forum_post_count( $forum_id = 0, $total_count = true, $integer = fa
 	}
 
 /**
- * Output total hidden topic count of a forum (hidden includes trashed and
- * spammed topics)
+ * Output total hidden topic count of a forum (hidden includes trashed, spammed,
+ * and pending topics)
  *
  * @since bbPress (r2883)
  *
@@ -1427,8 +1442,8 @@ function bbp_forum_topic_count_hidden( $forum_id = 0, $integer = false ) {
 	echo bbp_get_forum_topic_count_hidden( $forum_id, $integer );
 }
 	/**
-	 * Return total hidden topic count of a forum (hidden includes trashed
-	 * and spammed topics)
+	 * Return total hidden topic count of a forum (hidden includes trashed,
+	 * spammed and pending topics)
 	 *
 	 * @since bbPress (r2883)
 	 *
@@ -1474,8 +1489,9 @@ function bbp_forum_status( $forum_id = 0 ) {
 	function bbp_get_forum_status( $forum_id = 0 ) {
 		$forum_id = bbp_get_forum_id( $forum_id );
 		$status   = get_post_meta( $forum_id, '_bbp_status', true );
-		if ( empty( $status ) )
+		if ( empty( $status ) ) {
 			$status = 'open';
+		}
 
 		return apply_filters( 'bbp_get_forum_status', $status, $forum_id );
 	}
@@ -1532,8 +1548,9 @@ function bbp_forum_type( $forum_id = 0 ) {
 	function bbp_get_forum_type( $forum_id = 0 ) {
 		$forum_id = bbp_get_forum_id( $forum_id );
 		$retval   = get_post_meta( $forum_id, '_bbp_forum_type', true );
-		if ( empty( $retval ) )
+		if ( empty( $retval ) ) {
 			$retval = 'forum';
+		}
 
 		return apply_filters( 'bbp_get_forum_type', $retval, $forum_id );
 	}
@@ -1559,47 +1576,113 @@ function bbp_is_forum_category( $forum_id = 0 ) {
  * Is the forum open?
  *
  * @since bbPress (r2746)
- * @param int $forum_id Optional. Forum id
  *
  * @param int $forum_id Optional. Forum id
- * @uses bbp_is_forum_closed() To check if the forum is closed or not
+ * @param bool $check_ancestors Check if the ancestors are open (only
+ *                               if they're a category)
+ * @uses bbp_is_forum_closed() To check if the forum is closed
  * @return bool Whether the forum is open or not
  */
-function bbp_is_forum_open( $forum_id = 0 ) {
-	return !bbp_is_forum_closed( $forum_id );
+function bbp_is_forum_open( $forum_id = 0, $check_ancestors = true ) {
+	return !bbp_is_forum_closed( $forum_id, $check_ancestors );
 }
 
-	/**
-	 * Is the forum closed?
-	 *
-	 * @since bbPress (r2746)
-	 *
-	 * @param int $forum_id Optional. Forum id
-	 * @param bool $check_ancestors Check if the ancestors are closed (only
-	 *                               if they're a category)
-	 * @uses bbp_get_forum_status() To get the forum status
-	 * @uses bbp_get_forum_ancestors() To get the forum ancestors
-	 * @uses bbp_is_forum_category() To check if the forum is a category
-	 * @uses bbp_is_forum_closed() To check if the forum is closed
-	 * @return bool True if closed, false if not
-	 */
-	function bbp_is_forum_closed( $forum_id = 0, $check_ancestors = true ) {
+/**
+* Is the forum closed?
+ *
+ * @since bbPress (r2746)
+ *
+ * @param int $forum_id Optional. Forum id
+ * @param bool $check_ancestors Check if the ancestors are closed (only
+ *                               if they're a category)
+ * @uses bbp_get_forum_id() To get the forum ID
+ * @uses bbp_is_forum_status() To check the forum status
+ * @return bool True if closed, false if not
+ */
+function bbp_is_forum_closed( $forum_id = 0, $check_ancestors = true ) {
 
-		$forum_id = bbp_get_forum_id( $forum_id );
-		$retval    = ( bbp_get_closed_status_id() === bbp_get_forum_status( $forum_id ) );
+	// Get the forum ID
+	$forum_id = bbp_get_forum_id( $forum_id );
 
-		if ( !empty( $check_ancestors ) ) {
-			$ancestors = bbp_get_forum_ancestors( $forum_id );
+	// Check if the forum or one of it's ancestors is closed
+	$retval   = bbp_is_forum_status( $forum_id, bbp_get_closed_status_id(), $check_ancestors, 'OR' );
 
-			foreach ( (array) $ancestors as $ancestor ) {
-				if ( bbp_is_forum_category( $ancestor, false ) && bbp_is_forum_closed( $ancestor, false ) ) {
-					$retval = true;
+	return (bool) apply_filters( 'bbp_is_forum_closed', (bool) $retval, $forum_id, $check_ancestors );
+}
+
+/**
+ * Check if the forum status is a specific one, also maybe checking ancestors
+ *
+ * @since bbPress (r5499)
+ *
+ * @param bool $status_name The forum status name to check
+ * @param bool $check_ancestors Check the forum ancestors
+ * @param string $operator The logical operation to perform.
+ *      'OR' means only one forum from the tree needs to match;
+ *      'AND' means all forums must match. The default is 'AND'.
+ * @uses bbp_get_forum_id() To get the forum ID
+ * @uses bbp_get_forum_status() To get the forum status
+ * @uses bbp_get_forum_ancestors() To get the forum ancestors
+ * @uses bbp_is_forum_category() To check the forum type
+ * @return bool True if match, false if not
+ */
+function bbp_is_forum_status( $forum_id, $status_name, $check_ancestors = true, $operator = 'AND' ) {
+
+	// Setup some default variables
+	$count        = 0;
+	$retval       = false;
+	$operator     = strtoupper( $operator );
+	$forum_id     = bbp_get_forum_id( $forum_id );
+	$forum_status = bbp_get_forum_status( $forum_id );
+
+	// Quickly compare statuses of first forum ID
+	if ( $status_name === $forum_status ) {
+		$retval = true;
+		$count++;
+	}
+
+	// Let's check the forum's ancestors too
+	if ( ! empty( $check_ancestors ) ) {
+
+		// Adjust the ancestor check based on the count
+		switch( $operator ) {
+			default:
+			case 'AND':
+				$check_ancestors = ( $count > 0 );
+				break;
+
+			case 'OR':
+				$check_ancestors = ( $count < 1 );
+				break;
+		}
+
+		// Ancestor check passed, so continue looping through them
+		if ( ! empty( $check_ancestors ) ) {
+
+			// Loop through the forum ancestors
+			foreach ( (array) bbp_get_forum_ancestors( $forum_id ) as $ancestor ) {
+
+				// Check if the forum is a category
+				if ( bbp_is_forum_category( $ancestor ) ) {
+
+					// Check the ancestor forum status
+					$retval = bbp_is_forum_status( $ancestor, $status_name, false );
+					if ( true === $retval ) {
+						$count++;
+					}
+				}
+
+				// Break when it reach the max count
+				if ( ( $operator === 'OR' ) && ( $count >= 1 ) ) {
+					break;
 				}
 			}
 		}
-
-		return (bool) apply_filters( 'bbp_is_forum_closed', (bool) $retval, $forum_id, $check_ancestors );
 	}
+
+	// Filter and return
+	return (bool) apply_filters( 'bbp_is_forum_status', $retval, $count, $forum_id, $status_name, $check_ancestors, $operator );
+}
 
 /**
  * Is the forum public?
@@ -1607,32 +1690,18 @@ function bbp_is_forum_open( $forum_id = 0 ) {
  * @since bbPress (r2997)
  *
  * @param int $forum_id Optional. Forum id
- * @param bool $check_ancestors Check if the ancestors are public (only if
- *                               they're a category)
- * @uses get_post_meta() To get the forum public meta
- * @uses bbp_get_forum_ancestors() To get the forum ancestors
- * @uses bbp_is_forum_category() To check if the forum is a category
- * @uses bbp_is_forum_closed() To check if the forum is closed
+ * @param bool $check_ancestors Check if the ancestors are public
+ * @uses bbp_get_forum_id() To get the forum ID
+ * @uses bbp_is_forum_visibility() To check the forum visibility ID
  * @return bool True if closed, false if not
  */
 function bbp_is_forum_public( $forum_id = 0, $check_ancestors = true ) {
 
-	$forum_id   = bbp_get_forum_id( $forum_id );
-	$visibility = bbp_get_forum_visibility( $forum_id );
+	// Get the forum ID
+	$forum_id = bbp_get_forum_id( $forum_id );
 
-	// If post status is public, return true
-	$retval = ( bbp_get_public_status_id() === $visibility );
-
-	// Check ancestors and inherit their privacy setting for display
-	if ( !empty( $check_ancestors ) ) {
-		$ancestors = bbp_get_forum_ancestors( $forum_id );
-
-		foreach ( (array) $ancestors as $ancestor ) {
-			if ( bbp_is_forum( $ancestor ) && bbp_is_forum_public( $ancestor, false ) ) {
-				$retval = true;
-			}
-		}
-	}
+	// Check if the forum and all of it's ancestors are public
+	$retval   = bbp_is_forum_visibility( $forum_id, bbp_get_public_status_id(), $check_ancestors );
 
 	return (bool) apply_filters( 'bbp_is_forum_public', (bool) $retval, $forum_id, $check_ancestors );
 }
@@ -1643,32 +1712,18 @@ function bbp_is_forum_public( $forum_id = 0, $check_ancestors = true ) {
  * @since bbPress (r2746)
  *
  * @param int $forum_id Optional. Forum id
- * @param bool $check_ancestors Check if the ancestors are private (only if
- *                               they're a category)
- * @uses get_post_meta() To get the forum private meta
- * @uses bbp_get_forum_ancestors() To get the forum ancestors
- * @uses bbp_is_forum_category() To check if the forum is a category
- * @uses bbp_is_forum_closed() To check if the forum is closed
- * @return bool True if closed, false if not
+ * @param bool $check_ancestors Check if the ancestors are private
+ * @uses bbp_get_forum_id() To get the forum ID
+ * @uses bbp_is_forum_visibility() To check the forum visibility ID
+ * @return bool True if private, false if not
  */
 function bbp_is_forum_private( $forum_id = 0, $check_ancestors = true ) {
 
-	$forum_id   = bbp_get_forum_id( $forum_id );
-	$visibility = bbp_get_forum_visibility( $forum_id );
+	// Get the forum ID
+	$forum_id = bbp_get_forum_id( $forum_id );
 
-	// If post status is private, return true
-	$retval = ( bbp_get_private_status_id() === $visibility );
-
-	// Check ancestors and inherit their privacy setting for display
-	if ( !empty( $check_ancestors ) ) {
-		$ancestors = bbp_get_forum_ancestors( $forum_id );
-
-		foreach ( (array) $ancestors as $ancestor ) {
-			if ( bbp_is_forum( $ancestor ) && bbp_is_forum_private( $ancestor, false ) ) {
-				$retval = true;
-			}
-		}
-	}
+	// Check if the forum or one of it's ancestors is private
+	$retval   = bbp_is_forum_visibility( $forum_id, bbp_get_private_status_id(), $check_ancestors, 'OR' );
 
 	return (bool) apply_filters( 'bbp_is_forum_private', (bool) $retval, $forum_id, $check_ancestors );
 }
@@ -1681,32 +1736,96 @@ function bbp_is_forum_private( $forum_id = 0, $check_ancestors = true ) {
  * @param int $forum_id Optional. Forum id
  * @param bool $check_ancestors Check if the ancestors are private (only if
  *                               they're a category)
- * @uses get_post_meta() To get the forum private meta
- * @uses bbp_get_forum_ancestors() To get the forum ancestors
- * @uses bbp_is_forum_category() To check if the forum is a category
- * @uses bbp_is_forum_closed() To check if the forum is closed
- * @return bool True if closed, false if not
+ * @uses bbp_get_forum_id() To get the forum ID
+ * @uses bbp_is_forum_visibility() To check the forum visibility ID
+ * @return bool True if hidden, false if not
  */
 function bbp_is_forum_hidden( $forum_id = 0, $check_ancestors = true ) {
 
+	// Get the forum ID
+	$forum_id = bbp_get_forum_id( $forum_id );
+
+	// Check if the forum or one of it's ancestors is hidden
+	$retval   = bbp_is_forum_visibility( $forum_id, bbp_get_hidden_status_id(), $check_ancestors, 'OR' );
+
+	return (bool) apply_filters( 'bbp_is_forum_hidden', (bool) $retval, $forum_id, $check_ancestors );
+}
+
+/**
+ * Check the forum visibility ID
+ *
+ * @since bbPress (rX)
+ *
+ * @param int $forum_id Optional. Forum id
+ * @param bool $status_name The post status name to check
+ * @param bool $check_ancestors Check the forum ancestors
+ * @param string $operator The logical operation to perform.
+ *      'OR' means only one forum from the tree needs to match;
+ *      'AND' means all forums must match. The default is 'AND'.
+ * @uses bbp_get_forum_id() To get the forum ID
+ * @uses bbp_get_forum_visibility() To get the forum visibility
+ * @uses bbp_get_forum_ancestors() To get the forum ancestors
+ * @uses bbp_is_forum() To check the post type
+ * @return bool True if match, false if not
+ */
+function bbp_is_forum_visibility( $forum_id, $status_name, $check_ancestors = true, $operator = 'AND' ) {
+
+	// Setup some default variables
+	$count      = 0;
+	$retval     = false;
+	$operator   = strtoupper( $operator );
 	$forum_id   = bbp_get_forum_id( $forum_id );
 	$visibility = bbp_get_forum_visibility( $forum_id );
 
-	// If post status is private, return true
-	$retval = ( bbp_get_hidden_status_id() === $visibility );
+	// Quickly compare visibility of first forum ID
+	if ( $status_name === $visibility ){
+		$retval = true;
+		$count++;
+	}
 
-	// Check ancestors and inherit their privacy setting for display
-	if ( !empty( $check_ancestors ) ) {
-		$ancestors = bbp_get_forum_ancestors( $forum_id );
+	// Let's check the forum's ancestors too
+	if ( ! empty( $check_ancestors ) ) {
 
-		foreach ( (array) $ancestors as $ancestor ) {
-			if ( bbp_is_forum( $ancestor ) && bbp_is_forum_hidden( $ancestor, false ) ) {
-				$retval = true;
+		// Adjust the ancestor check based on the count
+		switch( $operator ) {
+
+			// Adjust the ancestor check based on the count
+			default:
+			case 'AND':
+				$check_ancestors = ( $count > 0 );
+				break;
+
+			case 'OR':
+				$check_ancestors = ( $count < 1 );
+				break;
+		}
+
+		// Ancestor check passed, so continue looping through them
+		if ( ! empty( $check_ancestors ) ) {
+
+			// Loop through the forum ancestors
+			foreach ( (array) bbp_get_forum_ancestors( $forum_id ) as $ancestor ) {
+
+				// Check if the forum is not a category
+				if ( bbp_is_forum( $ancestor ) ) {
+
+					// Check the forum visibility
+					$retval = bbp_is_forum_visibility( $ancestor, $status_name, false );
+					if ( true === $retval ) {
+						$count++;
+					}
+				}
+
+				// Break when it reach the max count
+				if ( ( $operator === 'OR' ) && ( $count >= 1 ) ) {
+					break;
+				}
 			}
 		}
 	}
 
-	return (bool) apply_filters( 'bbp_is_forum_hidden', (bool) $retval, $forum_id, $check_ancestors );
+	// Filter and return
+	return (bool) apply_filters( 'bbp_is_forum_visibility', $retval, $count, $forum_id, $status_name, $check_ancestors, $operator );
 }
 
 /**
@@ -1784,8 +1903,9 @@ function bbp_forum_author_id( $forum_id = 0 ) {
  * @return string
  */
 function bbp_suppress_private_forum_meta( $retval, $forum_id ) {
-	if ( bbp_is_forum_private( $forum_id, false ) && !current_user_can( 'read_private_forums' ) )
+	if ( bbp_is_forum_private( $forum_id, false ) && !current_user_can( 'read_private_forums' ) ) {
 		$retval = '-';
+	}
 
 	return apply_filters( 'bbp_suppress_private_forum_meta', $retval );
 }
@@ -1795,8 +1915,8 @@ function bbp_suppress_private_forum_meta( $retval, $forum_id ) {
  *
  * @since bbPress (r3162)
  *
- * @param string $retval
- * @param int $forum_id
+ * @param string $author_link
+ * @param array $args
  *
  * @uses bbp_is_forum_private()
  * @uses get_post_field()
@@ -1808,7 +1928,7 @@ function bbp_suppress_private_forum_meta( $retval, $forum_id ) {
  *
  * @return string
  */
-function bbp_suppress_private_author_link( $author_link, $args ) {
+function bbp_suppress_private_author_link( $author_link = '', $args = array() ) {
 
 	// Assume the author link is the return value
 	$retval = $author_link;
@@ -1823,22 +1943,25 @@ function bbp_suppress_private_author_link( $author_link, $args ) {
 
 			// Topic
 			case bbp_get_topic_post_type() :
-				if ( bbp_is_forum_private( bbp_get_topic_forum_id( $args['post_id'] ) ) )
+				if ( bbp_is_forum_private( bbp_get_topic_forum_id( $args['post_id'] ) ) ) {
 					$retval = '';
+				}
 
 				break;
 
 			// Reply
 			case bbp_get_reply_post_type() :
-				if ( bbp_is_forum_private( bbp_get_reply_forum_id( $args['post_id'] ) ) )
+				if ( bbp_is_forum_private( bbp_get_reply_forum_id( $args['post_id'] ) ) ) {
 					$retval = '';
+				}
 
 				break;
 
 			// Post
 			default :
-				if ( bbp_is_forum_private( $args['post_id'] ) )
+				if ( bbp_is_forum_private( $args['post_id'] ) ) {
 					$retval = '';
+				}
 
 				break;
 		}
@@ -1942,8 +2065,8 @@ function bbp_single_forum_description( $args = '' ) {
 		// Parse arguments against default values
 		$r = bbp_parse_args( $args, array(
 			'forum_id'  => 0,
-			'before'    => '<div class="bbp-template-notice info"><p class="bbp-forum-description">',
-			'after'     => '</p></div>',
+			'before'    => '<div class="bbp-template-notice info"><ul><li class="bbp-forum-description">',
+			'after'     => '</li></ul></div>',
 			'size'      => 14,
 			'feed'      => true
 		), 'get_single_forum_description' );
@@ -2061,7 +2184,7 @@ function bbp_form_forum_title() {
 	function bbp_get_form_forum_title() {
 
 		// Get _POST data
-		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_title'] ) ) {
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_title'] ) ) {
 			$forum_title = $_POST['bbp_forum_title'];
 
 		// Get edit data
@@ -2098,8 +2221,8 @@ function bbp_form_forum_content() {
 	function bbp_get_form_forum_content() {
 
 		// Get _POST data
-		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_content'] ) ) {
-			$forum_content = stripslashes( $_POST['bbp_forum_content'] );
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_content'] ) ) {
+			$forum_content = wp_unslash( $_POST['bbp_forum_content'] );
 
 		// Get edit data
 		} elseif ( bbp_is_forum_edit() ) {
@@ -2136,7 +2259,7 @@ function bbp_form_forum_parent() {
 	function bbp_get_form_forum_parent() {
 
 		// Get _POST data
-		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_id'] ) ) {
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_id'] ) ) {
 			$forum_parent = $_POST['bbp_forum_id'];
 
 		// Get edit data
@@ -2174,7 +2297,7 @@ function bbp_form_forum_type() {
 	function bbp_get_form_forum_type() {
 
 		// Get _POST data
-		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_type'] ) ) {
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_type'] ) ) {
 			$forum_type = $_POST['bbp_forum_type'];
 
 		// Get edit data
@@ -2212,7 +2335,7 @@ function bbp_form_forum_visibility() {
 	function bbp_get_form_forum_visibility() {
 
 		// Get _POST data
-		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_visibility'] ) ) {
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_visibility'] ) ) {
 			$forum_visibility = $_POST['bbp_forum_visibility'];
 
 		// Get edit data
@@ -2226,7 +2349,7 @@ function bbp_form_forum_visibility() {
 
 		return apply_filters( 'bbp_get_form_forum_visibility', esc_attr( $forum_visibility ) );
 	}
-	
+
 /**
  * Output checked value of forum subscription
  *
@@ -2254,7 +2377,7 @@ function bbp_form_forum_subscribed() {
 	function bbp_get_form_forum_subscribed() {
 
 		// Get _POST data
-		if ( bbp_is_post_request() && isset( $_POST['bbp_forum_subscription'] ) ) {
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_subscription'] ) ) {
 			$forum_subscribed = (bool) $_POST['bbp_forum_subscription'];
 
 		// Get edit data
@@ -2294,7 +2417,11 @@ function bbp_form_forum_subscribed() {
  *
  * @since bbPress (r3563)
  *
- * @param int $forum_id The forum id to use
+ * @param $args This function supports these arguments:
+ *  - select_id: Select id. Defaults to bbp_forum_type
+ *  - tab: Deprecated. Tabindex
+ *  - forum_id: Forum id
+ *  - selected: Override the selected option
  * @uses bbp_get_form_forum_type() To get the topic's forum id
  */
 function bbp_form_forum_type_dropdown( $args = '' ) {
@@ -2305,7 +2432,11 @@ function bbp_form_forum_type_dropdown( $args = '' ) {
 	 *
 	 * @since bbPress (r3563)
 	 *
-	 * @param int $forum_id The forum id to use
+	 * @param $args This function supports these arguments:
+	 *  - select_id: Select id. Defaults to bbp_forum_type
+	 *  - tab: Deprecated. Tabindex
+	 *  - forum_id: Forum id
+	 *  - selected: Override the selected option
 	 * @uses bbp_is_topic_edit() To check if it's the topic edit page
 	 * @uses bbp_get_forum_type() To get the forum type
 	 * @uses apply_filters()
@@ -2324,7 +2455,7 @@ function bbp_form_forum_type_dropdown( $args = '' ) {
 		// Parse arguments against default values
 		$r = bbp_parse_args( $args, array(
 			'select_id'    => 'bbp_forum_type',
-			'tab'          => bbp_get_tab_index(),
+			'tab'          => false,
 			'forum_id'     => $forum_id,
 			'selected'     => false
 		), 'forum_type_select' );
@@ -2333,7 +2464,7 @@ function bbp_form_forum_type_dropdown( $args = '' ) {
 		if ( empty( $r['selected'] ) ) {
 
 			// Post value is passed
-			if ( bbp_is_post_request() && isset( $_POST[ $r['select_id'] ] ) ) {
+			if ( bbp_is_forum_form_post_request() && isset( $_POST[ $r['select_id'] ] ) ) {
 				$r['selected'] = $_POST[ $r['select_id'] ];
 
 			// No Post value was passed
@@ -2378,7 +2509,11 @@ function bbp_form_forum_type_dropdown( $args = '' ) {
  *
  * @since bbPress (r3563)
  *
- * @param int $forum_id The forum id to use
+ * @param $args This function supports these arguments:
+ *  - select_id: Select id. Defaults to bbp_forum_status
+ *  - tab: Deprecated. Tabindex
+ *  - forum_id: Forum id
+ *  - selected: Override the selected option
  * @uses bbp_get_form_forum_status() To get the topic's forum id
  */
 function bbp_form_forum_status_dropdown( $args = '' ) {
@@ -2389,7 +2524,11 @@ function bbp_form_forum_status_dropdown( $args = '' ) {
 	 *
 	 * @since bbPress (r3563)
 	 *
-	 * @param int $forum_id The forum id to use
+	 * @param $args This function supports these arguments:
+	 *  - select_id: Select id. Defaults to bbp_forum_status
+	 *  - tab: Deprecated. Tabindex
+	 *  - forum_id: Forum id
+	 *  - selected: Override the selected option
 	 * @uses bbp_is_topic_edit() To check if it's the topic edit page
 	 * @uses bbp_get_forum_status() To get the forum status
 	 * @uses apply_filters()
@@ -2408,7 +2547,7 @@ function bbp_form_forum_status_dropdown( $args = '' ) {
 		// Parse arguments against default values
 		$r = bbp_parse_args( $args, array(
 			'select_id'    => 'bbp_forum_status',
-			'tab'          => bbp_get_tab_index(),
+			'tab'          => false,
 			'forum_id'     => $forum_id,
 			'selected'     => false
 		), 'forum_status_select' );
@@ -2417,7 +2556,7 @@ function bbp_form_forum_status_dropdown( $args = '' ) {
 		if ( empty( $r['selected'] ) ) {
 
 			// Post value is passed
-			if ( bbp_is_post_request() && isset( $_POST[ $r['select_id'] ] ) ) {
+			if ( bbp_is_forum_form_post_request() && isset( $_POST[ $r['select_id'] ] ) ) {
 				$r['selected'] = $_POST[ $r['select_id'] ];
 
 			// No Post value was passed
@@ -2462,7 +2601,11 @@ function bbp_form_forum_status_dropdown( $args = '' ) {
  *
  * @since bbPress (r3563)
  *
- * @param int $forum_id The forum id to use
+ * @param $args This function supports these arguments:
+ *  - select_id: Select id. Defaults to bbp_forum_visibility
+ *  - tab: Deprecated. Tabindex
+ *  - forum_id: Forum id
+ *  - selected: Override the selected option
  * @uses bbp_get_form_forum_visibility() To get the topic's forum id
  */
 function bbp_form_forum_visibility_dropdown( $args = '' ) {
@@ -2473,7 +2616,11 @@ function bbp_form_forum_visibility_dropdown( $args = '' ) {
 	 *
 	 * @since bbPress (r3563)
 	 *
-	 * @param int $forum_id The forum id to use
+	 * @param $args This function supports these arguments:
+	 *  - select_id: Select id. Defaults to bbp_forum_visibility
+	 *  - tab: Deprecated. Tabindex
+	 *  - forum_id: Forum id
+	 *  - selected: Override the selected option
 	 * @uses bbp_is_topic_edit() To check if it's the topic edit page
 	 * @uses bbp_get_forum_visibility() To get the forum visibility
 	 * @uses apply_filters()
@@ -2492,7 +2639,7 @@ function bbp_form_forum_visibility_dropdown( $args = '' ) {
 		// Parse arguments against default values
 		$r = bbp_parse_args( $args, array(
 			'select_id'    => 'bbp_forum_visibility',
-			'tab'          => bbp_get_tab_index(),
+			'tab'          => false,
 			'forum_id'     => $forum_id,
 			'selected'     => false
 		), 'forum_type_select' );
@@ -2501,7 +2648,7 @@ function bbp_form_forum_visibility_dropdown( $args = '' ) {
 		if ( empty( $r['selected'] ) ) {
 
 			// Post value is passed
-			if ( bbp_is_post_request() && isset( $_POST[ $r['select_id'] ] ) ) {
+			if ( bbp_is_forum_form_post_request() && isset( $_POST[ $r['select_id'] ] ) ) {
 				$r['selected'] = $_POST[ $r['select_id'] ];
 
 			// No Post value was passed
@@ -2540,6 +2687,37 @@ function bbp_form_forum_visibility_dropdown( $args = '' ) {
 		// Return the results
 		return apply_filters( 'bbp_get_form_forum_type_dropdown', ob_get_clean(), $r );
 	}
+
+/**
+ * Verify if a POST request came from a failed forum attempt.
+ *
+ * Used to avoid cross-site request forgeries when checking posted forum form
+ * content.
+ *
+ * @see bbp_forum_form_fields()
+ *
+ * @since bbPress (r5558)
+ * @return boolean True if is a post request with valid nonce
+ */
+function bbp_is_forum_form_post_request() {
+
+	// Bail if not a post request
+	if ( ! bbp_is_post_request() ) {
+		return false;
+	}
+
+	// Creating a new topic
+	if ( bbp_verify_nonce_request( 'bbp-new-forum' ) ) {
+		return true;
+	}
+
+	// Editing an existing topic
+	if ( bbp_verify_nonce_request( 'bbp-edit-forum' ) ) {
+		return true;
+	}
+
+	return false;
+}
 
 /** Feeds *********************************************************************/
 

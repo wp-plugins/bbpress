@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Possibly intercept the template being loaded
@@ -155,8 +155,9 @@ function bbp_load_theme_functions() {
 	global $pagenow;
 
 	// If bbPress is being deactivated, do not load any more files
-	if ( bbp_is_deactivation() )
+	if ( bbp_is_deactivation() ) {
 		return;
+	}
 
 	if ( ! defined( 'WP_INSTALLING' ) || ( !empty( $pagenow ) && ( 'wp-activate.php' !== $pagenow ) ) ) {
 		bbp_locate_template( 'bbpress-functions.php', true );

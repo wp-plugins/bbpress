@@ -19,7 +19,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Attach bbPress to WordPress
@@ -155,13 +155,13 @@ add_action( 'pre_get_posts', 'bbp_pre_get_posts_normalize_forum_visibility', 4 )
 add_action( 'bbp_template_notices', 'bbp_notice_edit_user_success'           );
 add_action( 'bbp_template_notices', 'bbp_notice_edit_user_is_super_admin', 2 );
 
-// Before Delete/Trash/Untrash Topic
+// Before Delete/Trash/Untrash Forum
 add_action( 'wp_trash_post', 'bbp_trash_forum'   );
 add_action( 'trash_post',    'bbp_trash_forum'   );
 add_action( 'untrash_post',  'bbp_untrash_forum' );
 add_action( 'delete_post',   'bbp_delete_forum'  );
 
-// After Deleted/Trashed/Untrashed Topic
+// After Deleted/Trashed/Untrashed Forum
 add_action( 'trashed_post',   'bbp_trashed_forum'   );
 add_action( 'untrashed_post', 'bbp_untrashed_forum' );
 add_action( 'deleted_post',   'bbp_deleted_forum'   );
@@ -218,10 +218,12 @@ add_action( 'untrashed_post', 'bbp_untrashed_topic' );
 add_action( 'deleted_post',   'bbp_deleted_topic'   );
 
 // Favorites
+add_action( 'bbp_spam_topic',   'bbp_remove_topic_from_all_favorites' );
 add_action( 'bbp_trash_topic',  'bbp_remove_topic_from_all_favorites' );
 add_action( 'bbp_delete_topic', 'bbp_remove_topic_from_all_favorites' );
 
 // Subscriptions
+add_action( 'bbp_spam_topic',   'bbp_remove_topic_from_all_subscriptions'       );
 add_action( 'bbp_trash_topic',  'bbp_remove_topic_from_all_subscriptions'       );
 add_action( 'bbp_delete_topic', 'bbp_remove_topic_from_all_subscriptions'       );
 add_action( 'bbp_trash_forum',  'bbp_remove_forum_from_all_subscriptions'       );
@@ -230,6 +232,7 @@ add_action( 'bbp_new_reply',    'bbp_notify_subscribers',                 11, 5 
 add_action( 'bbp_new_topic',    'bbp_notify_forum_subscribers',           11, 4 );
 
 // Sticky
+add_action( 'bbp_spam_topic',   'bbp_unstick_topic' );
 add_action( 'bbp_trash_topic',  'bbp_unstick_topic' );
 add_action( 'bbp_delete_topic', 'bbp_unstick_topic' );
 
@@ -258,6 +261,13 @@ add_action( 'bbp_trash_topic',   'bbp_decrease_user_topic_count' );
 add_action( 'bbp_trash_reply',   'bbp_decrease_user_reply_count' );
 add_action( 'bbp_spam_topic',    'bbp_decrease_user_topic_count' );
 add_action( 'bbp_spam_reply',    'bbp_decrease_user_reply_count' );
+
+// Topic status transition helpers for replies
+add_action( 'bbp_trash_topic',   'bbp_trash_topic_replies'   );
+add_action( 'bbp_untrash_topic', 'bbp_untrash_topic_replies' );
+add_action( 'bbp_delete_topic',  'bbp_delete_topic_replies'  );
+add_action( 'bbp_spam_topic',    'bbp_spam_topic_replies'    );
+add_action( 'bbp_unspam_topic',  'bbp_unspam_topic_replies'  );
 
 // User status
 // @todo make these sub-actions

@@ -13,7 +13,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 if ( !class_exists( 'BBP_Forums_Group_Extension' ) && class_exists( 'BP_Group_Extension' ) ) :
 /**
@@ -44,7 +44,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	/**
 	 * Setup the group forums class variables
 	 *
-	 * @since bbPress ()
+	 * @since bbPress (r3552)
 	 */
 	private function setup_variables() {
 
@@ -147,8 +147,12 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 	/**
 	 * The primary display function for group forums
+	 *
+	 * @since bbPress (r3746)
+	 *
+	 * @param int $group_id ID of the current group. Available only on BP 2.2+.
 	 */
-	public function display() {
+	public function display( $group_id = null ) {
 
 		// Prevent Topic Parent from appearing
 		add_action( 'bbp_theme_before_topic_form_forum', array( $this, 'ob_start'     ) );
@@ -176,8 +180,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function maybe_unset_forum_menu() {
 
 		// Bail if not viewing a single group
-		if ( ! bp_is_group() )
+		if ( ! bp_is_group() ) {
 			return;
+		}
 
 		// Are forums enabled for this group?
 		$checked = bp_get_new_group_enable_forum() || groups_get_groupmeta( bp_get_new_group_id(), 'forum_id' );
@@ -251,6 +256,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Show forums and new forum form when editing a group
 	 *
 	 * @since bbPress (r3563)
+	 *
 	 * @param object $group (the group to edit if in Group Admin UI)
 	 * @uses is_admin() To check if we're in the Group Admin UI
 	 * @uses bbp_get_template_part()
@@ -316,6 +322,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Save the Group Forum data on edit
 	 *
 	 * @since bbPress (r3465)
+	 *
 	 * @param int $group_id (to handle Group Admin UI hook bp_group_admin_edit_after )
 	 * @uses bbp_new_forum_handler() To check for forum creation
 	 * @uses bbp_edit_forum_handler() To check for forum edit
@@ -323,8 +330,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function edit_screen_save( $group_id = 0 ) {
 
 		// Bail if not a POST action
-		if ( ! bbp_is_post_request() )
+		if ( ! bbp_is_post_request() ) {
 			return;
+		}
 
 		// Admin Nonce check
 		if ( is_admin() ) {
@@ -461,8 +469,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function create_screen( $group_id = 0 ) {
 
 		// Bail if not looking at this screen
-		if ( !bp_is_group_creation_step( $this->slug ) )
+		if ( !bp_is_group_creation_step( $this->slug ) ) {
 			return false;
+		}
 
 		// Check for possibly empty group_id
 		if ( empty( $group_id ) ) {
@@ -504,16 +513,18 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$forum_id     = 0;
 		$forum_ids    = bbp_get_group_forum_ids( $group_id );
 
-		if ( !empty( $forum_ids ) )
+		if ( !empty( $forum_ids ) ) {
 			$forum_id = (int) is_array( $forum_ids ) ? $forum_ids[0] : $forum_ids;
+		}
 
 		// Create a forum, or not
 		switch ( $create_forum ) {
 			case true  :
 
 				// Bail if initial content was already created
-				if ( !empty( $forum_id ) )
+				if ( !empty( $forum_id ) ) {
 					return;
+				}
 
 				// Set the default forum status
 				switch ( bp_get_new_group_status() ) {
@@ -569,6 +580,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 	/**
 	 * Used to start an output buffer
+	 *
+	 * @since bbPress (r3746)
 	 */
 	public function ob_start() {
 		ob_start();
@@ -576,6 +589,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 	/**
 	 * Used to end an output buffer
+	 *
+	 * @since bbPress (r3746)
 	 */
 	public function ob_end_clean() {
 		ob_end_clean();
@@ -585,6 +600,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Creating a group forum or category (including root for group)
 	 *
 	 * @since bbPress (r3653)
+	 *
 	 * @param type $forum_args
 	 * @uses bbp_get_forum_id()
 	 * @uses bp_get_current_group_id()
@@ -595,8 +611,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function new_forum( $forum_args = array() ) {
 
 		// Bail if no forum_id was passed
-		if ( empty( $forum_args['forum_id'] ) )
+		if ( empty( $forum_args['forum_id'] ) ) {
 			return;
+		}
 
 		// Validate forum_id
 		$forum_id = bbp_get_forum_id( $forum_args['forum_id'] );
@@ -610,6 +627,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Removing a group forum or category (including root for group)
 	 *
 	 * @since bbPress (r3653)
+	 *
 	 * @param type $forum_args
 	 * @uses bbp_get_forum_id()
 	 * @uses bp_get_current_group_id()
@@ -620,8 +638,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function remove_forum( $forum_args = array() ) {
 
 		// Bail if no forum_id was passed
-		if ( empty( $forum_args['forum_id'] ) )
+		if ( empty( $forum_args['forum_id'] ) ) {
 			return;
+		}
 
 		// Validate forum_id
 		$forum_id = bbp_get_forum_id( $forum_args['forum_id'] );
@@ -633,6 +652,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 	/**
 	 * Listening to BuddyPress Group deletion to remove the forum
+	 *
+	 * @since bbPress (r4815)
 	 *
 	 * @param int $group_id The group ID
 	 * @uses bbp_get_group_forum_ids()
@@ -649,8 +670,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$forum_ids = bbp_get_group_forum_ids( $group_id );
 
 		// Use the first forum ID
-		if ( empty( $forum_ids ) )
+		if ( empty( $forum_ids ) ) {
 			return;
+		}
 
 		// Get the first forum ID
 		$forum_id = (int) is_array( $forum_ids ) ? $forum_ids[0] : $forum_ids;
@@ -676,8 +698,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$group = groups_get_group( array( 'group_id' => $group_id ) );
 
 		// Bail if group cannot be found
-		if ( empty( $group ) )
+		if ( empty( $group ) ) {
 			return false;
+		}
 
 		// Set forum enabled status
 		$group->enable_forum = (int) $enabled;
@@ -706,6 +729,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * In the future, many-to-many should be allowed.
 	 *
 	 * @since bbPress (r3653)
+	 *
 	 * @uses bp_get_current_group_id()
 	 * @uses bbp_get_group_forum_ids()
 	 * @uses bbp_has_forums()
@@ -794,7 +818,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 						bp_do_404( bbp_get_forum_permalink( $forum_id ) ); ?>
 						<h3><?php bbp_forum_title(); ?></h3>
 						<?php bbp_get_template_part( 'feedback', 'no-topics' );
-						return;
+						break;
 					}
 
 					// Setup the topic
@@ -856,7 +880,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 						bp_do_404( bbp_get_forum_permalink( $forum_id ) ); ?>
 						<h3><?php bbp_forum_title(); ?></h3>
 						<?php bbp_get_template_part( 'feedback', 'no-replies' );
-						return;
+						break;
 					}
 
 					// Setup the reply
@@ -890,7 +914,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			// Reset the query
 			wp_reset_query(); ?>
 
-		</div>
+		</div><!-- #bbpress-forums -->
 
 		<?php
 
@@ -904,6 +928,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Strip super stickies from the topic query
 	 *
 	 * @since bbPress (r4810)
+	 *
 	 * @access private
 	 * @param array $super the super sticky post ID's
 	 * @return array (empty)
@@ -917,6 +942,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Unset the type super sticky from topic type
 	 *
 	 * @since bbPress (r4810)
+	 *
 	 * @access private
 	 * @param array $args
 	 * @return array $args without the to-front link
@@ -932,6 +958,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Ugly preg_replace to hide the to front admin link
 	 *
 	 * @since bbPress (r4810)
+	 *
 	 * @access private
 	 * @param string $retval
 	 * @param array $args
@@ -951,6 +978,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Redirect to the group forum screen
 	 *
 	 * @since bbPress (r3653)
+	 *
 	 * @param str $redirect_url
 	 * @param str $redirect_to
 	 */
@@ -1002,6 +1030,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Redirect to the group admin forum edit screen
 	 *
 	 * @since bbPress (r3653)
+	 *
 	 * @uses groups_get_current_group()
 	 * @uses bp_is_group_admin_screen()
 	 * @uses trailingslashit()
@@ -1014,13 +1043,20 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$group = groups_get_current_group();
 
 		// If this is a group of any kind, empty out the redirect URL
-		if ( bp_is_group_admin_screen( $this->slug ) )
+		if ( bp_is_group_admin_screen( $this->slug ) ) {
 			$redirect_url = trailingslashit( bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/' . $group->slug . '/admin/' . $this->slug );
+		}
 
 		return $redirect_url;
 	}
 
 	/** Form Helpers **********************************************************/
+
+	/**
+	 * Prevent Forum Parent from appearing
+	 *
+	 * @since bbPress (r3746)
+	 */
 
 	public function forum_parent() {
 	?>
@@ -1030,6 +1066,15 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	<?php
 	}
 
+	/**
+	 * Prevent Topic Parent from appearing
+	 *
+	 * @since bbPress (r3746)
+	 *
+	 * @uses bbp_get_group_forum_ids() to get BuddyPress group forums
+	 * @uses bbp_dropdown() To show a dropdown of the forums for forum parent
+	 *
+	 */
 	public function topic_parent() {
 
 		$forum_ids = bbp_get_group_forum_ids( bp_get_current_group_id() ); ?>
@@ -1098,8 +1143,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function group_settings_hidden_field() {
 
 		// if a forum is not enabled, we don't need to add this field
-		if ( ! bp_group_is_forum_enabled() )
-			return; ?>
+		if ( ! bp_group_is_forum_enabled() ) {
+			return;
+		} ?>
 
 		<input type="hidden" name="group-show-forum" id="group-show-forum" value="1" />
 
@@ -1110,6 +1156,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 	/**
 	 * Maybe map a bbPress forum/topic/reply permalink to the corresponding group
+	 *
+	 * @since bbPress (r4266)
 	 *
 	 * @param int $post_id
 	 * @uses get_post()
@@ -1154,15 +1202,15 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			// Unknown
 			default :
 				return $url;
-				break;
 		}
 
 		// Get group ID's for this forum
 		$group_ids = bbp_get_forum_group_ids( $forum_id );
 
 		// Bail if the post isn't associated with a group
-		if ( empty( $group_ids ) )
+		if ( empty( $group_ids ) ) {
 			return $url;
+		}
 
 		// @todo Multiple group forums/forum groups
 		$group_id = $group_ids[0];
@@ -1181,6 +1229,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Map a forum permalink to its corresponding group
 	 *
 	 * @since bbPress (r3802)
+	 *
 	 * @param string $url
 	 * @param int $forum_id
 	 * @uses maybe_map_permalink_to_group()
@@ -1194,6 +1243,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Map a topic permalink to its group forum
 	 *
 	 * @since bbPress (r3802)
+	 *
 	 * @param string $url
 	 * @param int $topic_id
 	 * @uses maybe_map_permalink_to_group()
@@ -1207,6 +1257,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * Map a reply permalink to its group forum
 	 *
 	 * @since bbPress (r3802)
+	 *
 	 * @param string $url
 	 * @param int $reply_id
 	 * @uses maybe_map_permalink_to_group()
@@ -1219,6 +1270,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	/**
 	 * Map a reply edit link to its group forum
 	 *
+	 * @since bbPress (r4266)
+	 *
 	 * @param string $url
 	 * @param int $reply_id
 	 * @uses maybe_map_permalink_to_group()
@@ -1227,14 +1280,17 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function map_reply_edit_url_to_group( $url, $reply_id ) {
 		$new = $this->maybe_map_permalink_to_group( $reply_id );
 
-		if ( empty( $new ) )
+		if ( empty( $new ) ) {
 			return $url;
+		}
 
 		return trailingslashit( $new ) . bbpress()->edit_id  . '/';
 	}
 
 	/**
 	 * Map a post link to its group forum
+	 *
+	 * @since bbPress (r4266)
 	 *
 	 * @param string $url
 	 * @param obj $post
@@ -1249,6 +1305,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	/**
 	 * Map a page link to its group forum
 	 *
+	 * @since bbPress (r4266)
+	 *
 	 * @param string $url
 	 * @param int $post_id
 	 * @param $sample
@@ -1261,6 +1319,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 	/**
 	 * Map a custom post type link to its group forum
+	 *
+	 * @since bbPress (r4266)
 	 *
 	 * @param string $url
 	 * @param obj $post
@@ -1276,6 +1336,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	/**
 	 * Fix pagination of topics on forum view
 	 *
+	 * @since bbPress (r4266)
+	 *
 	 * @param array $args
 	 * @global $wp_rewrite
 	 * @uses bbp_get_forum_id()
@@ -1285,8 +1347,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	public function topic_pagination( $args ) {
 		$new = $this->maybe_map_permalink_to_group( bbp_get_forum_id() );
 
-		if ( empty( $new ) )
+		if ( empty( $new ) ) {
 			return $args;
+		}
 
 		global $wp_rewrite;
 
@@ -1298,6 +1361,8 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	/**
 	 * Fix pagination of replies on topic view
 	 *
+	 * @since bbPress (r4266)
+	 *
 	 * @param array $args
 	 * @global $wp_rewrite
 	 * @uses bbp_get_topic_id()
@@ -1306,8 +1371,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 */
 	public function replies_pagination( $args ) {
 		$new = $this->maybe_map_permalink_to_group( bbp_get_topic_id() );
-		if ( empty( $new ) )
+		if ( empty( $new ) ) {
 			return $args;
+		}
 
 		global $wp_rewrite;
 
@@ -1342,8 +1408,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		}
 
 		// Bail if not a group forum
-		if ( empty( $group_ids ) )
+		if ( empty( $group_ids ) ) {
 			return;
+		}
 
 		// Use the first group ID
 		$group_id 	 = $group_ids[0];
@@ -1377,8 +1444,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$group = groups_get_current_group();
 
 		// Not posting from a BuddyPress group? stop now!
-		if ( empty( $group ) )
+		if ( empty( $group ) ) {
 			return $args;
+		}
 
 		// Set the component to 'groups' so the activity item shows up in the group
 		$args['component']         = buddypress()->groups->id;

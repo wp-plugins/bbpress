@@ -24,7 +24,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 if ( !class_exists( 'bbPress' ) ) :
 /**
@@ -59,7 +59,7 @@ final class bbPress {
 	public $current_user = false;
 
 	/**
-	 * @var obj Add-ons append to this (Akismet, BuddyPress, etc...)
+	 * @var stdClass Add-ons append to this (Akismet, BuddyPress, etc...)
 	 */
 	public $extend;
 
@@ -96,7 +96,7 @@ final class bbPress {
 	 * @uses bbPress::includes() Include the required files
 	 * @uses bbPress::setup_actions() Setup the hooks and actions
 	 * @see bbpress()
-	 * @return The one true bbPress
+	 * @return bbPress The one true bbPress
 	 */
 	public static function instance() {
 
@@ -145,28 +145,32 @@ final class bbPress {
 	 *
 	 * @since bbPress (r3951)
 	 */
-	public function __isset( $key ) { return isset( $this->data[$key] ); }
+	public function __isset( $key ) { return isset( $this->data[ $key ] ); }
 
 	/**
 	 * Magic method for getting bbPress variables
 	 *
 	 * @since bbPress (r3951)
 	 */
-	public function __get( $key ) { return isset( $this->data[$key] ) ? $this->data[$key] : null; }
+	public function __get( $key ) { return isset( $this->data[ $key ] ) ? $this->data[ $key ] : null; }
 
 	/**
 	 * Magic method for setting bbPress variables
 	 *
 	 * @since bbPress (r3951)
 	 */
-	public function __set( $key, $value ) { $this->data[$key] = $value; }
+	public function __set( $key , $value ) { $this->data[ $key ] = $value; }
 
 	/**
 	 * Magic method for unsetting bbPress variables
 	 *
 	 * @since bbPress (r4628)
 	 */
-	public function __unset( $key ) { if ( isset( $this->data[$key] ) ) unset( $this->data[$key] ); }
+	public function __unset( $key ) {
+		if ( isset( $this->data[ $key ] ) ) {
+			unset( $this->data[ $key ] );
+		}
+	}
 
 	/**
 	 * Magic method to prevent notices and errors from invalid method calls
@@ -191,7 +195,7 @@ final class bbPress {
 
 		/** Versions **********************************************************/
 
-		$this->version    = '2.6-alpha-5235';
+		$this->version    = '2.6-alpha-5566';
 		$this->db_version = '250';
 
 		/** Paths *************************************************************/
@@ -272,6 +276,9 @@ final class bbPress {
 		$this->domain         = 'bbpress';      // Unique identifier for retrieving translated strings
 		$this->extend         = new stdClass(); // Plugins add data here
 		$this->errors         = new WP_Error(); // Feedback
+		
+		/** Deprecated ********************************************************/
+
 		$this->tab_index      = apply_filters( 'bbp_default_tab_index', 100 );
 	}
 
@@ -426,8 +433,9 @@ final class bbPress {
 	public function setup_theme() {
 
 		// Bail if something already has this under control
-		if ( ! empty( $this->theme_compat->theme ) )
+		if ( ! empty( $this->theme_compat->theme ) ) {
 			return;
+		}
 
 		// Setup the theme package to use for compatibility
 		bbp_setup_theme_compat( bbp_get_theme_package_id() );
@@ -913,7 +921,7 @@ final class bbPress {
  *
  * Example: <?php $bbp = bbpress(); ?>
  *
- * @return The one true bbPress Instance
+ * @return bbPress The one true bbPress Instance
  */
 function bbpress() {
 	return bbPress::instance();

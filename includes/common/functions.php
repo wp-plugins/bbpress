@@ -11,7 +11,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /** Formatting ****************************************************************/
 
@@ -29,8 +29,9 @@ if ( !defined( 'ABSPATH' ) ) exit;
 function bbp_number_format( $number = 0, $decimals = false, $dec_point = '.', $thousands_sep = ',' ) {
 
 	// If empty, set $number to (int) 0
-	if ( ! is_numeric( $number ) )
+	if ( ! is_numeric( $number ) ) {
 		$number = 0;
+	}
 
 	return apply_filters( 'bbp_number_format', number_format( $number, $decimals, $dec_point, $thousands_sep ), $number, $decimals, $dec_point, $thousands_sep );
 }
@@ -49,8 +50,9 @@ function bbp_number_format( $number = 0, $decimals = false, $dec_point = '.', $t
 function bbp_number_format_i18n( $number = 0, $decimals = false ) {
 
 	// If empty, set $number to (int) 0
-	if ( ! is_numeric( $number ) )
+	if ( ! is_numeric( $number ) ) {
 		$number = 0;
+	}
 
 	return apply_filters( 'bbp_number_format_i18n', number_format_i18n( $number, $decimals ), $number, $decimals );
 }
@@ -60,8 +62,7 @@ function bbp_number_format_i18n( $number = 0, $decimals = false ) {
  *
  * @since bbPress (r2455)
  *
- * @param int|object $post Optional. Default is global post object. A post_id or
- *                          post object
+ * @param string $time Time to convert
  * @param string $d Optional. Default is 'U'. Either 'G', 'U', or php date
  *                             format
  * @param bool $translate Optional. Default is false. Whether to translate the
@@ -72,9 +73,9 @@ function bbp_number_format_i18n( $number = 0, $decimals = false ) {
  * @return string Returns timestamp
  */
 function bbp_convert_date( $time, $d = 'U', $translate = false ) {
-	$time = mysql2date( $d, $time, $translate );
+	$new_time = mysql2date( $d, $time, $translate );
 
-	return apply_filters( 'bbp_convert_date', $time, $d, $translate );
+	return apply_filters( 'bbp_convert_date', $new_time, $d, $translate, $time );
 }
 
 /**
@@ -205,22 +206,24 @@ function bbp_time_since( $older_date, $newer_date = false, $gmt = false ) {
  *
  * @since bbPress (r2782)
  *
- * @param int $topic_id Optional. Topic id
+ * @param string $reason Optional. User submitted reason for editing.
  * @return string Status of topic
  */
 function bbp_format_revision_reason( $reason = '' ) {
 	$reason = (string) $reason;
 
 	// Format reason for proper display
-	if ( empty( $reason ) )
+	if ( empty( $reason ) ) {
 		return $reason;
+	}
 
 	// Trimming
 	$reason = trim( $reason );
 
 	// We add our own full stop.
-	while ( substr( $reason, -1 ) === '.' )
+	while ( substr( $reason, -1 ) === '.' ) {
 		$reason = substr( $reason, 0, -1 );
+	}
 
 	// Trim again
 	$reason = trim( $reason );
@@ -317,8 +320,9 @@ function bbp_get_paged() {
 	}
 
 	// Paged found
-	if ( !empty( $paged ) )
+	if ( !empty( $paged ) ) {
 		return (int) $paged;
+	}
 
 	// Default to first page
 	return 1;
@@ -344,17 +348,20 @@ function bbp_get_paged() {
 function bbp_fix_post_author( $data = array(), $postarr = array() ) {
 
 	// Post is not being updated or the post_author is already 0, return
-	if ( empty( $postarr['ID'] ) || empty( $data['post_author'] ) )
+	if ( empty( $postarr['ID'] ) || empty( $data['post_author'] ) ) {
 		return $data;
+	}
 
 	// Post is not a topic or reply, return
-	if ( !in_array( $data['post_type'], array( bbp_get_topic_post_type(), bbp_get_reply_post_type() ) ) )
+	if ( !in_array( $data['post_type'], array( bbp_get_topic_post_type(), bbp_get_reply_post_type() ) ) ) {
 		return $data;
+	}
 
 	// Is the post by an anonymous user?
 	if ( ( bbp_get_topic_post_type() === $data['post_type'] && !bbp_is_topic_anonymous( $postarr['ID'] ) ) ||
-	     ( bbp_get_reply_post_type() === $data['post_type'] && !bbp_is_reply_anonymous( $postarr['ID'] ) ) )
+	     ( bbp_get_reply_post_type() === $data['post_type'] && !bbp_is_reply_anonymous( $postarr['ID'] ) ) ) {
 		return $data;
+	}
 
 	// The post is being updated. It is a topic or a reply and is written by an anonymous user.
 	// Set the post_author back to 0
@@ -620,12 +627,14 @@ function bbp_filter_anonymous_post_data( $args = '' ) {
 
 	// Filter variables and add errors if necessary
 	$r['bbp_anonymous_name'] = apply_filters( 'bbp_pre_anonymous_post_author_name',  $r['bbp_anonymous_name']  );
-	if ( empty( $r['bbp_anonymous_name'] ) )
+	if ( empty( $r['bbp_anonymous_name'] ) ) {
 		bbp_add_error( 'bbp_anonymous_name',  __( '<strong>ERROR</strong>: Invalid author name submitted!',   'bbpress' ) );
+	}
 
 	$r['bbp_anonymous_email'] = apply_filters( 'bbp_pre_anonymous_post_author_email', $r['bbp_anonymous_email'] );
-	if ( empty( $r['bbp_anonymous_email'] ) )
+	if ( empty( $r['bbp_anonymous_email'] ) ) {
 		bbp_add_error( 'bbp_anonymous_email', __( '<strong>ERROR</strong>: Invalid email address submitted!', 'bbpress' ) );
+	}
 
 	// Website is optional
 	$r['bbp_anonymous_website'] = apply_filters( 'bbp_pre_anonymous_post_author_website', $r['bbp_anonymous_website'] );
@@ -658,8 +667,9 @@ function bbp_filter_anonymous_post_data( $args = '' ) {
 function bbp_check_for_duplicate( $post_data = array() ) {
 
 	// No duplicate checks for those who can throttle
-	if ( current_user_can( 'throttle' ) )
+	if ( current_user_can( 'throttle' ) ) {
 		return true;
+	}
 
 	// Define global to use get_meta_sql() and get_var() methods
 	global $wpdb;
@@ -691,7 +701,7 @@ function bbp_check_for_duplicate( $post_data = array() ) {
 	//
 	// @see: http://bbpress.trac.wordpress.org/ticket/2185/
 	// @see: http://core.trac.wordpress.org/changeset/23973/
-	$r = function_exists( 'wp_unslash' ) ? wp_unslash( $r ) : stripslashes_deep( $r );
+	$r = wp_unslash( $r );
 
 	// Prepare duplicate check query
 	$query  = $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} {$join} WHERE post_type = %s AND post_status != %s AND post_author = %d AND post_content = %s {$where}", $r['post_type'], $r['post_status'], $r['post_author'], $r['post_content'] );
@@ -733,8 +743,9 @@ function bbp_check_for_flood( $anonymous_data = false, $author_id = 0 ) {
 
 	// Option disabled. No flood checks.
 	$throttle_time = get_option( '_bbp_throttle_time' );
-	if ( empty( $throttle_time ) )
+	if ( empty( $throttle_time ) ) {
 		return true;
+	}
 
 	// User is anonymous, so check a transient based on the IP
 	if ( !empty( $anonymous_data ) && is_array( $anonymous_data ) ) {
@@ -776,36 +787,29 @@ function bbp_check_for_flood( $anonymous_data = false, $author_id = 0 ) {
 function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $title = '', $content = '' ) {
 
 	// Allow for moderation check to be skipped
-	if ( apply_filters( 'bbp_bypass_check_for_moderation', false, $anonymous_data, $author_id, $title, $content ) )
+	if ( apply_filters( 'bbp_bypass_check_for_moderation', false, $anonymous_data, $author_id, $title, $content ) ) {
 		return true;
+	}
 
-	// Bail if keymaster is author
-	if ( !empty( $author_id ) && bbp_is_user_keymaster( $author_id ) )
+	// Bail if author is keymaster
+	if ( ! empty( $author_id ) && bbp_is_user_keymaster( $author_id ) ) {
 		return true;
+	}
 
 	// Define local variable(s)
 	$_post     = array();
 	$match_out = '';
 
-	/** Blacklist *************************************************************/
-
-	// Get the moderation keys
-	$blacklist = trim( get_option( 'moderation_keys' ) );
-
-	// Bail if blacklist is empty
-	if ( empty( $blacklist ) )
-		return true;
-
 	/** User Data *************************************************************/
 
 	// Map anonymous user data
-	if ( !empty( $anonymous_data ) ) {
+	if ( ! empty( $anonymous_data ) ) {
 		$_post['author'] = $anonymous_data['bbp_anonymous_name'];
 		$_post['email']  = $anonymous_data['bbp_anonymous_email'];
 		$_post['url']    = $anonymous_data['bbp_anonymous_website'];
 
 	// Map current user data
-	} elseif ( !empty( $author_id ) ) {
+	} elseif ( ! empty( $author_id ) ) {
 
 		// Get author data
 		$user = get_userdata( $author_id );
@@ -829,10 +833,10 @@ function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $tit
 	/** Max Links *************************************************************/
 
 	$max_links = get_option( 'comment_max_links' );
-	if ( !empty( $max_links ) ) {
+	if ( ! empty( $max_links ) ) {
 
 		// How many links?
-		$num_links = preg_match_all( '/<a [^>]*href/i', $content, $match_out );
+		$num_links = preg_match_all( '/(http|ftp|https):\/\//i', $content, $match_out );
 
 		// Allow for bumping the max to include the user's URL
 		$num_links = apply_filters( 'comment_max_links_url', $num_links, $_post['url'] );
@@ -843,33 +847,42 @@ function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $tit
 		}
 	}
 
-	/** Words *****************************************************************/
+	/** Blacklist *************************************************************/
 
-	// Get words separated by new lines
-	$words = explode( "\n", $blacklist );
+	// Get the moderation keys
+	$blacklist = trim( get_option( 'moderation_keys' ) );
 
-	// Loop through words
-	foreach ( (array) $words as $word ) {
+	// Bail if blacklist is empty
+	if ( ! empty( $blacklist ) ) {
 
-		// Trim the whitespace from the word
-		$word = trim( $word );
+		// Get words separated by new lines
+		$words = explode( "\n", $blacklist );
 
-		// Skip empty lines
-		if ( empty( $word ) ) { continue; }
+		// Loop through words
+		foreach ( (array) $words as $word ) {
 
-		// Do some escaping magic so that '#' chars in the
-		// spam words don't break things:
-		$word    = preg_quote( $word, '#' );
-		$pattern = "#$word#i";
+			// Trim the whitespace from the word
+			$word = trim( $word );
 
-		// Loop through post data
-		foreach ( $_post as $post_data ) {
+			// Skip empty lines
+			if ( empty( $word ) ) {
+				continue;
+			}
 
-			// Check each user data for current word
-			if ( preg_match( $pattern, $post_data ) ) {
+			// Do some escaping magic so that '#' chars in the
+			// spam words don't break things:
+			$word    = preg_quote( $word, '#' );
+			$pattern = "#$word#i";
 
-				// Post does not pass
-				return false;
+			// Loop through post data
+			foreach ( $_post as $post_data ) {
+
+				// Check each user data for current word
+				if ( preg_match( $pattern, $post_data ) ) {
+
+					// Post does not pass
+					return false;
+				}
 			}
 		}
 	}
@@ -895,12 +908,14 @@ function bbp_check_for_moderation( $anonymous_data = false, $author_id = 0, $tit
 function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $title = '', $content = '' ) {
 
 	// Allow for blacklist check to be skipped
-	if ( apply_filters( 'bbp_bypass_check_for_blacklist', false, $anonymous_data, $author_id, $title, $content ) )
+	if ( apply_filters( 'bbp_bypass_check_for_blacklist', false, $anonymous_data, $author_id, $title, $content ) ) {
 		return true;
+	}
 
 	// Bail if keymaster is author
-	if ( !empty( $author_id ) && bbp_is_user_keymaster( $author_id ) )
+	if ( !empty( $author_id ) && bbp_is_user_keymaster( $author_id ) ) {
 		return true;
+	}
 
 	// Define local variable
 	$_post = array();
@@ -911,8 +926,9 @@ function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $titl
 	$blacklist = trim( get_option( 'blacklist_keys' ) );
 
 	// Bail if blacklist is empty
-	if ( empty( $blacklist ) )
+	if ( empty( $blacklist ) ) {
 		return true;
+	}
 
 	/** User Data *************************************************************/
 
@@ -982,6 +998,22 @@ function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $titl
 /** Subscriptions *************************************************************/
 
 /**
+ * Get the "Do Not Reply" email address to use when sending subscription emails.
+ *
+ * We make some educated guesses here based on the home URL. Filters are
+ * available to customize this address further. In the future, we may consider
+ * using `admin_email` instead, though this is not normally publicized.
+ *
+ * @since bbPress (r5409)
+ *
+ * @return string
+ */
+function bbp_get_do_not_reply_address() {
+	$email = 'noreply@' . str_replace( 'www.', '', ltrim( get_home_url(), '^(http|https)://' ) );
+	return apply_filters( 'bbp_get_do_not_reply_address', $email );
+}
+
+/**
  * Sends notification emails for new replies to subscribed topics
  *
  * Gets new post's ID and check if there are subscribed users to that topic, and
@@ -993,9 +1025,14 @@ function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $titl
  * those cases, we recommend unhooking this function and creating your own
  * custom emailer script.
  *
- * @since bbPress (r2668)
+ * @since bbPress (r5413)
  *
  * @param int $reply_id ID of the newly made reply
+ * @param int $topic_id ID of the topic of the reply
+ * @param int $forum_id ID of the forum of the reply
+ * @param mixed $anonymous_data Array of anonymous user data
+ * @param int $reply_author ID of the topic author ID
+ *
  * @uses bbp_is_subscriptions_active() To check if the subscriptions are active
  * @uses bbp_get_reply_id() To validate the reply ID
  * @uses bbp_get_topic_id() To validate the topic ID
@@ -1020,7 +1057,7 @@ function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $titl
  *                    topic id and user id
  * @return bool True on success, false on failure
  */
-function bbp_notify_subscribers( $reply_id = 0, $topic_id = 0, $forum_id = 0, $anonymous_data = false, $reply_author = 0 ) {
+function bbp_notify_topic_subscribers( $reply_id = 0, $topic_id = 0, $forum_id = 0, $anonymous_data = false, $reply_author = 0 ) {
 
 	// Bail if subscriptions are turned off
 	if ( !bbp_is_subscriptions_active() ) {
@@ -1062,7 +1099,6 @@ function bbp_notify_subscribers( $reply_id = 0, $topic_id = 0, $forum_id = 0, $a
 	$reply_content = strip_tags( bbp_get_reply_content( $reply_id ) );
 	$reply_url     = bbp_get_reply_url( $reply_id );
 	$blog_name     = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	$do_not_reply  = '<noreply@' . ltrim( get_home_url(), '^(http|https)://' ) . '>';
 
 	// For plugins to filter messages per reply/topic/user
 	$message = sprintf( __( '%1$s wrote:
@@ -1095,14 +1131,20 @@ Login and visit the topic to unsubscribe from these emails.', 'bbpress' ),
 
 	/** Users *****************************************************************/
 
-	// Array to hold BCC's
-	$headers = array();
+	// Get the noreply@ address
+	$no_reply   = bbp_get_do_not_reply_address();
+
+	// Setup "From" email address
+	$from_email = apply_filters( 'bbp_subscription_from_email', $no_reply );
 
 	// Setup the From header
-	$headers[] = 'From: ' . get_bloginfo( 'name' ) . ' ' . $do_not_reply;
+	$headers = array( 'From: ' . get_bloginfo( 'name' ) . ' <' . $from_email . '>' );
 
 	// Get topic subscribers and bail if empty
 	$user_ids = bbp_get_topic_subscribers( $topic_id, true );
+
+	// Dedicated filter to manipulate user ID's to send emails to
+	$user_ids = apply_filters( 'bbp_topic_subscription_user_ids', $user_ids );
 	if ( empty( $user_ids ) ) {
 		return false;
 	}
@@ -1122,12 +1164,13 @@ Login and visit the topic to unsubscribe from these emails.', 'bbpress' ),
 	/** Send it ***************************************************************/
 
 	// Custom headers
-	$headers = apply_filters( 'bbp_subscription_mail_headers', $headers );
+	$headers  = apply_filters( 'bbp_subscription_mail_headers', $headers  );
+ 	$to_email = apply_filters( 'bbp_subscription_to_email',     $no_reply );
 
 	do_action( 'bbp_pre_notify_subscribers', $reply_id, $topic_id, $user_ids );
 
 	// Send notification email
-	wp_mail( $do_not_reply, $subject, $message, $headers );
+	wp_mail( $to_email, $subject, $message, $headers );
 
 	do_action( 'bbp_post_notify_subscribers', $reply_id, $topic_id, $user_ids );
 
@@ -1149,6 +1192,10 @@ Login and visit the topic to unsubscribe from these emails.', 'bbpress' ),
  * @since bbPress (r5156)
  *
  * @param int $topic_id ID of the newly made reply
+ * @param int $forum_id ID of the forum for the topic
+ * @param mixed $anonymous_data Array of anonymous user data
+ * @param int $topic_author ID of the topic author ID
+ *
  * @uses bbp_is_subscriptions_active() To check if the subscriptions are active
  * @uses bbp_get_topic_id() To validate the topic ID
  * @uses bbp_get_forum_id() To validate the forum ID
@@ -1180,6 +1227,13 @@ function bbp_notify_forum_subscribers( $topic_id = 0, $forum_id = 0, $anonymous_
 	$topic_id = bbp_get_topic_id( $topic_id );
 	$forum_id = bbp_get_forum_id( $forum_id );
 
+	/**
+	 * Necessary for backwards compatibility
+	 *
+	 * @see https://bbpress.trac.wordpress.org/ticket/2620
+	 */
+	$user_id  = 0;
+
 	/** Topic *****************************************************************/
 
 	// Bail if topic is not published
@@ -1202,7 +1256,6 @@ function bbp_notify_forum_subscribers( $topic_id = 0, $forum_id = 0, $anonymous_
 	$topic_content = strip_tags( bbp_get_topic_content( $topic_id ) );
 	$topic_url     = get_permalink( $topic_id );
 	$blog_name     = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	$do_not_reply  = '<noreply@' . ltrim( get_home_url(), '^(http|https)://' ) . '>';
 
 	// For plugins to filter messages per reply/topic/user
 	$message = sprintf( __( '%1$s wrote:
@@ -1235,14 +1288,20 @@ Login and visit the topic to unsubscribe from these emails.', 'bbpress' ),
 
 	/** User ******************************************************************/
 
-	// Array to hold BCC's
-	$headers = array();
+	// Get the noreply@ address
+	$no_reply   = bbp_get_do_not_reply_address();
+
+	// Setup "From" email address
+	$from_email = apply_filters( 'bbp_subscription_from_email', $no_reply );
 
 	// Setup the From header
-	$headers[] = 'From: ' . get_bloginfo( 'name' ) . ' ' . $do_not_reply;
+	$headers[] = array( 'From: ' . get_bloginfo( 'name' ) . ' <' . $from_email . '>' );
 
 	// Get topic subscribers and bail if empty
 	$user_ids = bbp_get_forum_subscribers( $forum_id, true );
+
+	// Dedicated filter to manipulate user ID's to send emails to
+	$user_ids = apply_filters( 'bbp_forum_subscription_user_ids', $user_ids );
 	if ( empty( $user_ids ) ) {
 		return false;
 	}
@@ -1262,16 +1321,37 @@ Login and visit the topic to unsubscribe from these emails.', 'bbpress' ),
 	/** Send it ***************************************************************/
 
 	// Custom headers
-	$headers = apply_filters( 'bbp_subscription_mail_headers', $headers );
+	$headers  = apply_filters( 'bbp_subscription_mail_headers', $headers  );
+	$to_email = apply_filters( 'bbp_subscription_to_email',     $no_reply );
 
 	do_action( 'bbp_pre_notify_forum_subscribers', $topic_id, $forum_id, $user_ids );
 
 	// Send notification email
-	wp_mail( $do_not_reply, $subject, $message, $headers );
+	wp_mail( $to_email, $subject, $message, $headers );
 
 	do_action( 'bbp_post_notify_forum_subscribers', $topic_id, $forum_id, $user_ids );
 
 	return true;
+}
+
+/**
+ * Sends notification emails for new replies to subscribed topics
+ *
+ * This function is deprecated. Please use: bbp_notify_topic_subscribers()
+ *
+ * @since bbPress (r2668)
+ * @deprecated bbPress (r5412)
+ *
+ * @param int $reply_id ID of the newly made reply
+ * @param int $topic_id ID of the topic of the reply
+ * @param int $forum_id ID of the forum of the reply
+ * @param mixed $anonymous_data Array of anonymous user data
+ * @param int $reply_author ID of the topic author ID
+ *
+ * @return bool True on success, false on failure
+ */
+function bbp_notify_subscribers( $reply_id = 0, $topic_id = 0, $forum_id = 0, $anonymous_data = false, $reply_author = 0 ) {
+	return bbp_notify_topic_subscribers( $reply_id, $topic_id, $forum_id, $anonymous_data, $reply_author );
 }
 
 /** Login *********************************************************************/
@@ -1368,16 +1448,19 @@ function bbp_query_post_parent__in( $where, $object = '' ) {
 	global $wpdb, $wp;
 
 	// Noop if WP core supports this already
-	if ( in_array( 'post_parent__in', $wp->private_query_vars ) )
+	if ( in_array( 'post_parent__in', $wp->private_query_vars ) ) {
 		return $where;
+	}
 
 	// Bail if no object passed
-	if ( empty( $object ) )
+	if ( empty( $object ) ) {
 		return $where;
+	}
 
 	// Only 1 post_parent so return $where
-	if ( is_numeric( $object->query_vars['post_parent'] ) )
+	if ( is_numeric( $object->query_vars['post_parent'] ) ) {
 		return $where;
+	}
 
 	// Including specific post_parent's
 	if ( ! empty( $object->query_vars['post_parent__in'] ) ) {
@@ -1412,8 +1495,9 @@ function bbp_get_public_child_last_id( $parent_id = 0, $post_type = 'post' ) {
 	global $wpdb;
 
 	// Bail if nothing passed
-	if ( empty( $parent_id ) )
+	if ( empty( $parent_id ) ) {
 		return false;
+	}
 
 	// The ID of the cached query
 	$cache_id = 'bbp_parent_' . $parent_id . '_type_' . $post_type . '_child_last_id';
@@ -1457,8 +1541,9 @@ function bbp_get_public_child_count( $parent_id = 0, $post_type = 'post' ) {
 	global $wpdb;
 
 	// Bail if nothing passed
-	if ( empty( $parent_id ) )
+	if ( empty( $parent_id ) ) {
 		return false;
+	}
 
 	// The ID of the cached query
 	$cache_id    = 'bbp_parent_' . $parent_id . '_type_' . $post_type . '_child_count';
@@ -1502,8 +1587,9 @@ function bbp_get_public_child_ids( $parent_id = 0, $post_type = 'post' ) {
 	global $wpdb;
 
 	// Bail if nothing passed
-	if ( empty( $parent_id ) )
+	if ( empty( $parent_id ) ) {
 		return false;
+	}
 
 	// The ID of the cached query
 	$cache_id  = 'bbp_parent_public_' . $parent_id . '_type_' . $post_type . '_child_ids';
@@ -1547,8 +1633,9 @@ function bbp_get_all_child_ids( $parent_id = 0, $post_type = 'post' ) {
 	global $wpdb;
 
 	// Bail if nothing passed
-	if ( empty( $parent_id ) )
+	if ( empty( $parent_id ) ) {
 		return false;
+	}
 
 	// The ID of the cached query
 	$cache_id  = 'bbp_parent_all_' . $parent_id . '_type_' . $post_type . '_child_ids';

@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * If there is no raw DB version, this is the first installation
@@ -164,8 +164,9 @@ function bbp_version_bump() {
 function bbp_setup_updater() {
 
 	// Bail if no update needed
-	if ( ! bbp_is_update() )
+	if ( ! bbp_is_update() ) {
 		return;
+	}
 
 	// Call the automated updater
 	bbp_version_updater();
@@ -268,11 +269,8 @@ function bbp_version_updater() {
 	// 2.2
 	if ( $raw_db_version < 220 ) {
 
-		// Remove the Moderator role from the database
-		remove_role( bbp_get_moderator_role() );
-
-		// Remove the Participant role from the database
-		remove_role( bbp_get_participant_role() );
+		// Remove any old bbPress roles
+		bbp_remove_roles();
 
 		// Remove capabilities
 		bbp_remove_caps();
@@ -309,8 +307,9 @@ function bbp_version_updater() {
 function bbp_add_activation_redirect() {
 
 	// Bail if activating from network, or bulk
-	if ( is_network_admin() || isset( $_GET['activate-multi'] ) )
+	if ( is_network_admin() || isset( $_GET['activate-multi'] ) ) {
 		return;
+	}
 
 	// Add the transient to redirect
     set_transient( '_bbp_activation_redirect', true, 30 );

@@ -25,12 +25,12 @@ class bbPress1 extends BBP_Converter_Base {
 
 		/** Forum Section *****************************************************/
 
-		// Forum id (Stored in postmeta)
+		// Old forum id (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename' => 'forums',
 			'from_fieldname' => 'forum_id',
 			'to_type'        => 'forum',
-			'to_fieldname'   => '_bbp_forum_id'
+			'to_fieldname'   => '_bbp_old_forum_id'
 		);
 
 		// Forum parent id (If no parent, then 0. Stored in postmeta)
@@ -38,7 +38,7 @@ class bbPress1 extends BBP_Converter_Base {
 			'from_tablename' => 'forums',
 			'from_fieldname' => 'forum_parent',
 			'to_type'        => 'forum',
-			'to_fieldname'   => '_bbp_forum_parent_id'
+			'to_fieldname'   => '_bbp_old_forum_parent_id'
 		);
 
 		// Forum topic count (Stored in postmeta)
@@ -119,6 +119,13 @@ class bbPress1 extends BBP_Converter_Base {
 			'callback_method' => 'callback_forum_type'
 		);
 
+		// Forum status (Set a default value 'open', Stored in postmeta)
+		$this->field_map[] = array(
+			'to_type'      => 'forum',
+			'to_fieldname' => '_bbp_status',
+			'default'      => 'open'
+		);
+
 		// Forum dates.
 		$this->field_map[] = array(
 			'to_type'      => 'forum',
@@ -143,12 +150,12 @@ class bbPress1 extends BBP_Converter_Base {
 
 		/** Topic Section *****************************************************/
 
-		// Topic id (Stored in postmeta)
+		// Old topic id (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename' => 'topics',
 			'from_fieldname' => 'topic_id',
 			'to_type'        => 'topic',
-			'to_fieldname'   => '_bbp_topic_id'
+			'to_fieldname'   => '_bbp_old_topic_id'
 		);
 
 		// Topic reply count (Stored in postmeta)
@@ -229,6 +236,15 @@ class bbPress1 extends BBP_Converter_Base {
 			'callback_method' => 'callback_status'
 		);
 
+		// Topic status (Publish or Closed to new replies)
+		$this->field_map[] = array(
+			'from_tablename'  => 'topics',
+			'from_fieldname'  => 'topic_open',
+			'to_type'         => 'topic',
+			'to_fieldname'    => '_bbp_old_closed_status_id',
+			'callback_method' => 'callback_topic_status'
+		);
+
 		// Topic author ip (Stored in postmeta)
 		// Note: We join the 'posts' table because 'topics' table does not include author ip.
 		$this->field_map[] = array(
@@ -250,12 +266,12 @@ class bbPress1 extends BBP_Converter_Base {
 			'callback_method' => 'callback_forumid'
 		);
 
-		// Sticky status (Stored in postmeta))
+		// Sticky status (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'topics',
 			'from_fieldname'  => 'topic_sticky',
 			'to_type'         => 'topic',
-			'to_fieldname'    => '_bbp_old_sticky_status',
+			'to_fieldname'    => '_bbp_old_sticky_status_id',
 			'callback_method' => 'callback_sticky_status'
 		);
 
@@ -338,18 +354,22 @@ class bbPress1 extends BBP_Converter_Base {
 
 		/** Reply Section *****************************************************/
 
-		// Reply id (Stored in postmeta)
+		// Old reply id (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'posts',
 			'from_fieldname'  => 'post_id',
 			'to_type'         => 'reply',
-			'to_fieldname'    => '_bbp_post_id'
+			'to_fieldname'    => '_bbp_old_reply_id'
 		);
 
 		// Reply parent topic id (If no parent, then 0. Stored in postmeta)
+		// Note: We join the 'topics' table to limit the replies section to only import replies
 		$this->field_map[] = array(
-			'from_tablename'  => 'posts',
+			'from_tablename'  => 'topics',
 			'from_fieldname'  => 'topic_id',
+			'join_tablename'  => 'posts',
+			'join_type'       => 'INNER',
+			'join_expression' => 'USING (topic_id) WHERE posts.post_position NOT IN (0,1)',
 			'to_type'         => 'reply',
 			'to_fieldname'    => '_bbp_topic_id',
 			'callback_method' => 'callback_topicid'
@@ -444,15 +464,15 @@ class bbPress1 extends BBP_Converter_Base {
 
 		/** User Section ******************************************************/
 
-		// Store old User id (Stored in usermeta)
+		// Store old user id (Stored in usermeta)
 		$this->field_map[] = array(
 			'from_tablename' => 'users',
 			'from_fieldname' => 'ID',
 			'to_type'        => 'user',
-			'to_fieldname'   => '_bbp_user_id'
+			'to_fieldname'   => '_bbp_old_user_id'
 		);
 
-		// Store old User password (Stored in usermeta)
+		// Store old user password (Stored in usermeta)
 		$this->field_map[] = array(
 			'from_tablename' => 'users',
 			'from_fieldname' => 'user_pass',
@@ -563,6 +583,27 @@ class bbPress1 extends BBP_Converter_Base {
 			$status = 'forum';
 		}
 		return $status;
+	}
+
+	/**
+	 * Translate the topic status from bbPress 1's numeric's to WordPress's
+	 * strings.
+	 *
+	 * @param int $topic_status bbPress 1.x numeric status
+	 * @return string WordPress safe
+	 */
+	public function callback_topic_status( $topic_status = 1 ) {
+		switch ( $topic_status ) {
+			case 0 :
+				$topic_status = 'closed';  // bbp_get_closed_status_id()
+				break;
+
+			case 1 :
+				default :
+				$topic_status = 'publish'; // bbp_get_public_status_id()
+				break;
+		}
+		return $topic_status;
 	}
 
 	/**

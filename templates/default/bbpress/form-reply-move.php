@@ -26,26 +26,30 @@
 					<div>
 
 						<div class="bbp-template-notice info">
-							<p><?php _e( 'You can either make this reply a new topic with a new title, or merge it into an existing topic.', 'bbpress' ); ?></p>
+							<ul>
+								<li><?php _e( 'You can either make this reply a new topic with a new title, or merge it into an existing topic.', 'bbpress' ); ?></li>
+							</ul>
 						</div>
 
 						<div class="bbp-template-notice">
-							<p><?php _e( 'If you choose an existing topic, replies will be ordered by the time and date they were created.', 'bbpress' ); ?></p>
+							<ul>
+								<li><?php _e( 'If you choose an existing topic, replies will be ordered by the time and date they were created.', 'bbpress' ); ?></li>
+							</ul>
 						</div>
 
 						<fieldset class="bbp-form">
 							<legend><?php _e( 'Move Method', 'bbpress' ); ?></legend>
 
 							<div>
-								<input name="bbp_reply_move_option" id="bbp_reply_move_option_reply" type="radio" checked="checked" value="topic" tabindex="<?php bbp_tab_index(); ?>" />
+								<input name="bbp_reply_move_option" id="bbp_reply_move_option_reply" type="radio" checked="checked" value="topic" />
 								<label for="bbp_reply_move_option_reply"><?php printf( __( 'New topic in <strong>%s</strong> titled:', 'bbpress' ), bbp_get_forum_title( bbp_get_reply_forum_id( bbp_get_reply_id() ) ) ); ?></label>
-								<input type="text" id="bbp_reply_move_destination_title" value="<?php printf( __( 'Moved: %s', 'bbpress' ), bbp_get_reply_title() ); ?>" tabindex="<?php bbp_tab_index(); ?>" size="35" name="bbp_reply_move_destination_title" />
+								<input type="text" id="bbp_reply_move_destination_title" value="<?php printf( __( 'Moved: %s', 'bbpress' ), bbp_get_reply_title() ); ?>" size="35" name="bbp_reply_move_destination_title" />
 							</div>
 
 							<?php if ( bbp_has_topics( array( 'show_stickies' => false, 'post_parent' => bbp_get_reply_forum_id( bbp_get_reply_id() ), 'post__not_in' => array( bbp_get_reply_topic_id( bbp_get_reply_id() ) ) ) ) ) : ?>
 
 								<div>
-									<input name="bbp_reply_move_option" id="bbp_reply_move_option_existing" type="radio" value="existing" tabindex="<?php bbp_tab_index(); ?>" />
+									<input name="bbp_reply_move_option" id="bbp_reply_move_option_existing" type="radio" value="existing" />
 									<label for="bbp_reply_move_option_existing"><?php _e( 'Use an existing topic in this forum:', 'bbpress' ); ?></label>
 
 									<?php
@@ -64,12 +68,14 @@
 
 						</fieldset>
 
-						<div class="bbp-template-notice error">
-							<p><?php _e( '<strong>WARNING:</strong> This process cannot be undone.', 'bbpress' ); ?></p>
+						<div class="bbp-template-notice error" role="alert" tabindex="-1">
+							<ul>
+								<li><?php _e( '<strong>WARNING:</strong> This process cannot be undone.', 'bbpress' ); ?></li>
+							</ul>
 						</div>
 
 						<div class="bbp-submit-wrapper">
-							<button type="submit" tabindex="<?php bbp_tab_index(); ?>" id="bbp_move_reply_submit" name="bbp_move_reply_submit" class="button submit"><?php _e( 'Submit', 'bbpress' ); ?></button>
+							<button type="submit" id="bbp_move_reply_submit" name="bbp_move_reply_submit" class="button submit"><?php _e( 'Submit', 'bbpress' ); ?></button>
 						</div>
 					</div>
 

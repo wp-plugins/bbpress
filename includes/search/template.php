@@ -8,7 +8,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /** Search Loop Functions *****************************************************/
 
@@ -43,7 +43,8 @@ function bbp_has_search_results( $args = '' ) {
 
 	/** Defaults **************************************************************/
 
-	$default_post_type = array( bbp_get_forum_post_type(), bbp_get_topic_post_type(), bbp_get_reply_post_type() );
+	$default_search_terms = bbp_get_search_terms();
+	$default_post_type    = array( bbp_get_forum_post_type(), bbp_get_topic_post_type(), bbp_get_reply_post_type() );
 
 	// Default query args
 	$default = array(
@@ -52,9 +53,14 @@ function bbp_has_search_results( $args = '' ) {
 		'paged'               => bbp_get_paged(),            // On this page
 		'orderby'             => 'date',                     // Sorted by date
 		'order'               => 'DESC',                     // Most recent first
-		'ignore_sticky_posts' => true,                       // Stickies not supported
-		's'                   => bbp_get_search_terms(),     // This is a search
+		'ignore_sticky_posts' => true                        // Stickies not supported
 	);
+
+	// Only set 's' if search terms exist
+	// https://bbpress.trac.wordpress.org/ticket/2607
+	if ( false !== $default_search_terms ) {
+		$default['s'] = $default_search_terms;
+	}
 
 	// What are the default allowed statuses (based on user caps)
 	if ( bbp_get_view_all() ) {
@@ -64,7 +70,8 @@ function bbp_has_search_results( $args = '' ) {
 			bbp_get_public_status_id(),
 			bbp_get_closed_status_id(),
 			bbp_get_spam_status_id(),
-			bbp_get_trash_status_id()
+			bbp_get_trash_status_id(),
+			bbp_get_pending_status_id()
 		);
 
 		// Add support for private status
@@ -88,7 +95,7 @@ function bbp_has_search_results( $args = '' ) {
 	// Get bbPress
 	$bbp = bbpress();
 
-	// Call the query
+	// Only call the search query if 's' is not empty
 	if ( ! empty( $r['s'] ) ) {
 		$bbp->search_query = new WP_Query( $r );
 	}
@@ -141,7 +148,7 @@ function bbp_has_search_results( $args = '' ) {
 				'prev_text' => is_rtl() ? '&rarr;' : '&larr;',
 				'next_text' => is_rtl() ? '&larr;' : '&rarr;',
 				'mid_size'  => 1,
-				'add_args'  => $add_args, 
+				'add_args'  => $add_args,
 			) )
 		);
 
@@ -172,8 +179,9 @@ function bbp_search_results() {
 	$have_posts = bbpress()->search_query->have_posts();
 
 	// Reset the post data when finished
-	if ( empty( $have_posts ) )
+	if ( empty( $have_posts ) ) {
 		wp_reset_postdata();
+	}
 
 	return $have_posts;
 }
@@ -305,7 +313,7 @@ function bbp_search_results_url() {
 			$url = $wp_rewrite->root . bbp_get_search_slug();
 
 			// Append search terms
-			if ( !empty( $search_terms ) ) {
+			if ( ! empty( $search_terms ) ) {
 				$url = trailingslashit( $url ) . user_trailingslashit( urlencode( $search_terms ) );
 			}
 
@@ -348,7 +356,7 @@ function bbp_search_terms( $search_terms = '' ) {
 	function bbp_get_search_terms( $passed_terms = '' ) {
 
 		// Sanitize terms if they were passed in
-		if ( !empty( $passed_terms ) ) {
+		if ( ! empty( $passed_terms ) ) {
 			$search_terms = sanitize_title( $passed_terms );
 
 		// Use query variable if not
@@ -357,7 +365,7 @@ function bbp_search_terms( $search_terms = '' ) {
 		}
 
 		// Trim whitespace and decode, or set explicitly to false if empty
-		$search_terms = !empty( $search_terms ) ? urldecode( trim( $search_terms ) ) : false;
+		$search_terms = ! empty( $search_terms ) ? urldecode( trim( $search_terms ) ) : false;
 
 		return apply_filters( 'bbp_get_search_terms', $search_terms, $passed_terms );
 	}
@@ -433,8 +441,9 @@ function bbp_search_pagination_links() {
 	function bbp_get_search_pagination_links() {
 		$bbp = bbpress();
 
-		if ( !isset( $bbp->search_query->pagination_links ) || empty( $bbp->search_query->pagination_links ) )
+		if ( ! isset( $bbp->search_query->pagination_links ) || empty( $bbp->search_query->pagination_links ) ) {
 			return false;
+		}
 
 		return apply_filters( 'bbp_get_search_pagination_links', $bbp->search_query->pagination_links );
 	}

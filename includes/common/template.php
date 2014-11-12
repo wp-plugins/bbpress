@@ -11,7 +11,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /** URLs **********************************************************************/
 
@@ -104,8 +104,9 @@ function bbp_footer() {
 function bbp_is_site_public( $site_id = 0 ) {
 
 	// Get the current site ID
-	if ( empty( $site_id ) )
+	if ( empty( $site_id ) ) {
 		$site_id = get_current_blog_id();
+	}
 
 	// Get the site visibility setting
 	$public = get_blog_option( $site_id, 'blog_public', 1 );
@@ -128,8 +129,9 @@ function bbp_is_forum( $post_id = 0 ) {
 	$retval = false;
 
 	// Supplied ID is a forum
-	if ( !empty( $post_id ) && ( bbp_get_forum_post_type() === get_post_type( $post_id ) ) )
+	if ( !empty( $post_id ) && ( bbp_get_forum_post_type() === get_post_type( $post_id ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_forum', $retval, $post_id );
 }
@@ -151,8 +153,9 @@ function bbp_is_forum_archive() {
 	$retval = false;
 
 	// In forum archive
-	if ( is_post_type_archive( bbp_get_forum_post_type() ) || bbp_is_query_name( 'bbp_forum_archive' ) || !empty( $wp_query->bbp_show_topics_on_root ) )
+	if ( is_post_type_archive( bbp_get_forum_post_type() ) || bbp_is_query_name( 'bbp_forum_archive' ) || !empty( $wp_query->bbp_show_topics_on_root ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_forum_archive', $retval );
 }
@@ -175,12 +178,14 @@ function bbp_is_single_forum() {
 	$retval = false;
 
 	// Edit is not a single forum
-	if ( bbp_is_forum_edit() )
+	if ( bbp_is_forum_edit() ) {
 		return false;
+	}
 
 	// Single and a match
-	if ( is_singular( bbp_get_forum_post_type() ) || bbp_is_query_name( 'bbp_single_forum' ) )
+	if ( is_singular( bbp_get_forum_post_type() ) || bbp_is_query_name( 'bbp_single_forum' ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_forum', $retval );
 }
@@ -200,12 +205,13 @@ function bbp_is_forum_edit() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_forum_edit ) && ( $wp_query->bbp_is_forum_edit === true ) )
+	if ( !empty( $wp_query->bbp_is_forum_edit ) && ( $wp_query->bbp_is_forum_edit === true ) ) {
 		$retval = true;
 
 	// Editing in admin
-	elseif ( is_admin() && ( 'post.php' === $pagenow ) && ( get_post_type() === bbp_get_forum_post_type() ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) )
+	} elseif ( is_admin() && ( 'post.php' === $pagenow ) && ( get_post_type() === bbp_get_forum_post_type() ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_forum_edit', $retval );
 }
@@ -226,8 +232,9 @@ function bbp_is_topic( $post_id = 0 ) {
 	$retval = false;
 
 	// Supplied ID is a topic
-	if ( !empty( $post_id ) && ( bbp_get_topic_post_type() === get_post_type( $post_id ) ) )
+	if ( !empty( $post_id ) && ( bbp_get_topic_post_type() === get_post_type( $post_id ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic', $retval, $post_id );
 }
@@ -250,12 +257,14 @@ function bbp_is_single_topic() {
 	$retval = false;
 
 	// Edit is not a single topic
-	if ( bbp_is_topic_edit() )
+	if ( bbp_is_topic_edit() ) {
 		return false;
+	}
 
 	// Single and a match
-	if ( is_singular( bbp_get_topic_post_type() ) || bbp_is_query_name( 'bbp_single_topic' ) )
+	if ( is_singular( bbp_get_topic_post_type() ) || bbp_is_query_name( 'bbp_single_topic' ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_topic', $retval );
 }
@@ -276,8 +285,9 @@ function bbp_is_topic_archive() {
 	$retval = false;
 
 	// In topic archive
-	if ( is_post_type_archive( bbp_get_topic_post_type() ) || bbp_is_query_name( 'bbp_topic_archive' ) )
+	if ( is_post_type_archive( bbp_get_topic_post_type() ) || bbp_is_query_name( 'bbp_topic_archive' ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic_archive', $retval );
 }
@@ -297,12 +307,13 @@ function bbp_is_topic_edit() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_topic_edit ) && ( $wp_query->bbp_is_topic_edit === true ) )
+	if ( !empty( $wp_query->bbp_is_topic_edit ) && ( $wp_query->bbp_is_topic_edit === true ) ) {
 		$retval = true;
 
 	// Editing in admin
-	elseif ( is_admin() && ( 'post.php' === $pagenow ) && ( get_post_type() === bbp_get_topic_post_type() ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) )
+	} elseif ( is_admin() && ( 'post.php' === $pagenow ) && ( get_post_type() === bbp_get_topic_post_type() ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic_edit', $retval );
 }
@@ -321,8 +332,9 @@ function bbp_is_topic_merge() {
 	$retval = false;
 
 	// Check topic edit and GET params
-	if ( bbp_is_topic_edit() && !empty( $_GET['action'] ) && ( 'merge' === $_GET['action'] ) )
+	if ( bbp_is_topic_edit() && !empty( $_GET['action'] ) && ( 'merge' === $_GET['action'] ) ) {
 		return true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic_merge', $retval );
 }
@@ -341,8 +353,9 @@ function bbp_is_topic_split() {
 	$retval = false;
 
 	// Check topic edit and GET params
-	if ( bbp_is_topic_edit() && !empty( $_GET['action'] ) && ( 'split' === $_GET['action'] ) )
+	if ( bbp_is_topic_edit() && !empty( $_GET['action'] ) && ( 'split' === $_GET['action'] ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic_split', $retval );
 }
@@ -357,19 +370,22 @@ function bbp_is_topic_split() {
 function bbp_is_topic_tag() {
 
 	// Bail if topic-tags are off
-	if ( ! bbp_allow_topic_tags() )
+	if ( ! bbp_allow_topic_tags() ) {
 		return false;
+	}
 
 	// Return false if editing a topic tag
-	if ( bbp_is_topic_tag_edit() )
+	if ( bbp_is_topic_tag_edit() ) {
 		return false;
+	}
 
 	// Assume false
 	$retval = false;
 
 	// Check tax and query vars
-	if ( is_tax( bbp_get_topic_tag_tax_id() ) || !empty( bbpress()->topic_query->is_tax ) || get_query_var( 'bbp_topic_tag' ) )
+	if ( is_tax( bbp_get_topic_tag_tax_id() ) || !empty( bbpress()->topic_query->is_tax ) || get_query_var( 'bbp_topic_tag' ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic_tag', $retval );
 }
@@ -386,19 +402,21 @@ function bbp_is_topic_tag_edit() {
 	global $wp_query, $pagenow, $taxnow;
 
 	// Bail if topic-tags are off
-	if ( ! bbp_allow_topic_tags() )
+	if ( ! bbp_allow_topic_tags() ) {
 		return false;
+	}
 
 	// Assume false
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_topic_tag_edit ) && ( true === $wp_query->bbp_is_topic_tag_edit ) )
+	if ( !empty( $wp_query->bbp_is_topic_tag_edit ) && ( true === $wp_query->bbp_is_topic_tag_edit ) ) {
 		$retval = true;
 
 	// Editing in admin
-	elseif ( is_admin() && ( 'edit-tags.php' === $pagenow ) && ( bbp_get_topic_tag_tax_id() === $taxnow ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) )
+	} elseif ( is_admin() && ( 'edit-tags.php' === $pagenow ) && ( bbp_get_topic_tag_tax_id() === $taxnow ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topic_tag_edit', $retval );
 }
@@ -426,8 +444,9 @@ function bbp_is_custom_post_type( $the_post = false ) {
 		bbp_get_forum_post_type(),
 		bbp_get_topic_post_type(),
 		bbp_get_reply_post_type()
-	) ) )
+	) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_custom_post_type', $retval, $the_post );
 }
@@ -448,8 +467,9 @@ function bbp_is_reply( $post_id = 0 ) {
 	$retval = false;
 
 	// Supplied ID is a reply
-	if ( !empty( $post_id ) && ( bbp_get_reply_post_type() === get_post_type( $post_id ) ) )
+	if ( !empty( $post_id ) && ( bbp_get_reply_post_type() === get_post_type( $post_id ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_reply', $retval, $post_id );
 }
@@ -469,12 +489,13 @@ function bbp_is_reply_edit() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_reply_edit ) && ( true === $wp_query->bbp_is_reply_edit ) )
+	if ( !empty( $wp_query->bbp_is_reply_edit ) && ( true === $wp_query->bbp_is_reply_edit ) ) {
 		$retval = true;
 
 	// Editing in admin
-	elseif ( is_admin() && ( 'post.php' === $pagenow ) && ( get_post_type() === bbp_get_reply_post_type() ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) )
+	} elseif ( is_admin() && ( 'post.php' === $pagenow ) && ( get_post_type() === bbp_get_reply_post_type() ) && ( !empty( $_GET['action'] ) && ( 'edit' === $_GET['action'] ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_reply_edit', $retval );
 }
@@ -491,8 +512,9 @@ function bbp_is_reply_move() {
 	$retval = false;
 
 	// Check reply edit and GET params
-	if ( bbp_is_reply_edit() && !empty( $_GET['action'] ) && ( 'move' === $_GET['action'] ) )
+	if ( bbp_is_reply_edit() && !empty( $_GET['action'] ) && ( 'move' === $_GET['action'] ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_reply_move', $retval );
 }
@@ -515,12 +537,14 @@ function bbp_is_single_reply() {
 	$retval = false;
 
 	// Edit is not a single reply
-	if ( bbp_is_reply_edit() )
+	if ( bbp_is_reply_edit() ) {
 		return false;
+	}
 
 	// Single and a match
-	if ( is_singular( bbp_get_reply_post_type() ) || ( bbp_is_query_name( 'bbp_single_reply' ) ) )
+	if ( is_singular( bbp_get_reply_post_type() ) || ( bbp_is_query_name( 'bbp_single_reply' ) ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_reply', $retval );
 }
@@ -539,8 +563,9 @@ function bbp_is_favorites() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_favs ) && ( true === $wp_query->bbp_is_single_user_favs ) )
+	if ( !empty( $wp_query->bbp_is_single_user_favs ) && ( true === $wp_query->bbp_is_single_user_favs ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_favorites', $retval );
 }
@@ -559,8 +584,9 @@ function bbp_is_subscriptions() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_subs ) && ( true === $wp_query->bbp_is_single_user_subs ) )
+	if ( !empty( $wp_query->bbp_is_single_user_subs ) && ( true === $wp_query->bbp_is_single_user_subs ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_subscriptions', $retval );
 }
@@ -580,8 +606,9 @@ function bbp_is_topics_created() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_topics ) && ( true === $wp_query->bbp_is_single_user_topics ) )
+	if ( !empty( $wp_query->bbp_is_single_user_topics ) && ( true === $wp_query->bbp_is_single_user_topics ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_topics_created', $retval );
 }
@@ -601,8 +628,9 @@ function bbp_is_replies_created() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_replies ) && ( true === $wp_query->bbp_is_single_user_replies ) )
+	if ( !empty( $wp_query->bbp_is_single_user_replies ) && ( true === $wp_query->bbp_is_single_user_replies ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_replies_created', $retval );
 }
@@ -624,8 +652,9 @@ function bbp_is_user_home() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_home ) && ( true === $wp_query->bbp_is_single_user_home ) )
+	if ( !empty( $wp_query->bbp_is_single_user_home ) && ( true === $wp_query->bbp_is_single_user_home ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_user_home', $retval );
 }
@@ -645,8 +674,9 @@ function bbp_is_user_home_edit() {
 	// Assume false
 	$retval = false;
 
-	if ( bbp_is_user_home() && bbp_is_single_user_edit() )
+	if ( bbp_is_user_home() && bbp_is_single_user_edit() ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_user_home_edit', $retval );
 }
@@ -666,8 +696,9 @@ function bbp_is_single_user() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user ) && ( true === $wp_query->bbp_is_single_user ) )
+	if ( !empty( $wp_query->bbp_is_single_user ) && ( true === $wp_query->bbp_is_single_user ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_user', $retval );
 }
@@ -687,8 +718,9 @@ function bbp_is_single_user_edit() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_edit ) && ( true === $wp_query->bbp_is_single_user_edit ) )
+	if ( !empty( $wp_query->bbp_is_single_user_edit ) && ( true === $wp_query->bbp_is_single_user_edit ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_user_edit', $retval );
 }
@@ -708,8 +740,9 @@ function bbp_is_single_user_profile() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_profile ) && ( true === $wp_query->bbp_is_single_user_profile ) )
+	if ( !empty( $wp_query->bbp_is_single_user_profile ) && ( true === $wp_query->bbp_is_single_user_profile ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_user_profile', $retval );
 }
@@ -729,8 +762,9 @@ function bbp_is_single_user_topics() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_topics ) && ( true === $wp_query->bbp_is_single_user_topics ) )
+	if ( !empty( $wp_query->bbp_is_single_user_topics ) && ( true === $wp_query->bbp_is_single_user_topics ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_user_topics', $retval );
 }
@@ -750,8 +784,9 @@ function bbp_is_single_user_replies() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_single_user_replies ) && ( true === $wp_query->bbp_is_single_user_replies ) )
+	if ( !empty( $wp_query->bbp_is_single_user_replies ) && ( true === $wp_query->bbp_is_single_user_replies ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_user_replies', $retval );
 }
@@ -772,12 +807,14 @@ function bbp_is_single_view() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_view ) && ( true === $wp_query->bbp_is_view ) )
+	if ( !empty( $wp_query->bbp_is_view ) && ( true === $wp_query->bbp_is_view ) ) {
 		$retval = true;
+	}
 
 	// Check query name
-	if ( empty( $retval ) && bbp_is_query_name( 'bbp_single_view' ) )
+	if ( empty( $retval ) && bbp_is_query_name( 'bbp_single_view' ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_single_view', $retval );
 }
@@ -795,23 +832,27 @@ function bbp_is_search() {
 	global $wp_query;
 
 	// Bail if search is disabled
-	if ( ! bbp_allow_search() )
+	if ( ! bbp_allow_search() ) {
 		return false;
+	}
 
 	// Assume false
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_search ) && ( true === $wp_query->bbp_is_search ) )
+	if ( !empty( $wp_query->bbp_is_search ) && ( true === $wp_query->bbp_is_search ) ) {
 		$retval = true;
+	}
 
 	// Check query name
-	if ( empty( $retval ) && bbp_is_query_name( bbp_get_search_rewrite_id() ) )
+	if ( empty( $retval ) && bbp_is_query_name( bbp_get_search_rewrite_id() ) ) {
 		$retval = true;
+	}
 
 	// Check $_GET
-	if ( empty( $retval ) && isset( $_REQUEST[ bbp_get_search_rewrite_id() ] ) && empty( $_REQUEST[ bbp_get_search_rewrite_id() ] ) )
+	if ( empty( $retval ) && isset( $_REQUEST[ bbp_get_search_rewrite_id() ] ) && empty( $_REQUEST[ bbp_get_search_rewrite_id() ] ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_search', $retval );
 }
@@ -829,23 +870,27 @@ function bbp_is_search_results() {
 	global $wp_query;
 
 	// Bail if search is disabled
-	if ( ! bbp_allow_search() )
+	if ( ! bbp_allow_search() ) {
 		return false;
+	}
 
 	// Assume false
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_search_terms ) )
+	if ( !empty( $wp_query->bbp_search_terms ) ) {
 		$retval = true;
+	}
 
 	// Check query name
-	if ( empty( $retval ) && bbp_is_query_name( 'bbp_search_results' ) )
+	if ( empty( $retval ) && bbp_is_query_name( 'bbp_search_results' ) ) {
 		$retval = true;
+	}
 
 	// Check $_REQUEST
-	if ( empty( $retval ) && !empty( $_REQUEST[ bbp_get_search_rewrite_id() ] ) )
+	if ( empty( $retval ) && !empty( $_REQUEST[ bbp_get_search_rewrite_id() ] ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_search_results', $retval );
 }
@@ -865,8 +910,9 @@ function bbp_is_edit() {
 	$retval = false;
 
 	// Check query
-	if ( !empty( $wp_query->bbp_is_edit ) && ( $wp_query->bbp_is_edit === true ) )
+	if ( !empty( $wp_query->bbp_is_edit ) && ( $wp_query->bbp_is_edit === true ) ) {
 		$retval = true;
+	}
 
 	return (bool) apply_filters( 'bbp_is_edit', $retval );
 }
@@ -1144,7 +1190,9 @@ function is_bbpress() {
  *
  * @since bbPress (r2815)
  *
- * @param string $url Pass a URL to redirect to
+ * @param mixed $args This function supports these arguments:
+ *  - action: The action being taken
+ *  - context: The context the action is being taken from
  * @uses add_query_arg() To add a arg to the url
  * @uses site_url() Toget the site url
  * @uses apply_filters() Calls 'bbp_wp_login_action' with the url and args
@@ -1238,8 +1286,9 @@ function bbp_sanitize_val( $request = '', $input_type = 'text' ) {
 	function bbp_get_sanitize_val( $request = '', $input_type = 'text' ) {
 
 		// Check that requested
-		if ( empty( $_REQUEST[$request] ) )
+		if ( empty( $_REQUEST[ $request ] ) ) {
 			return false;
+		}
 
 		// Set request varaible
 		$pre_ret_val = $_REQUEST[$request];
@@ -1248,7 +1297,7 @@ function bbp_sanitize_val( $request = '', $input_type = 'text' ) {
 		switch ( $input_type ) {
 			case 'text'     :
 			case 'textarea' :
-				$retval = esc_attr( stripslashes( $pre_ret_val ) );
+				$retval = esc_attr( wp_unslash( $pre_ret_val ) );
 				break;
 
 			case 'password' :
@@ -1271,7 +1320,8 @@ function bbp_sanitize_val( $request = '', $input_type = 'text' ) {
  * tab index by default.
  *
  * @since bbPress (r2810)
- *
+ * @deprecated since version 2.6
+ * @link https://bbpress.trac.wordpress.org/attachment/ticket/2714 Trac Ticket
  * @param int $auto_increment Optional. Default true. Set to false to prevent
  *                             increment
  */
@@ -1287,7 +1337,8 @@ function bbp_tab_index( $auto_increment = true ) {
 	 * increment the global tab index by default.
 	 *
 	 * @since bbPress (r2810)
-	 *
+	 * @deprecated bbPress (r5560)
+	 * @link https://bbpress.trac.wordpress.org/attachment/ticket/2714 Trac Ticket
 	 * @uses apply_filters Allows return value to be filtered
 	 * @param int $auto_increment Optional. Default true. Set to false to
 	 *                             prevent the increment
@@ -1296,8 +1347,9 @@ function bbp_tab_index( $auto_increment = true ) {
 	function bbp_get_tab_index( $auto_increment = true ) {
 		$bbp = bbpress();
 
-		if ( true === $auto_increment )
+		if ( true === $auto_increment ) {
 			++$bbp->tab_index;
+		}
 
 		return apply_filters( 'bbp_get_tab_index', (int) $bbp->tab_index );
 	}
@@ -1338,7 +1390,7 @@ function bbp_dropdown( $args = '' ) {
 	 *  - walker: Which walker to use? Defaults to
 	 *             {@link BBP_Walker_Dropdown}
 	 *  - select_id: ID of the select box. Defaults to 'bbp_forum_id'
-	 *  - tab: Tabindex value. False or integer
+	 *  - tab: Deprecated. Tabindex value. False or integer
 	 *  - options_only: Show only <options>? No <select>?
 	 *  - show_none: Boolean or String __( '(No Forum)', 'bbpress' )
 	 *  - disable_categories: Disable forum categories and closed forums?
@@ -1378,7 +1430,7 @@ function bbp_dropdown( $args = '' ) {
 
 			// Output-related
 			'select_id'          => 'bbp_forum_id',
-			'tab'                => bbp_get_tab_index(),
+			'tab'                => false,
 			'options_only'       => false,
 			'show_none'          => false,
 			'disable_categories' => true,
@@ -1416,7 +1468,7 @@ function bbp_dropdown( $args = '' ) {
 				'numberposts' => $r['numberposts'],
 				'orderby'     => $r['orderby'],
 				'order'       => $r['order'],
-			) );			
+			) );
 		}
 
 		/** Drop Down *********************************************************/
@@ -1506,12 +1558,9 @@ function bbp_forum_form_fields() {
 		<input type="hidden" name="action"       id="bbp_post_action" value="bbp-edit-forum" />
 		<input type="hidden" name="bbp_forum_id" id="bbp_forum_id"    value="<?php bbp_forum_id(); ?>" />
 
-		<?php
-
-		if ( current_user_can( 'unfiltered_html' ) )
+		<?php if ( current_user_can( 'unfiltered_html' ) ) :
 			wp_nonce_field( 'bbp-unfiltered-html-forum_' . bbp_get_forum_id(), '_bbp_unfiltered_html_forum', false );
-
-		?>
+		endif; ?>
 
 		<?php wp_nonce_field( 'bbp-edit-forum_' . bbp_get_forum_id() );
 
@@ -1525,12 +1574,9 @@ function bbp_forum_form_fields() {
 
 		<input type="hidden" name="action" id="bbp_post_action" value="bbp-new-forum" />
 
-		<?php
-
-		if ( current_user_can( 'unfiltered_html' ) )
+		<?php if ( current_user_can( 'unfiltered_html' ) ) :
 			wp_nonce_field( 'bbp-unfiltered-html-forum_new', '_bbp_unfiltered_html_forum', false );
-
-		?>
+		endif; ?>
 
 		<?php wp_nonce_field( 'bbp-new-forum' );
 
@@ -1555,12 +1601,9 @@ function bbp_topic_form_fields() {
 		<input type="hidden" name="action"       id="bbp_post_action" value="bbp-edit-topic" />
 		<input type="hidden" name="bbp_topic_id" id="bbp_topic_id"    value="<?php bbp_topic_id(); ?>" />
 
-		<?php
-
-		if ( current_user_can( 'unfiltered_html' ) )
+		<?php if ( current_user_can( 'unfiltered_html' ) ) :
 			wp_nonce_field( 'bbp-unfiltered-html-topic_' . bbp_get_topic_id(), '_bbp_unfiltered_html_topic', false );
-
-		?>
+		endif; ?>
 
 		<?php wp_nonce_field( 'bbp-edit-topic_' . bbp_get_topic_id() );
 
@@ -1574,8 +1617,9 @@ function bbp_topic_form_fields() {
 
 		<input type="hidden" name="action" id="bbp_post_action" value="bbp-new-topic" />
 
-		<?php if ( current_user_can( 'unfiltered_html' ) )
-			wp_nonce_field( 'bbp-unfiltered-html-topic_new', '_bbp_unfiltered_html_topic', false ); ?>
+		<?php if ( current_user_can( 'unfiltered_html' ) ) :
+			wp_nonce_field( 'bbp-unfiltered-html-topic_new', '_bbp_unfiltered_html_topic', false );
+		endif; ?>
 
 		<?php wp_nonce_field( 'bbp-new-topic' );
 
@@ -1600,8 +1644,9 @@ function bbp_reply_form_fields() {
 		<input type="hidden" name="bbp_reply_id"    id="bbp_reply_id"    value="<?php bbp_reply_id(); ?>" />
 		<input type="hidden" name="action"          id="bbp_post_action" value="bbp-edit-reply" />
 
-		<?php if ( current_user_can( 'unfiltered_html' ) )
-			wp_nonce_field( 'bbp-unfiltered-html-reply_' . bbp_get_reply_id(), '_bbp_unfiltered_html_reply', false ); ?>
+		<?php if ( current_user_can( 'unfiltered_html' ) ) :
+			wp_nonce_field( 'bbp-unfiltered-html-reply_' . bbp_get_reply_id(), '_bbp_unfiltered_html_reply', false );
+		endif; ?>
 
 		<?php wp_nonce_field( 'bbp-edit-reply_' . bbp_get_reply_id() );
 
@@ -1611,15 +1656,15 @@ function bbp_reply_form_fields() {
 		<input type="hidden" name="bbp_reply_to"    id="bbp_reply_to"    value="<?php bbp_form_reply_to(); ?>" />
 		<input type="hidden" name="action"          id="bbp_post_action" value="bbp-new-reply" />
 
-		<?php if ( current_user_can( 'unfiltered_html' ) )
-			wp_nonce_field( 'bbp-unfiltered-html-reply_' . bbp_get_topic_id(), '_bbp_unfiltered_html_reply', false ); ?>
+		<?php if ( current_user_can( 'unfiltered_html' ) ) :
+			wp_nonce_field( 'bbp-unfiltered-html-reply_' . bbp_get_topic_id(), '_bbp_unfiltered_html_reply', false );
+		endif; ?>
 
 		<?php wp_nonce_field( 'bbp-new-reply' );
 
 		// Show redirect field if not viewing a specific topic
 		if ( bbp_is_query_name( 'bbp_single_topic' ) ) :
 			bbp_redirect_to_field( get_permalink() );
-
 		endif;
 	endif;
 }
@@ -1730,7 +1775,7 @@ function bbp_the_content( $args = array() ) {
 			'wpautop'           => true,
 			'media_buttons'     => false,
 			'textarea_rows'     => '12',
-			'tabindex'          => bbp_get_tab_index(),
+			'tabindex'          => false,
 			'tabfocus_elements' => 'bbp_topic_title,bbp_topic_tags',
 			'editor_class'      => 'bbp-the-content',
 			'tinymce'           => false,
@@ -1792,9 +1837,12 @@ function bbp_the_content( $args = array() ) {
 		 * Note that we do not use esc_textarea() here to prevent double
 		 * escaping the editable output, mucking up existing content.
 		 */
-		else : ?>
+		else :
 
-			<textarea id="bbp_<?php echo esc_attr( $r['context'] ); ?>_content" class="<?php echo esc_attr( $r['editor_class'] ); ?>" name="bbp_<?php echo esc_attr( $r['context'] ); ?>_content" cols="60" rows="<?php echo esc_attr( $r['textarea_rows'] ); ?>" tabindex="<?php echo esc_attr( $r['tabindex'] ); ?>"><?php echo $post_content; ?></textarea>
+			// Setup the tab index attribute
+			$tab = !empty( $r['tab'] ) ? ' tabindex="' . intval( $r['tab'] ) . '"' : ''; ?>
+
+			<textarea id="bbp_<?php echo esc_attr( $r['context'] ); ?>_content" class="<?php echo esc_attr( $r['editor_class'] ); ?>" name="bbp_<?php echo esc_attr( $r['context'] ); ?>_content" cols="60" rows="<?php echo esc_attr( $r['textarea_rows'] ); ?>" <?php echo $tab; ?>><?php echo $post_content; ?></textarea>
 
 		<?php endif;
 
@@ -1864,7 +1912,7 @@ function bbp_get_teeny_mce_buttons( $buttons = array() ) {
  *
  * @since bbPress (r4606)
  *
- * @param array $buttons
+ * @param array $settings
  * @see quicktags_settings
  * @return array Quicktags settings
  */
@@ -1959,10 +2007,11 @@ function bbp_view_title( $view = '' ) {
 		$bbp = bbpress();
 
 		$view = bbp_get_view_id( $view );
-		if ( empty( $view ) )
+		if ( empty( $view ) ) {
 			return false;
+		}
 
-		return $bbp->views[$view]['title'];
+		return $bbp->views[ $view ]['title'];
 	}
 
 /**
@@ -1993,8 +2042,9 @@ function bbp_view_url( $view = false ) {
 		global $wp_rewrite;
 
 		$view = bbp_get_view_id( $view );
-		if ( empty( $view ) )
+		if ( empty( $view ) ) {
 			return home_url();
+		}
 
 		// Pretty permalinks
 		if ( $wp_rewrite->using_permalinks() ) {
@@ -2114,8 +2164,9 @@ function bbp_breadcrumb( $args = array() ) {
 	function bbp_get_breadcrumb( $args = array() ) {
 
 		// Turn off breadcrumbs
-		if ( apply_filters( 'bbp_no_breadcrumb', is_front_page() ) )
+		if ( apply_filters( 'bbp_no_breadcrumb', is_front_page() ) ) {
 			return;
+		}
 
 		// Define variables
 		$front_id         = $root_id                                 = 0;
@@ -2294,8 +2345,9 @@ function bbp_breadcrumb( $args = array() ) {
 				$parent = get_post( $parent_id );
 
 				// Skip parent if empty or error
-				if ( empty( $parent ) || is_wp_error( $parent ) )
+				if ( empty( $parent ) || is_wp_error( $parent ) ) {
 					continue;
+				}
 
 				// Switch through post_type to ensure correct filters are applied
 				switch ( $parent->post_type ) {
@@ -2426,8 +2478,9 @@ function bbp_allowed_tags() {
 function bbp_template_notices() {
 
 	// Bail if no notices or errors
-	if ( !bbp_has_errors() )
+	if ( !bbp_has_errors() ) {
 		return;
+	}
 
 	// Define local variable(s)
 	$errors = $messages = array();
@@ -2454,10 +2507,10 @@ function bbp_template_notices() {
 	// Display errors first...
 	if ( !empty( $errors ) ) : ?>
 
-		<div class="bbp-template-notice error">
-			<p>
-				<?php echo implode( "</p>\n<p>", $errors ); ?>
-			</p>
+		<div class="bbp-template-notice error" role="alert" tabindex="-1">
+			<ul>
+				<li><?php echo implode( "</li>\n<li>", $errors ); ?></li>
+			</ul>
 		</div>
 
 	<?php endif;
@@ -2466,9 +2519,9 @@ function bbp_template_notices() {
 	if ( !empty( $messages ) ) : ?>
 
 		<div class="bbp-template-notice">
-			<p>
-				<?php echo implode( "</p>\n<p>", $messages ); ?>
-			</p>
+			<ul>
+				<li><?php echo implode( "</li>\n<li>", $messages ); ?></li>
+			</ul>
 		</div>
 
 	<?php endif;
@@ -2669,15 +2722,17 @@ function bbp_title( $title = '', $sep = '&raquo;', $seplocation = '' ) {
 	$new_title = apply_filters( 'bbp_raw_title', $new_title, $sep, $seplocation );
 
 	// Compare new title with original title
-	if ( $new_title === $title )
+	if ( $new_title === $title ) {
 		return $title;
+	}
 
 	// Temporary separator, for accurate flipping, if necessary
 	$t_sep  = '%WP_TITILE_SEP%';
 	$prefix = '';
 
-	if ( !empty( $new_title ) )
+	if ( !empty( $new_title ) ) {
 		$prefix = " $sep ";
+	}
 
 	// sep on right, so reverse the order
 	if ( 'right' === $seplocation ) {

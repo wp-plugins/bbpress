@@ -27,12 +27,12 @@ class Example extends BBP_Converter_Base {
 
 		// Setup table joins for the forum section at the base of this section
 
-		// Forum id (Stored in postmeta)
+		// Old forum id (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'forums_table',
 			'from_fieldname'  => 'the_forum_id',
 			'to_type'         => 'forum',
-			'to_fieldname'    => '_bbp_forum_id'
+			'to_fieldname'    => '_bbp_old_forum_id'
 		);
 
 		// Forum parent id (If no parent, then 0. Stored in postmeta)
@@ -40,7 +40,7 @@ class Example extends BBP_Converter_Base {
 			'from_tablename'  => 'forums_table',
 			'from_fieldname'  => 'the_parent_id',
 			'to_type'         => 'forum',
-			'to_fieldname'    => '_bbp_forum_parent_id'
+			'to_fieldname'    => '_bbp_old_forum_parent_id'
 		);
 
 		// Forum topic count (Stored in postmeta)
@@ -109,6 +109,24 @@ class Example extends BBP_Converter_Base {
 			'to_fieldname'    => 'menu_order'
 		);
 
+		// Forum type (Category = 0 or Forum = 1, Stored in postmeta)
+		$this->field_map[] = array(
+			'from_tablename'  => 'forums_table',
+			'from_fieldname'  => 'the_forum_type',
+			'to_type'         => 'forum',
+			'to_fieldname'    => '_bbp_forum_type',
+			'callback_method' => 'callback_forum_type'
+		);
+
+		// Forum status (Unlocked = 0 or Locked = 1, Stored in postmeta)
+		$this->field_map[] = array(
+			'from_tablename'  => 'forums_table',
+			'from_fieldname'  => 'the_forum_status',
+			'to_type'         => 'forum',
+			'to_fieldname'    => '_bbp_status',
+			'callback_method' => 'callback_forum_status'
+		);
+
 		// Forum dates.
 		$this->field_map[] = array(
 			'to_type'         => 'forum',
@@ -146,12 +164,12 @@ class Example extends BBP_Converter_Base {
 
 		// Setup table joins for the topic section at the base of this section
 
-		// Topic id (Stored in postmeta)
+		// Old topic id (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'topics_table',
 			'from_fieldname'  => 'the_topic_id',
 			'to_type'         => 'topic',
-			'to_fieldname'    => '_bbp_topic_id'
+			'to_fieldname'    => '_bbp_old_topic_id'
 		);
 
 		// Topic reply count (Stored in postmeta)
@@ -229,7 +247,7 @@ class Example extends BBP_Converter_Base {
 			'from_tablename'  => 'topics_table',
 			'from_fieldname'  => 'the_topic_status',
 			'to_type'         => 'topic',
-			'to_fieldname'    => 'post_status',
+			'to_fieldname'    => '_bbp_old_closed_status_id',
 			'callback_method' => 'callback_topic_status'
 		);
 
@@ -242,12 +260,12 @@ class Example extends BBP_Converter_Base {
 			'callback_method' => 'callback_forumid'
 		);
 
-		// Sticky status (Stored in postmeta))
+		// Sticky status (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'topics_table',
 			'from_fieldname'  => 'the_topic_sticky_status',
 			'to_type'         => 'topic',
-			'to_fieldname'    => '_bbp_old_sticky_status',
+			'to_fieldname'    => '_bbp_old_sticky_status_id',
 			'callback_method' => 'callback_sticky_status'
 		);
 
@@ -359,12 +377,12 @@ class Example extends BBP_Converter_Base {
 
 		// Setup table joins for the reply section at the base of this section
 
-		// Reply id (Stored in postmeta)
+		// Old reply id (Stored in postmeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'replies_table',
 			'from_fieldname'  => 'the_reply_id',
 			'to_type'         => 'reply',
-			'to_fieldname'    => '_bbp_post_id'
+			'to_fieldname'    => '_bbp_old_reply_id'
 		);
 
 		// Reply parent forum id (If no parent, then 0. Stored in postmeta)
@@ -373,7 +391,7 @@ class Example extends BBP_Converter_Base {
 			'from_fieldname'  => 'the_reply_parent_forum_id',
 			'to_type'         => 'reply',
 			'to_fieldname'    => '_bbp_forum_id',
-			'callback_method' => 'callback_topicid_to_forumid'
+			'callback_method' => 'callback_forumid'
 		);
 
 		// Reply parent topic id (If no parent, then 0. Stored in postmeta)
@@ -477,15 +495,15 @@ class Example extends BBP_Converter_Base {
 
 		// Setup table joins for the user section at the base of this section
 
-		// Store old User id (Stored in usermeta)
+		// Store old user id (Stored in usermeta)
 		$this->field_map[] = array(
 			'from_tablename'  => 'users_table',
 			'from_fieldname'  => 'the_users_id',
 			'to_type'         => 'user',
-			'to_fieldname'    => '_bbp_user_id'
+			'to_fieldname'    => '_bbp_old_user_id'
 		);
 
-		// Store old User password (Stored in usermeta serialized with salt)
+		// Store old user password (Stored in usermeta serialized with salt)
 		$this->field_map[] = array(
 			'from_tablename'  => 'users_table',
 			'from_fieldname'  => 'the_users_password',
@@ -494,7 +512,7 @@ class Example extends BBP_Converter_Base {
 			'callback_method' => 'callback_savepass'
 		);
 
-		// Store old User Salt (This is only used for the SELECT row info for the above password save)
+		// Store old user salt (This is only used for the SELECT row info for the above password save)
 		$this->field_map[] = array(
 			'from_tablename'  => 'users_table',
 			'from_fieldname'  => 'the_users_password_salt',

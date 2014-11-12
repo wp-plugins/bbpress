@@ -10,7 +10,7 @@
  */
 
 // Exit if accessed directly
-if ( !defined( 'ABSPATH' ) ) exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Main BBP_Converter Class
@@ -27,23 +27,26 @@ class BBP_Converter {
 	public function __construct() {
 
 		// "I wonder where I'll float next."
-		if ( empty( $_SERVER['REQUEST_METHOD'] ) )
+		if ( empty( $_SERVER['REQUEST_METHOD'] ) ) {
 			return;
+		}
 
 		// Bail if request is not correct
 		switch ( strtoupper( $_SERVER['REQUEST_METHOD'] ) ) {
 
 			// Converter is converting
 			case 'POST' :
-				if ( ( empty( $_POST['action'] ) || ( 'bbconverter_process' !=  $_POST['action'] ) ) )
+				if ( ( empty( $_POST['action'] ) || ( 'bbconverter_process' !=  $_POST['action'] ) ) ) {
 					return;
+				}
 
 				break;
 
 			// Some other admin page
 			case 'GET'  :
-				if ( ( empty( $_GET['page'] ) || ( 'bbp-converter' !=  $_GET['page'] ) ) )
+				if ( ( empty( $_GET['page'] ) || ( 'bbp-converter' !=  $_GET['page'] ) ) ) {
 					return;
+				}
 
 				break;
 		}
@@ -215,7 +218,7 @@ class BBP_Converter {
 			}
 
 			function bbconverter_start() {
-				if( false == bbconverter_is_running ) {
+				if( false === bbconverter_is_running ) {
 					bbconverter_is_running = true;
 					jQuery('#bbp-converter-start').hide();
 					jQuery('#bbp-converter-stop').show();
@@ -245,7 +248,7 @@ class BBP_Converter {
 			function bbconverter_success(response) {
 				bbconverter_log(response);
 
-				if ( response == '<p class="loading"><?php esc_html_e( 'Conversion Complete', 'bbpress' ); ?></p>' || response.indexOf('error') > -1 ) {
+				if ( response === '<p class="loading"><?php esc_html_e( 'Conversion Complete', 'bbpress' ); ?></p>' || response.indexOf('error') > -1 ) {
 					bbconverter_log('<p>Repair any missing information: <a href="<?php echo admin_url(); ?>tools.php?page=bbp-repair">Continue</a></p>');
 					bbconverter_stop();
 				} else if( bbconverter_is_running ) { // keep going
@@ -258,7 +261,7 @@ class BBP_Converter {
 			}
 
 			function bbconverter_log(text) {
-				if ( jQuery('#bbp-converter-message').css('display') == 'none' ) {
+				if ( jQuery('#bbp-converter-message').css('display') === 'none' ) {
 					jQuery('#bbp-converter-message').show();
 				}
 				if ( text ) {
@@ -286,8 +289,9 @@ class BBP_Converter {
 		$after  = '</p>';
 		$query  = get_option( '_bbp_converter_query' );
 
-		if ( ! empty( $query ) )
+		if ( ! empty( $query ) ) {
 			$before = '<p class="loading" title="' . esc_attr( $query ) . '">';
+		}
 
 		echo $before . $output . $after;
 	}
@@ -323,8 +327,9 @@ class BBP_Converter {
 
 		// Bail if platform did not get saved
 		$platform = !empty( $_POST['_bbp_converter_platform' ] ) ? $_POST['_bbp_converter_platform' ] : get_option( '_bbp_converter_platform' );
-		if ( empty( $platform ) )
+		if ( empty( $platform ) ) {
 			return;
+		}
 
 		// Include the appropriate converter.
 		$converter = bbp_new_converter( $platform );
@@ -437,8 +442,23 @@ class BBP_Converter {
 
 				break;
 
-			// STEP 7. Stick topics.
+			// STEP 7. Convert anonymous topic authors.
 			case 7 :
+				if ( $converter->convert_anonymous_topic_authors( $start ) ) {
+					update_option( '_bbp_converter_step',  $step + 1 );
+					update_option( '_bbp_converter_start', 0         );
+					if ( empty( $start ) ) {
+						$this->converter_output( __( 'No anonymous topic authors to convert', 'bbpress' ) );
+					}
+				} else {
+					update_option( '_bbp_converter_start', $max + 1 );
+					$this->converter_output( sprintf( __( 'Converting anonymous topic authors (%1$s - %2$s)', 'bbpress' ), $min, $max ) );
+				}
+
+				break;
+
+			// STEP 8. Stick topics.
+			case 8 :
 				if ( $converter->convert_topic_stickies( $start ) ) {
 					update_option( '_bbp_converter_step',  $step + 1 );
 					update_option( '_bbp_converter_start', 0         );
@@ -452,8 +472,8 @@ class BBP_Converter {
 
 				break;
 
-			// STEP 8. Stick to front topics (Super Sicky).
-			case 8 :
+			// STEP 9. Stick to front topics (Super Sicky).
+			case 9 :
 				if ( $converter->convert_topic_super_stickies( $start ) ) {
 					update_option( '_bbp_converter_step',  $step + 1 );
 					update_option( '_bbp_converter_start', 0         );
@@ -467,13 +487,28 @@ class BBP_Converter {
 
 				break;
 
-			// STEP 9. Convert tags.
-			case 9 :
+			// STEP 10. Closed Topics.
+			case 10 :
+				if ( $converter->convert_topic_closed_topics( $start ) ) {
+					update_option( '_bbp_converter_step',  $step + 1 );
+					update_option( '_bbp_converter_start', 0         );
+					if ( empty( $start ) ) {
+						$this->converter_output( __( 'No closed topics to close', 'bbpress' ) );
+					}
+				} else {
+					update_option( '_bbp_converter_start', $max + 1 );
+					$this->converter_output( sprintf( __( 'Calculating closed topics (%1$s - %2$s)', 'bbpress' ), $min, $max ) );
+				}
+
+				break;
+
+			// STEP 11. Convert topic tags.
+			case 11 :
 				if ( $converter->convert_tags( $start ) ) {
 					update_option( '_bbp_converter_step',  $step + 1 );
 					update_option( '_bbp_converter_start', 0         );
 					if ( empty( $start ) ) {
-						$this->converter_output( __( 'No tags to convert', 'bbpress' ) );
+						$this->converter_output( __( 'No topic tags to convert', 'bbpress' ) );
 					}
 				} else {
 					update_option( '_bbp_converter_start', $max + 1 );
@@ -482,8 +517,8 @@ class BBP_Converter {
 
 				break;
 
-			// STEP 10. Convert replies.
-			case 10 :
+			// STEP 12. Convert replies.
+			case 12 :
 				if ( $converter->convert_replies( $start ) ) {
 					update_option( '_bbp_converter_step',  $step + 1 );
 					update_option( '_bbp_converter_start', 0         );
@@ -497,17 +532,32 @@ class BBP_Converter {
 
 				break;
 
-			// STEP 11. Convert reply_to parents.
-			case 11 :
+			// STEP 13. Convert anonymous reply authors.
+			case 13 :
+				if ( $converter->convert_anonymous_reply_authors( $start ) ) {
+					update_option( '_bbp_converter_step',  $step + 1 );
+					update_option( '_bbp_converter_start', 0         );
+					if ( empty( $start ) ) {
+						$this->converter_output( __( 'No anonymous reply authors to convert', 'bbpress' ) );
+					}
+				} else {
+					update_option( '_bbp_converter_start', $max + 1 );
+					$this->converter_output( sprintf( __( 'Converting anonymous reply authors (%1$s - %2$s)', 'bbpress' ), $min, $max ) );
+				}
+
+				break;
+
+			// STEP 14. Convert threaded replies parents.
+			case 14 :
 				if ( $converter->convert_reply_to_parents( $start ) ) {
 					update_option( '_bbp_converter_step',  $step + 1 );
 					update_option( '_bbp_converter_start', 0         );
 					if ( empty( $start ) ) {
-						$this->converter_output( __( 'No reply_to parents to convert', 'bbpress' ) );
+						$this->converter_output( __( 'No threaded replies to convert', 'bbpress' ) );
 					}
 				} else {
 					update_option( '_bbp_converter_start', $max + 1 );
-					$this->converter_output( sprintf( __( 'Calculating reply_to parents (%1$s - %2$s)', 'bbpress' ), $min, $max ) );
+					$this->converter_output( sprintf( __( 'Calculating threaded replies parents (%1$s - %2$s)', 'bbpress' ), $min, $max ) );
 				}
 
 				break;
@@ -532,8 +582,9 @@ class BBP_Converter {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'bbp_converter_translator';
-		if ( ! empty( $drop ) && $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) == $table_name )
+		if ( ! empty( $drop ) && $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) == $table_name ) {
 			$wpdb->query( "DROP TABLE {$table_name}" );
+		}
 
 		require_once( ABSPATH . '/wp-admin/includes/upgrade.php' );
 
@@ -551,8 +602,8 @@ class BBP_Converter {
 					meta_id mediumint(8) unsigned not null auto_increment,
 					value_type varchar(25) null,
 					value_id bigint(20) unsigned not null default '0',
-					meta_key varchar(25) null,
-					meta_value varchar(25) null,
+					meta_key varchar(255) null,
+					meta_value varchar(255) null,
 				PRIMARY KEY  (meta_id),
 					KEY value_id (value_id),
 					KEY meta_join (meta_key, meta_value) ) {$charset_collate};";
@@ -783,7 +834,7 @@ abstract class BBP_Converter_Base {
 	}
 
 	/**
-	 * Convert Tags
+	 * Convert Topic Tags
 	 */
 	public function convert_tags( $start = 1 ) {
 		return $this->convert_table( 'tags', $start );
@@ -999,31 +1050,35 @@ abstract class BBP_Converter_Base {
 
 										add_post_meta( $post_id, $key, $value, true );
 
-										// Forums need to save their old ID for group forum association
-										if ( ( 'forum' == $to_type ) && ( '_bbp_forum_id' == $key ) )
-											add_post_meta( $post_id, '_bbp_old_forum_id', $value );
-
-										// Topics need an extra bit of metadata
-										// to be keyed to the new post_id
-										if ( ( 'topic' == $to_type ) && ( '_bbp_topic_id' == $key ) ) {
-
-											// Update the live topic ID
-											update_post_meta( $post_id, $key, $post_id );
-
-											// Save the old topic ID
-											add_post_meta( $post_id, '_bbp_old_topic_id', $value );
-											if ( '_id' == substr( $key, -3 ) && ( true === $this->sync_table ) ) {
-												$this->wpdb->insert( $this->sync_table_name, array( 'value_type' => 'post', 'value_id' => $post_id, 'meta_key' => '_bbp_topic_id',     'meta_value' => $post_id ) );
-												$this->wpdb->insert( $this->sync_table_name, array( 'value_type' => 'post', 'value_id' => $post_id, 'meta_key' => '_bbp_old_topic_id', 'meta_value' => $value   ) );
-											}
-
-										} elseif ( '_id' == substr( $key, -3 ) && ( true === $this->sync_table ) ) {
+										/**
+										 * If we are using the sync_table add
+										 * the meta '_id' keys to the table
+										 *
+										 * Forums:  _bbp_old_forum_id         // The old forum ID
+										 *          _bbp_old_forum_parent_id  // The old forum parent ID
+										 *
+										 * Topics:  _bbp_forum_id             // The new forum ID
+										 *          _bbp_old_topic_id         // The old topic ID
+										 *          _bbp_old_closed_status_id // The old topic open/closed status
+										 *          _bbp_old_sticky_status_id // The old topic sticky status
+										 *
+										 * Replies: _bbp_forum_id             // The new forum ID
+										 *          _bbp_topic_id             // The new topic ID
+										 *          _bbp_old_reply_id         // The old reply ID
+										 *          _bbp_old_reply_to_id      // The old reply to ID
+										 */
+										if ( '_id' == substr( $key, -3 ) && ( true === $this->sync_table ) ) {
 											$this->wpdb->insert( $this->sync_table_name, array( 'value_type' => 'post', 'value_id' => $post_id, 'meta_key' => $key, 'meta_value' => $value ) );
 										}
 
-										// Replies need to save their old reply_to ID for hierarchical replies association
-										if ( ( 'reply' == $to_type ) && ( '_bbp_reply_to' == $key ) ) {
-											add_post_meta( $post_id, '_bbp_old_reply_to', $value );
+										/**
+										 * Replies need to save their old reply_to ID for
+										 * hierarchical replies association. Later we update
+										 * the _bbp_reply_to value with the new bbPress
+										 * value using convert_reply_to_parents()
+										 */
+										if ( ( 'reply' == $to_type ) && ( '_bbp_old_reply_to_id' == $key ) ) {
+											add_post_meta( $post_id, '_bbp_reply_to', $value );
 										}
 									}
 								}
@@ -1046,9 +1101,9 @@ abstract class BBP_Converter_Base {
 		$has_update = false;
 
 		if ( !empty( $this->sync_table ) ) {
-			$query = 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_forum_parent_id" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT value_id, meta_value FROM '            . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_forum_parent_id" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
 		} else {
-			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_forum_parent_id" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta  . ' WHERE meta_key = "_bbp_old_forum_parent_id" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
 		}
 
 		update_option( '_bbp_converter_query', $query );
@@ -1067,7 +1122,7 @@ abstract class BBP_Converter_Base {
 	/**
 	 * This method converts old topic stickies to new bbPress stickies.
 	 *
-	 * @since bbPress (r)
+	 * @since bbPress (r5170)
 	 *
 	 * @uses WPDB $wpdb
 	 * @uses bbp_stick_topic() to set the imported topic as sticky
@@ -1078,9 +1133,9 @@ abstract class BBP_Converter_Base {
 		$has_update = false;
 
 		if ( !empty( $this->sync_table ) ) {
-			$query = 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_sticky_status" AND meta_value = "sticky" LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT value_id, meta_value FROM '            . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_sticky_status_id" AND meta_value = "sticky" LIMIT ' . $start . ', ' . $this->max_rows;
 		} else {
-			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_old_sticky_status" AND meta_value = "sticky" LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta  . ' WHERE meta_key = "_bbp_old_sticky_status_id" AND meta_value = "sticky" LIMIT ' . $start . ', ' . $this->max_rows;
 		}
 
 		update_option( '_bbp_converter_query', $query );
@@ -1098,7 +1153,7 @@ abstract class BBP_Converter_Base {
 	/**
 	 * This method converts old topic super stickies to new bbPress super stickies.
 	 *
-	 * @since bbPress (r)
+	 * @since bbPress (r5170)
 	 *
 	 * @uses WPDB $wpdb
 	 * @uses bbp_stick_topic() to set the imported topic as super sticky
@@ -1109,9 +1164,9 @@ abstract class BBP_Converter_Base {
 		$has_update = false;
 
 		if ( !empty( $this->sync_table ) ) {
-			$query = 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_sticky_status" AND meta_value = "super-sticky" LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT value_id, meta_value FROM '            . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_sticky_status_id" AND meta_value = "super-sticky" LIMIT ' . $start . ', ' . $this->max_rows;
 		} else {
-			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_old_sticky_status" AND meta_value = "super-sticky" LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta  . ' WHERE meta_key = "_bbp_old_sticky_status_id" AND meta_value = "super-sticky" LIMIT ' . $start . ', ' . $this->max_rows;
 		}
 
 		update_option( '_bbp_converter_query', $query );
@@ -1128,16 +1183,48 @@ abstract class BBP_Converter_Base {
 	}
 
 	/**
+	 * This method converts old closed topics to bbPress closed topics.
+	 *
+	 * @since bbPress (r5425)
+	 *
+	 * @uses bbp_close_topic() to close topics properly
+	 *
+	 */
+	public function convert_topic_closed_topics( $start ) {
+
+		$has_update = false;
+
+		if ( !empty( $this->sync_table ) ) {
+			$query = 'SELECT value_id, meta_value FROM ' . $this->sync_table_name           . ' WHERE meta_key = "_bbp_old_closed_status_id" AND meta_value = "closed" LIMIT ' . $start . ', ' . $this->max_rows;
+		} else {
+			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_old_closed_status_id" AND meta_value = "closed" LIMIT ' . $start . ', ' . $this->max_rows;
+		}
+
+		update_option( '_bbp_converter_query', $query );
+
+		$closed_topic = $this->wpdb->get_results( $query );
+
+		foreach ( (array) $closed_topic as $row ) {
+			bbp_close_topic( $row->value_id );
+			$has_update = true;
+		}
+
+		return ! $has_update;
+	}
+
+	/**
 	 * This method converts old reply_to post id to new bbPress reply_to post id.
+	 *
+	 * @since  bbPress (r5093)
 	 */
 	public function convert_reply_to_parents( $start ) {
 
 		$has_update = false;
 
 		if ( !empty( $this->sync_table ) ) {
-			$query = 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_reply_to" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_reply_to_id" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
 		} else {
-			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_old_reply_to" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
+			$query = 'SELECT post_id AS value_id, meta_value FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_old_reply_to_id" AND meta_value > 0 LIMIT ' . $start . ', ' . $this->max_rows;
 		}
 
 		update_option( '_bbp_converter_query', $query );
@@ -1147,6 +1234,98 @@ abstract class BBP_Converter_Base {
 		foreach ( (array) $reply_to_array as $row ) {
 			$reply_to = $this->callback_reply_to( $row->meta_value );
 			$this->wpdb->query( 'UPDATE ' . $this->wpdb->postmeta . ' SET meta_value = "' . $reply_to . '" WHERE meta_key = "_bbp_reply_to" AND post_id = "' . $row->value_id . '" LIMIT 1' );
+			$has_update = true;
+		}
+
+		return ! $has_update;
+	}
+
+	/**
+	 * This method converts anonymous topics.
+	 *
+	 * @since  bbPress (r5538)
+	 *
+	 * @uses add_post_meta() To add _bbp_anonymous_name topic meta key
+	 */
+	public function convert_anonymous_topic_authors( $start ) {
+
+		$has_update = false;
+
+		if ( !empty( $this->sync_table ) ) {
+			$query = 'SELECT sync_table1.value_id AS topic_id, sync_table1.meta_value AS topic_is_anonymous, sync_table2.meta_value AS topic_author
+							FROM       ' . $this->sync_table_name . ' AS sync_table1
+							INNER JOIN ' . $this->sync_table_name . ' AS sync_table2
+							ON ( sync_table1.value_id = sync_table2.value_id )
+							WHERE sync_table1.meta_value =  "true"
+							AND sync_table2.meta_key =  "_bbp_old_topic_author_name_id"
+							LIMIT ' . $start . ', ' . $this->max_rows;
+		} else {
+			$query = 'SELECT wp_postmeta1.post_id AS topic_id, wp_postmeta1.meta_value AS topic_is_anonymous, wp_postmeta2.meta_value AS topic_author
+							FROM       ' . $this->wpdb->postmeta . ' AS wp_postmeta1
+							INNER JOIN ' . $this->wpdb->postmeta . ' AS wp_postmeta2
+							ON ( wp_postmeta1.post_id = wp_postmeta2.post_id )
+							WHERE wp_postmeta1.meta_value =  "true"
+							AND wp_postmeta2.meta_key =  "_bbp_old_topic_author_name_id"
+							LIMIT ' . $start . ', ' . $this->max_rows;
+
+		}
+
+		update_option( '_bbp_converter_query', $query );
+
+		$anonymous_topics = $this->wpdb->get_results( $query );
+
+		foreach ( (array) $anonymous_topics as $row ) {
+			$anonymous_topic_author_id = 0;
+			$this->wpdb->query( 'UPDATE ' . $this->wpdb->posts . ' SET post_author = "' . $anonymous_topic_author_id . '" WHERE ID = "' . $row->topic_id . '" LIMIT 1' );
+
+			add_post_meta( $row->topic_id, '_bbp_anonymous_name', $row->topic_author );
+
+			$has_update = true;
+		}
+
+		return ! $has_update;
+	}
+
+	/**
+	 * This method converts anonymous replies.
+	 *
+	 * @since  bbPress (r5538)
+	 *
+	 * @uses add_post_meta() To add _bbp_anonymous_name reply meta key
+	 */
+	public function convert_anonymous_reply_authors( $start ) {
+
+		$has_update = false;
+
+		if ( !empty( $this->sync_table ) ) {
+			$query = 'SELECT sync_table1.value_id AS reply_id, sync_table1.meta_value AS reply_is_anonymous, sync_table2.meta_value AS reply_author
+							FROM       ' . $this->sync_table_name . ' AS sync_table1
+							INNER JOIN ' . $this->sync_table_name . ' AS sync_table2
+							ON ( sync_table1.value_id = sync_table2.value_id )
+							WHERE sync_table1.meta_value =  "true"
+							AND sync_table2.meta_key =  "_bbp_old_reply_author_name_id"
+							LIMIT ' . $start . ', ' . $this->max_rows;
+		} else {
+			$query = 'SELECT wp_postmeta1.post_id AS reply_id, wp_postmeta1.meta_value AS reply_is_anonymous, wp_postmeta2.meta_value AS reply_author
+							FROM       ' . $this->wpdb->postmeta . ' AS wp_postmeta1
+							INNER JOIN ' . $this->wpdb->postmeta . ' AS wp_postmeta2
+							ON ( wp_postmeta1.post_id = wp_postmeta2.post_id )
+							WHERE wp_postmeta1.meta_value =  "true"
+							AND wp_postmeta2.meta_key =  "_bbp_old_reply_author_name_id"
+							LIMIT ' . $start . ', ' . $this->max_rows;
+
+		}
+
+		update_option( '_bbp_converter_query', $query );
+
+		$anonymous_replies = $this->wpdb->get_results( $query );
+
+		foreach ( (array) $anonymous_replies as $row ) {
+			$anonymous_reply_author_id = 0;
+			$this->wpdb->query( 'UPDATE ' . $this->wpdb->posts . ' SET post_author = "' . $anonymous_reply_author_id . '" WHERE ID = "' . $row->reply_id . '" LIMIT 1' );
+
+			add_post_meta( $row->reply_id, '_bbp_anonymous_name', $row->reply_author );
+
 			$has_update = true;
 		}
 
@@ -1183,9 +1362,9 @@ abstract class BBP_Converter_Base {
 		/** Delete bbconverter users ******************************************/
 
 		if ( true === $this->sync_table ) {
-			$query = 'SELECT value_id FROM ' . $this->sync_table_name . ' INNER JOIN ' . $this->wpdb->users . ' ON(value_id = ID) WHERE meta_key = "_bbp_user_id" AND value_type = "user" LIMIT ' . $this->max_rows;
+			$query = 'SELECT value_id FROM ' . $this->sync_table_name . ' INNER JOIN ' . $this->wpdb->users . ' ON(value_id = ID) WHERE meta_key = "_bbp_old_user_id" AND value_type = "user" LIMIT ' . $this->max_rows;
 		} else {
-			$query = 'SELECT user_id AS value_id FROM ' . $this->wpdb->usermeta . ' WHERE meta_key = "_bbp_user_id" LIMIT ' . $this->max_rows;
+			$query = 'SELECT user_id AS value_id FROM ' . $this->wpdb->usermeta . ' WHERE meta_key = "_bbp_old_user_id" LIMIT ' . $this->max_rows;
 		}
 
 		update_option( '_bbp_converter_query', $query );
@@ -1302,9 +1481,9 @@ abstract class BBP_Converter_Base {
 	private function callback_forumid( $field ) {
 		if ( !isset( $this->map_forumid[$field] ) ) {
 			if ( !empty( $this->sync_table ) ) {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_forum_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_forum_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			} else {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT post_id AS value_id FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_forum_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT post_id AS value_id FROM '  . $this->wpdb->postmeta  . ' WHERE meta_key = "_bbp_old_forum_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			}
 
 			if ( !is_null( $row ) ) {
@@ -1327,7 +1506,7 @@ abstract class BBP_Converter_Base {
 			if ( !empty( $this->sync_table ) ) {
 				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_topic_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			} else {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT post_id AS value_id FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_old_topic_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT post_id AS value_id FROM '  . $this->wpdb->postmeta  . ' WHERE meta_key = "_bbp_old_topic_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			}
 
 			if ( !is_null( $row ) ) {
@@ -1342,15 +1521,17 @@ abstract class BBP_Converter_Base {
 	/**
 	 * A mini cache system to reduce database calls to reply_to post id.
 	 *
+	 * @since  bbPress (r5093)
+	 *
 	 * @param string $field
 	 * @return string
 	 */
 	private function callback_reply_to( $field ) {
 		if ( !isset( $this->map_reply_to[$field] ) ) {
 			if ( !empty( $this->sync_table ) ) {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_post_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_reply_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			} else {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT post_id AS value_id FROM ' . $this->wpdb->postmeta . ' WHERE meta_key = "_bbp_post_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT post_id AS value_id FROM '  . $this->wpdb->postmeta  . ' WHERE meta_key = "_bbp_old_reply_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			}
 
 			if ( !is_null( $row ) ) {
@@ -1371,9 +1552,9 @@ abstract class BBP_Converter_Base {
 	private function callback_userid( $field ) {
 		if ( !isset( $this->map_userid[$field] ) ) {
 			if ( !empty( $this->sync_table ) ) {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_user_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT value_id, meta_value FROM ' . $this->sync_table_name . ' WHERE meta_key = "_bbp_old_user_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			} else {
-				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT user_id AS value_id FROM ' . $this->wpdb->usermeta . ' WHERE meta_key = "_bbp_user_id" AND meta_value = "%s" LIMIT 1', $field ) );
+				$row = $this->wpdb->get_row( $this->wpdb->prepare( 'SELECT user_id AS value_id FROM ' . $this->wpdb->usermeta . ' WHERE meta_key = "_bbp_old_user_id" AND meta_value = "%s" LIMIT 1', $field ) );
 			}
 
 			if ( !is_null( $row ) ) {
@@ -1387,6 +1568,25 @@ abstract class BBP_Converter_Base {
 			}
 		}
 		return $this->map_userid[$field];
+	}
+
+	/**
+	 * Check if the topic or reply author is anonymous
+	 *
+	 * @since  (r5544)
+	 *
+	 * @param  string $field
+	 * @return string
+	 */
+	private function callback_check_anonymous( $field ) {
+
+		if ( $this->callback_userid( $field ) == 0 ) {
+			$field = 'true';
+		} else {
+			$field = 'false';
+		}
+
+		return $field;
 	}
 
 	/**

@@ -28,7 +28,7 @@ function bbp_filter_dashboard_glance_items( $elements = array() ) {
 		$text       = sprintf( _n( '%d Forum', '%d Forums', $r['forum_count'], 'bbpress' ), $r['forum_count'] );
 		$elements[] = '<a href="' . esc_url( $link ) . '" class="bbp-glance-forums">' . esc_html( $text ) . '</a>';
 	}
-	
+
 	// Topics
 	if ( current_user_can( 'publish_topics' ) ) {
 		$link       = add_query_arg( array( 'post_type' => bbp_get_topic_post_type() ), get_admin_url( null, 'edit.php' ) );
@@ -38,7 +38,7 @@ function bbp_filter_dashboard_glance_items( $elements = array() ) {
 
 	// Replies
 	if ( current_user_can( 'publish_replies' ) ) {
-		$link       = add_query_arg( array( 'post_type' => bbp_get_reply_post_type() ), get_admin_url( null, 'edit.php' ) );;
+		$link       = add_query_arg( array( 'post_type' => bbp_get_reply_post_type() ), get_admin_url( null, 'edit.php' ) );
 		$text       = sprintf( _n( '%d Reply', '%d Replies', $r['reply_count'], 'bbpress' ), $r['reply_count'] );
 		$elements[] = '<a href="' . esc_url( $link ) . '" class="bbp-glance-replies">' . esc_html( $text ) . '</a>';
 	}
@@ -46,7 +46,7 @@ function bbp_filter_dashboard_glance_items( $elements = array() ) {
 	// Topic Tags
 	if ( bbp_allow_topic_tags() && current_user_can( 'manage_topic_tags' ) ) {
 		$link       = add_query_arg( array( 'taxonomy' => bbp_get_topic_tag_tax_id(), 'post_type' => bbp_get_topic_post_type() ), get_admin_url( null, 'edit-tags.php' ) );
-		$text       = sprintf( _n( '%d Topic Tags', '%d Topic Tags', $r['topic_tag_count'], 'bbpress' ), $r['topic_tag_count'] );
+		$text       = sprintf( _n( '%d Topic Tag', '%d Topic Tags', $r['topic_tag_count'], 'bbpress' ), $r['topic_tag_count'] );
 		$elements[] = '<a href="' . esc_url( $link ) . '" class="bbp-glance-topic-tags">' . esc_html( $text ) . '</a>';
 	}
 
@@ -355,7 +355,6 @@ function bbp_forum_metabox() {
 
 			// Output-related
 			'select_id'          => 'parent_id',
-			'tab'                => bbp_get_tab_index(),
 			'options_only'       => false,
 			'show_none'          => __( '&mdash; No parent &mdash;', 'bbpress' ),
 			'disable_categories' => false,
@@ -421,6 +420,8 @@ function bbp_topic_metabox() {
 
 	?>
 
+	<hr />
+
 	<p>
 		<strong class="label"><?php esc_html_e( 'Forum:', 'bbpress' ); ?></strong>
 		<label class="screen-reader-text" for="parent_id"><?php esc_html_e( 'Forum', 'bbpress' ); ?></label>
@@ -435,7 +436,6 @@ function bbp_topic_metabox() {
 
 			// Output-related
 			'select_id'          => 'parent_id',
-			'tab'                => bbp_get_tab_index(),
 			'options_only'       => false,
 			'show_none'          => __( '&mdash; No parent &mdash;', 'bbpress' ),
 			'disable_categories' => current_user_can( 'edit_forums' ),
@@ -470,10 +470,26 @@ function bbp_reply_metabox() {
 	// Get some meta
 	$reply_topic_id = bbp_get_reply_topic_id( $post_id );
 	$reply_forum_id = bbp_get_reply_forum_id( $post_id );
-	$reply_to       = bbp_get_reply_to(       $post_id );
+	$topic_forum_id = bbp_get_topic_forum_id( $reply_topic_id );
 
-	// Allow individual manipulation of reply forum
-	if ( current_user_can( 'edit_others_replies' ) || current_user_can( 'moderate' ) ) : ?>
+	/** Status ****************************************************************/
+
+	?>
+
+	<p>
+		<strong class="label"><?php esc_html_e( 'Status:', 'bbpress' ); ?></strong>
+		<label class="screen-reader-text" for="post_status"><?php esc_html_e( 'Select what status to give the reply.', 'bbpress' ); ?></label>
+		<?php bbp_form_reply_status_dropdown( array( 'select_id' => 'post_status', 'reply_id' => $post_id ) ); ?>
+	</p>
+
+	<hr />
+
+	<?php
+
+	/** Forum *****************************************************************/
+
+	// Only allow individual manipulation of reply forum if there is a mismatch
+	if ( ( $reply_forum_id !== $topic_forum_id ) && ( current_user_can( 'edit_others_replies' ) || current_user_can( 'moderate' ) ) ) : ?>
 
 		<p>
 			<strong class="label"><?php esc_html_e( 'Forum:', 'bbpress' ); ?></strong>
@@ -489,7 +505,6 @@ function bbp_reply_metabox() {
 
 				// Output-related
 				'select_id'          => 'bbp_forum_id',
-				'tab'                => bbp_get_tab_index(),
 				'options_only'       => false,
 				'show_none'          => __( '&mdash; No parent &mdash;', 'bbpress' ),
 				'disable_categories' => current_user_can( 'edit_forums' ),
@@ -497,18 +512,28 @@ function bbp_reply_metabox() {
 			) ); ?>
 		</p>
 
-	<?php endif; ?>
+	<?php endif;
+
+	/** Topic *****************************************************************/
+
+	?>
 
 	<p>
 		<strong class="label"><?php esc_html_e( 'Topic:', 'bbpress' ); ?></strong>
 		<label class="screen-reader-text" for="parent_id"><?php esc_html_e( 'Topic', 'bbpress' ); ?></label>
-		<input name="parent_id" id="bbp_topic_id" type="text" value="<?php echo esc_attr( $reply_topic_id ); ?>" />
+		<input name="parent_id" id="bbp_topic_id" type="text" value="<?php echo esc_attr( $reply_topic_id ); ?>" data-ajax-url="<?php echo wp_nonce_url( add_query_arg( array( 'action' => 'bbp_suggest_topic' ), admin_url( 'admin-ajax.php', 'relative' ) ), 'bbp_suggest_topic_nonce' ); ?>" />
 	</p>
+
+	<?php
+
+	/** Reply To **************************************************************/
+
+	?>
 
 	<p>
 		<strong class="label"><?php esc_html_e( 'Reply To:', 'bbpress' ); ?></strong>
 		<label class="screen-reader-text" for="bbp_reply_to"><?php esc_html_e( 'Reply To', 'bbpress' ); ?></label>
-		<input name="bbp_reply_to" id="bbp_reply_to" type="text" value="<?php echo esc_attr( $reply_to ); ?>" />
+		<?php bbp_reply_to_dropdown( $post_id ); ?>
 	</p>
 
 	<input name="ping_status" type="hidden" id="ping_status" value="open" />
@@ -561,7 +586,7 @@ function bbp_author_metabox() {
 		<p>
 			<strong class="label"><?php esc_html_e( 'ID:', 'bbpress' ); ?></strong>
 			<label class="screen-reader-text" for="bbp_author_id"><?php esc_html_e( 'ID', 'bbpress' ); ?></label>
-			<input type="text" id="bbp_author_id" name="post_author_override" value="<?php echo esc_attr( bbp_get_global_post_field( 'post_author' ) ); ?>" />
+			<input type="text" id="bbp_author_id" name="post_author_override" value="<?php echo esc_attr( bbp_get_global_post_field( 'post_author' ) ); ?>" data-ajax-url="<?php echo wp_nonce_url( add_query_arg( array( 'action' => 'bbp_suggest_user' ), admin_url( 'admin-ajax.php', 'relative' ) ), 'bbp_suggest_user_nonce' ); ?>" />
 		</p>
 
 	<?php endif; ?>
