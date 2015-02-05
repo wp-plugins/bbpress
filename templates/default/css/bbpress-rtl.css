@@ -791,7 +791,7 @@ p.form-allowed-tags {
 	#bbpress-forums #bbp-your-profile fieldset input:focus,
 	#bbpress-forums #bbp-your-profile fieldset textarea:focus {
 		border: 1px solid #ccc;
-		box-shadow: inset 1px 1px 1px rgba(0,0,0,0.1);
+		box-shadow: inset -1px 1px 1px rgba(0,0,0,0.1);
 		outline-color: rgba(240,255,240,0.1);
 	}
 	#bbpress-forums #bbp-your-profile fieldset.bbp-form input.checkbox {
