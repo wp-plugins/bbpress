@@ -4,14 +4,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: bbPress 2.6-alpha\n"
 "Report-Msgid-Bugs-To: https://bbpress.trac.wordpress.org\n"
-"POT-Creation-Date: 2015-02-05 14:25:39+00:00\n"
+"POT-Creation-Date: 2015-03-06 17:29:08+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "PO-Revision-Date: 2015-MO-DA HO:MI+ZONE\n"
 "Last-Translator: JOHN JAMES JACOBY <jjj@bbpress.org>\n"
 "Language-Team: ENGLISH <jjj@bbpress.org>\n"
-"X-Generator: grunt-wp-i18n 0.4.9\n"
+"X-Generator: grunt-wp-i18n 0.5.0\n"
 
 #: bbpress.php:134 bbpress.php:141
 msgid "Cheatin&#8217; huh?"
@@ -87,7 +87,7 @@ msgstr ""
 
 #: includes/admin/admin.php:283 includes/admin/admin.php:284
 #: includes/admin/admin.php:306 includes/admin/admin.php:307
-#: includes/admin/admin.php:1003 includes/admin/admin.php:1091
+#: includes/admin/admin.php:1013 includes/admin/admin.php:1101
 msgid "Update Forums"
 msgstr ""
 
@@ -103,53 +103,53 @@ msgstr ""
 msgid "About bbPress"
 msgstr ""
 
-#: includes/admin/admin.php:718 includes/admin/admin.php:751
+#: includes/admin/admin.php:723 includes/admin/admin.php:761
 msgid "%s - %s"
 msgstr ""
 
-#: includes/admin/admin.php:769 includes/admin/admin.php:846
+#: includes/admin/admin.php:779 includes/admin/admin.php:856
 msgid "Welcome to bbPress %s"
 msgstr ""
 
-#: includes/admin/admin.php:770
+#: includes/admin/admin.php:780
 msgid ""
 "Thank you for updating! bbPress %s is bundled up and ready to weather the "
 "storm of users in your community!"
 msgstr ""
 
-#: includes/admin/admin.php:775 includes/admin/admin.php:852
+#: includes/admin/admin.php:785 includes/admin/admin.php:862
 msgid "What&#8217;s New"
 msgstr ""
 
-#: includes/admin/admin.php:777 includes/admin/admin.php:854
+#: includes/admin/admin.php:787 includes/admin/admin.php:864
 msgid "Credits"
 msgstr ""
 
-#: includes/admin/admin.php:782
+#: includes/admin/admin.php:792
 msgid "Forum Subscriptions"
 msgstr ""
 
-#: includes/admin/admin.php:786
+#: includes/admin/admin.php:796
 msgid "Subscribe to Forums"
 msgstr ""
 
-#: includes/admin/admin.php:787
+#: includes/admin/admin.php:797
 msgid "Now your users can subscribe to new topics in specific forums."
 msgstr ""
 
-#: includes/admin/admin.php:791
+#: includes/admin/admin.php:801
 msgid "Manage Subscriptions"
 msgstr ""
 
-#: includes/admin/admin.php:792
+#: includes/admin/admin.php:802
 msgid "Your users can manage all of their subscriptions in one convenient location."
 msgstr ""
 
-#: includes/admin/admin.php:798
+#: includes/admin/admin.php:808
 msgid "Converters"
 msgstr ""
 
-#: includes/admin/admin.php:802
+#: includes/admin/admin.php:812
 msgid ""
 "We&#8217;re all abuzz about the hive of new importers, AEF, Drupal, FluxBB, "
 "Kunena Forums for Joomla, MyBB, Phorum, PHPFox, PHPWind, PunBB, SMF, "
@@ -158,109 +158,109 @@ msgid ""
 "now gone if you need to remove imported users."
 msgstr ""
 
-#: includes/admin/admin.php:808
+#: includes/admin/admin.php:818
 msgid "Theme Compatibility"
 msgstr ""
 
-#: includes/admin/admin.php:809
+#: includes/admin/admin.php:819
 msgid "Better handling of styles and scripts in the template stack."
 msgstr ""
 
-#: includes/admin/admin.php:813
+#: includes/admin/admin.php:823
 msgid "Polyglot support"
 msgstr ""
 
-#: includes/admin/admin.php:814
+#: includes/admin/admin.php:824
 msgid "bbPress fully supports automatic translation updates."
 msgstr ""
 
-#: includes/admin/admin.php:818
+#: includes/admin/admin.php:828
 msgid "User capabilities"
 msgstr ""
 
-#: includes/admin/admin.php:819
+#: includes/admin/admin.php:829
 msgid "Roles and capabilities have been swept through, cleaned up, and simplified."
 msgstr ""
 
-#: includes/admin/admin.php:825 includes/admin/admin.php:929
+#: includes/admin/admin.php:835 includes/admin/admin.php:939
 msgid "Go to Forum Settings"
 msgstr ""
 
-#: includes/admin/admin.php:847
+#: includes/admin/admin.php:857
 msgid ""
 "Thank you for updating! bbPress %s is waxed, polished, and ready for you to "
 "take it for a lap or two around the block!"
 msgstr ""
 
-#: includes/admin/admin.php:858
+#: includes/admin/admin.php:868
 msgid "bbPress is created by a worldwide swarm of busy, busy bees."
 msgstr ""
 
-#: includes/admin/admin.php:860
+#: includes/admin/admin.php:870
 msgid "Project Leaders"
 msgstr ""
 
-#: includes/admin/admin.php:865
+#: includes/admin/admin.php:875
 msgid "Founding Developer"
 msgstr ""
 
-#: includes/admin/admin.php:870
+#: includes/admin/admin.php:880
 msgid "Lead Developer"
 msgstr ""
 
-#: includes/admin/admin.php:875 includes/admin/admin.php:894
+#: includes/admin/admin.php:885 includes/admin/admin.php:904
 msgid "Feature Developer"
 msgstr ""
 
-#: includes/admin/admin.php:880
+#: includes/admin/admin.php:890
 msgid "Converter Specialist"
 msgstr ""
 
-#: includes/admin/admin.php:884
+#: includes/admin/admin.php:894
 msgid "Contributing Developers"
 msgstr ""
 
-#: includes/admin/admin.php:889
+#: includes/admin/admin.php:899
 msgid "Bug Testing"
 msgstr ""
 
-#: includes/admin/admin.php:898
+#: includes/admin/admin.php:908
 msgid "Core Contributors to bbPress 2.5"
 msgstr ""
 
-#: includes/admin/admin.php:955 includes/admin/admin.php:977
+#: includes/admin/admin.php:965 includes/admin/admin.php:987
 msgid "Update Forum"
 msgstr ""
 
-#: includes/admin/admin.php:966 includes/admin/admin.php:1020
+#: includes/admin/admin.php:976 includes/admin/admin.php:1030
 msgid "All done!"
 msgstr ""
 
-#: includes/admin/admin.php:967 includes/admin/admin.php:1021
+#: includes/admin/admin.php:977 includes/admin/admin.php:1031
 msgid "Go Back"
 msgstr ""
 
-#: includes/admin/admin.php:976
+#: includes/admin/admin.php:986
 msgid "You can update your forum through this page. Hit the link below to update."
 msgstr ""
 
-#: includes/admin/admin.php:1046
+#: includes/admin/admin.php:1056
 msgid ""
 "Warning! Problem updating %1$s. Your server may not be able to connect to "
 "sites running on it. Error message: <em>%2$s</em>"
 msgstr ""
 
-#: includes/admin/admin.php:1071
+#: includes/admin/admin.php:1081
 msgid ""
 "If your browser doesn&#8217;t start loading the next page automatically, "
 "click this link:"
 msgstr ""
 
-#: includes/admin/admin.php:1072
+#: includes/admin/admin.php:1082
 msgid "Next Forums"
 msgstr ""
 
-#: includes/admin/admin.php:1090
+#: includes/admin/admin.php:1100
 msgid ""
 "You can update all the forums on your network through this page. It works "
 "by calling the update script of each site automatically. Hit the link below "
@@ -327,143 +327,143 @@ msgstr ""
 msgid "Starting Conversion"
 msgstr ""
 
-#: includes/admin/converter.php:251 includes/admin/converter.php:615
+#: includes/admin/converter.php:251 includes/admin/converter.php:620
 msgid "Conversion Complete"
 msgstr ""
 
-#: includes/admin/converter.php:347
+#: includes/admin/converter.php:352
 msgid "No data to clean"
 msgstr ""
 
-#: includes/admin/converter.php:351
+#: includes/admin/converter.php:356
 msgid "Deleting previously converted data (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:367
+#: includes/admin/converter.php:372
 msgid "No users to convert"
 msgstr ""
 
-#: includes/admin/converter.php:371
+#: includes/admin/converter.php:376
 msgid "Converting users (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:387
+#: includes/admin/converter.php:392
 msgid "No passwords to clear"
 msgstr ""
 
-#: includes/admin/converter.php:391
+#: includes/admin/converter.php:396
 msgid "Delete users WordPress default passwords (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:406
+#: includes/admin/converter.php:411
 msgid "No forums to convert"
 msgstr ""
 
-#: includes/admin/converter.php:410
+#: includes/admin/converter.php:415
 msgid "Converting forums (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:421
+#: includes/admin/converter.php:426
 msgid "No forum parents to convert"
 msgstr ""
 
-#: includes/admin/converter.php:425
+#: includes/admin/converter.php:430
 msgid "Calculating forum hierarchy (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:436
+#: includes/admin/converter.php:441
 msgid "No forum subscriptions to convert"
 msgstr ""
 
-#: includes/admin/converter.php:440
+#: includes/admin/converter.php:445
 msgid "Converting forum subscriptions (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:451
+#: includes/admin/converter.php:456
 msgid "No topics to convert"
 msgstr ""
 
-#: includes/admin/converter.php:455
+#: includes/admin/converter.php:460
 msgid "Converting topics (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:466
+#: includes/admin/converter.php:471
 msgid "No anonymous topic authors to convert"
 msgstr ""
 
-#: includes/admin/converter.php:470
+#: includes/admin/converter.php:475
 msgid "Converting anonymous topic authors (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:481
+#: includes/admin/converter.php:486
 msgid "No stickies to stick"
 msgstr ""
 
-#: includes/admin/converter.php:485
+#: includes/admin/converter.php:490
 msgid "Calculating topic stickies (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:496
+#: includes/admin/converter.php:501
 msgid "No super stickies to stick"
 msgstr ""
 
-#: includes/admin/converter.php:500
+#: includes/admin/converter.php:505
 msgid "Calculating topic super stickies (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:511
+#: includes/admin/converter.php:516
 msgid "No closed topics to close"
 msgstr ""
 
-#: includes/admin/converter.php:515
+#: includes/admin/converter.php:520
 msgid "Calculating closed topics (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:526
+#: includes/admin/converter.php:531
 msgid "No topic tags to convert"
 msgstr ""
 
-#: includes/admin/converter.php:530
+#: includes/admin/converter.php:535
 msgid "Converting topic tags (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:541
+#: includes/admin/converter.php:546
 msgid "No topic subscriptions to convert"
 msgstr ""
 
-#: includes/admin/converter.php:545
+#: includes/admin/converter.php:550
 msgid "Converting topic subscriptions (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:556
+#: includes/admin/converter.php:561
 msgid "No favorites to convert"
 msgstr ""
 
-#: includes/admin/converter.php:560
+#: includes/admin/converter.php:565
 msgid "Converting favorites (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:571
+#: includes/admin/converter.php:576
 msgid "No replies to convert"
 msgstr ""
 
-#: includes/admin/converter.php:575
+#: includes/admin/converter.php:580
 msgid "Converting replies (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:586
+#: includes/admin/converter.php:591
 msgid "No anonymous reply authors to convert"
 msgstr ""
 
-#: includes/admin/converter.php:590
+#: includes/admin/converter.php:595
 msgid "Converting anonymous reply authors (%1$s - %2$s)"
 msgstr ""
 
-#: includes/admin/converter.php:601
+#: includes/admin/converter.php:606
 msgid "No threaded replies to convert"
 msgstr ""
 
-#: includes/admin/converter.php:605
+#: includes/admin/converter.php:610
 msgid "Calculating threaded replies parents (%1$s - %2$s)"
 msgstr ""
 
@@ -2716,7 +2716,7 @@ msgstr ""
 msgid "Topic draft updated. <a target=\"_blank\" href=\"%s\">Preview topic</a>"
 msgstr ""
 
-#: includes/admin/users.php:90 includes/admin/users.php:224
+#: includes/admin/users.php:90 includes/admin/users.php:229
 #: templates/default/bbpress/form-user-roles.php:20
 msgid "Forum Role"
 msgstr ""
@@ -2734,7 +2734,7 @@ msgstr ""
 msgid "Change"
 msgstr ""
 
-#: includes/admin/users.php:223
+#: includes/admin/users.php:228
 msgid "Site Role"
 msgstr ""
 
@@ -3145,7 +3145,7 @@ msgstr ""
 msgid "Editable forum roles no longer exist."
 msgstr ""
 
-#: includes/core/sub-actions.php:147
+#: includes/core/sub-actions.php:152
 msgid "The current user is being initialized without using $wp->init()."
 msgstr ""
 
