@@ -597,7 +597,7 @@ function bbp_get_statistics( $args = '' ) {
  *
  * We use REMOTE_ADDR here directly. If you are behind a proxy, you should
  * ensure that it is properly set, such as in wp-config.php, for your
- * environment. See {@link http://core.trac.wordpress.org/ticket/9235}
+ * environment. See {@link https://core.trac.wordpress.org/ticket/9235}
  *
  * Note that bbp_pre_anonymous_filters() is responsible for sanitizing each
  * of the filtered core anonymous values here.
@@ -699,8 +699,8 @@ function bbp_check_for_duplicate( $post_data = array() ) {
 
 	// Unslash $r to pass through $wpdb->prepare()
 	//
-	// @see: http://bbpress.trac.wordpress.org/ticket/2185/
-	// @see: http://core.trac.wordpress.org/changeset/23973/
+	// @see: https://bbpress.trac.wordpress.org/ticket/2185/
+	// @see: https://core.trac.wordpress.org/changeset/23973/
 	$r = wp_unslash( $r );
 
 	// Prepare duplicate check query
@@ -1006,13 +1006,24 @@ function bbp_check_for_blacklist( $anonymous_data = false, $author_id = 0, $titl
  * available to customize this address further. In the future, we may consider
  * using `admin_email` instead, though this is not normally publicized.
  *
+ * We use `$_SERVER['SERVER_NAME']` here to mimic similar functionality in
+ * WordPress core. Previously, we used `get_home_url()` to use already validated
+ * user input, but it was causing issues in some installations.
+ *
  * @since bbPress (r5409)
+ *
+ * @see  wp_mail
+ * @see  wp_notify_postauthor
+ * @link https://bbpress.trac.wordpress.org/ticket/2618
  *
  * @return string
  */
 function bbp_get_do_not_reply_address() {
-	$email = 'noreply@' . str_replace( 'www.', '', ltrim( get_home_url(), '^(http|https)://' ) );
-	return apply_filters( 'bbp_get_do_not_reply_address', $email );
+	$sitename = strtolower( $_SERVER['SERVER_NAME'] );
+	if ( substr( $sitename, 0, 4 ) === 'www.' ) {
+		$sitename = substr( $sitename, 4 );
+	}
+	return apply_filters( 'bbp_get_do_not_reply_address', 'noreply@' . $sitename );
 }
 
 /**

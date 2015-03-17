@@ -3,7 +3,7 @@ Contributors: matt, johnjamesjacoby, jmdodd, netweb
 Tags: forums, discussion, support, theme, akismet, multisite
 Requires at least: 3.6
 Tested up to: 4.1
-Stable tag: 2.5.5
+Stable tag: 2.5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,7 +40,7 @@ bbPress is spry and nimble and allows for great add-on features through WordPres
 = Once Configured =
 
 * bbPress comes with a robust theme-compatibility API that does its best to make bbPress look and feel right with just-about any WordPress theme. You may need to adjust some styling on your own to make everything look pristine.
-* You may want to customize the register/activation/sign-in/lost-password flows, to better suit your site. bbPress comes with a bevy of shortcodes to make this possible, listed here: http://codex.bbpress.org/shortcodes/
+* You may want to customize the register/activation/sign-in/lost-password flows, to better suit your site. bbPress comes with a bevy of shortcodes to make this possible, listed here: https://codex.bbpress.org/shortcodes/
 * bbPress also comes with built-in support for Akismet and BuddyPress, two very popular and very powerful WordPress plugins. If you're using either, visit your Forum Settings page and ensure that integration appears correct.
 
 == Screenshots ==
@@ -53,6 +53,9 @@ bbPress is spry and nimble and allows for great add-on features through WordPres
 7. Single Forum - Default Theme
 
 == Changelog ==
+
+= 2.5.6 =
+* Improved notification & subscription email sending
 
 = 2.5.5 =
 * Improved bulk editing of users

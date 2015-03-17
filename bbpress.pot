@@ -1,10 +1,10 @@
-# Copyright (C) 2015 The bbPress Community
+# Copyright (C) 2015 The bbPress Contributors
 # This file is distributed under the GPLv2 or later (license.txt).
 msgid ""
 msgstr ""
 "Project-Id-Version: bbPress 2.6-alpha\n"
 "Report-Msgid-Bugs-To: https://bbpress.trac.wordpress.org\n"
-"POT-Creation-Date: 2015-03-06 17:29:08+00:00\n"
+"POT-Creation-Date: 2015-03-17 04:22:48+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -575,7 +575,7 @@ msgstr ""
 #: includes/admin/tools.php:167 includes/admin/tools.php:226
 #: includes/admin/topics.php:183 includes/admin/topics.php:241
 msgid ""
-"<a href=\"http://codex.bbpress.org\" target=\"_blank\">bbPress "
+"<a href=\"https://codex.bbpress.org\" target=\"_blank\">bbPress "
 "Documentation</a>"
 msgstr ""
 
@@ -585,7 +585,7 @@ msgstr ""
 #: includes/admin/tools.php:168 includes/admin/tools.php:227
 #: includes/admin/topics.php:184 includes/admin/topics.php:242
 msgid ""
-"<a href=\"http://bbpress.org/forums/\" target=\"_blank\">bbPress Support "
+"<a href=\"https://bbpress.org/forums/\" target=\"_blank\">bbPress Support "
 "Forums</a>"
 msgstr ""
 
@@ -1979,28 +1979,28 @@ msgstr ""
 #: includes/admin/tools.php:126
 msgid ""
 "BuddyPress Group Forums: <a "
-"href=\"http://codex.buddypress.org/getting-started/installing-group-and-"
+"href=\"https://codex.buddypress.org/getting-started/installing-group-and-"
 "sitewide-forums/\">Installing Group and Sitewide Forums</a> and <a "
-"href=\"http://codex.buddypress.org/getting-started/guides/migrating-from-"
+"href=\"https://codex.buddypress.org/getting-started/guides/migrating-from-"
 "old-forums-to-bbpress-2/\">Migrating from old forums to bbPress 2.2+</a>."
 msgstr ""
 
 #: includes/admin/tools.php:127
 msgid ""
 "bbPress roles: <a "
-"href=\"http://codex.bbpress.org/bbpress-user-roles-and-capabilities/\" "
+"href=\"https://codex.bbpress.org/bbpress-user-roles-and-capabilities/\" "
 "target=\"_blank\">bbPress User Roles and Capabilities</a>"
 msgstr ""
 
 #: includes/admin/tools.php:130
 msgid ""
-"Also see <a href=\"http://codex.bbpress.org/repair-forums/\">bbPress: "
+"Also see <a href=\"https://codex.bbpress.org/repair-forums/\">bbPress: "
 "Repair Forums</a>."
 msgstr ""
 
 #: includes/admin/tools.php:161
 msgid ""
-"Also see <a href=\"http://codex.bbpress.org/reset-forums/\">bbPress: Reset "
+"Also see <a href=\"https://codex.bbpress.org/reset-forums/\">bbPress: Reset "
 "Forums</a>."
 msgstr ""
 
@@ -2013,7 +2013,8 @@ msgstr ""
 #: includes/admin/tools.php:194
 msgid ""
 "Also see the main article on the bbPress codex <a "
-"href=\"http://codex.bbpress.org/import-forums/\">bbPress: Import Forums</a>."
+"href=\"https://codex.bbpress.org/import-forums/\">bbPress: Import "
+"Forums</a>."
 msgstr ""
 
 #: includes/admin/tools.php:201
@@ -2818,7 +2819,7 @@ msgstr ""
 msgid "<strong>ERROR</strong>: Invalid email address submitted!"
 msgstr ""
 
-#: includes/common/functions.php:1106
+#: includes/common/functions.php:1117
 msgid ""
 "%1$s wrote:\n"
 "\n"
@@ -2833,7 +2834,7 @@ msgid ""
 "Login and visit the topic to unsubscribe from these emails."
 msgstr ""
 
-#: includes/common/functions.php:1263
+#: includes/common/functions.php:1274
 msgid ""
 "%1$s wrote:\n"
 "\n"
@@ -2848,7 +2849,7 @@ msgid ""
 "Login and visit the topic to unsubscribe from these emails."
 msgstr ""
 
-#: includes/common/functions.php:2039
+#: includes/common/functions.php:2050
 msgid ""
 "Conditional query tags do not work before the query is run. Before then, "
 "they always return false."
@@ -4968,7 +4969,7 @@ msgid "bbPress"
 msgstr ""
 
 #. Author URI of the plugin/theme
-msgid "http://bbpress.org"
+msgid "https://bbpress.org"
 msgstr ""
 
 #. Description of the plugin/theme
@@ -4976,7 +4977,7 @@ msgid "bbPress is forum software with a twist from the creators of WordPress."
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "The bbPress Community"
+msgid "The bbPress Contributors"
 msgstr ""
 
 #: bbpress.php:582
