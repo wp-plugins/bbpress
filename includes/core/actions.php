@@ -153,6 +153,7 @@ add_action( 'pre_get_posts', 'bbp_pre_get_posts_normalize_forum_visibility', 4 )
 
 // Profile Page Messages
 add_action( 'bbp_template_notices', 'bbp_notice_edit_user_success'           );
+add_action( 'bbp_template_notices', 'bbp_notice_edit_user_pending_email'     );
 add_action( 'bbp_template_notices', 'bbp_notice_edit_user_is_super_admin', 2 );
 
 // Before Delete/Trash/Untrash Forum
@@ -330,6 +331,7 @@ add_action( 'bbp_get_request', 'bbp_toggle_topic_handler',        1  );
 add_action( 'bbp_get_request', 'bbp_toggle_reply_handler',        1  );
 add_action( 'bbp_get_request', 'bbp_favorites_handler',           1  );
 add_action( 'bbp_get_request', 'bbp_subscriptions_handler',       1  );
+add_action( 'bbp_get_request', 'bbp_user_email_change_handler',   1  );
 add_action( 'bbp_get_request', 'bbp_forum_subscriptions_handler', 1  );
 add_action( 'bbp_get_request', 'bbp_search_results_redirect',     10 );
 

@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
  * @uses admin_url() To get the admin url
  * @uses home_url() To get the home url
  * @uses esc_url() To escape the url
- * @uses wp_safe_redirect() To redirect
+ * @uses bbp_redirect() To redirect
  */
 function bbp_redirect_login( $url = '', $raw_url = '', $user = '' ) {
 
@@ -394,7 +394,7 @@ function bbp_remove_user_favorite( $user_id, $topic_id ) {
  * @uses bbp_is_favorites() To check if it's the favorites page
  * @uses bbp_get_favorites_link() To get the favorites page link
  * @uses bbp_get_topic_permalink() To get the topic permalink
- * @uses wp_safe_redirect() To redirect to the url
+ * @uses bbp_redirect() To redirect to the url
  */
 function bbp_favorites_handler( $action = '' ) {
 
@@ -470,10 +470,7 @@ function bbp_favorites_handler( $action = '' ) {
 			$redirect = get_permalink( $topic_id );
 		}
 
-		wp_safe_redirect( $redirect );
-
-		// For good measure
-		exit();
+		bbp_redirect( $redirect );
 
 	// Fail! Handle errors
 	} elseif ( true === $is_favorite && 'bbp_favorite_remove' === $action ) {
@@ -1115,7 +1112,7 @@ function bbp_remove_user_topic_subscription( $user_id, $topic_id ) {
  *                    forum id and action
  * @uses bbp_is_subscription() To check if it's the subscription page
  * @uses bbp_get_forum_permalink() To get the forum permalink
- * @uses wp_safe_redirect() To redirect to the url
+ * @uses bbp_redirect() To redirect to the url
  */
 function bbp_forum_subscriptions_handler( $action = '' ) {
 
@@ -1191,10 +1188,7 @@ function bbp_forum_subscriptions_handler( $action = '' ) {
 			$redirect = get_permalink( $forum_id );
 		}
 
-		wp_safe_redirect( $redirect );
-
-		// For good measure
-		exit();
+		bbp_redirect( $redirect );
 
 	// Fail! Handle errors
 	} elseif ( true === $is_subscription && 'bbp_unsubscribe' === $action ) {
@@ -1206,6 +1200,8 @@ function bbp_forum_subscriptions_handler( $action = '' ) {
 
 /**
  * Handles the front end subscribing and unsubscribing topics
+ *
+ * @since bbPress (r2790)
  *
  * @param string $action The requested action to compare this function to
  * @uses bbp_is_subscriptions_active() To check if the subscriptions are active
@@ -1221,7 +1217,7 @@ function bbp_forum_subscriptions_handler( $action = '' ) {
  *                    topic id and action
  * @uses bbp_is_subscription() To check if it's the subscription page
  * @uses bbp_get_topic_permalink() To get the topic permalink
- * @uses wp_safe_redirect() To redirect to the url
+ * @uses bbp_redirect() To redirect to the url
  */
 function bbp_subscriptions_handler( $action = '' ) {
 
@@ -1297,10 +1293,7 @@ function bbp_subscriptions_handler( $action = '' ) {
 			$redirect = get_permalink( $topic_id );
 		}
 
-		wp_safe_redirect( $redirect );
-
-		// For good measure
-		exit();
+		bbp_redirect( $redirect );
 
 	// Fail! Handle errors
 	} elseif ( true === $is_subscription && 'bbp_unsubscribe' === $action ) {
@@ -1313,7 +1306,9 @@ function bbp_subscriptions_handler( $action = '' ) {
 /** Edit **********************************************************************/
 
 /**
- * Handles the front end user editing
+ * Handles the front end user editing from POST requests
+ *
+ * @since bbPress (r2790)
  *
  * @param string $action The requested action to compare this function to
  * @uses is_multisite() To check if it's a multisite
@@ -1326,7 +1321,7 @@ function bbp_subscriptions_handler( $action = '' ) {
  * @uses wp_update_user() To update the user
  * @uses delete_option() To delete the displayed user's email id option
  * @uses bbp_get_user_profile_edit_url() To get the edit profile url
- * @uses wp_safe_redirect() To redirect to the url
+ * @uses bbp_redirect() To redirect to the url
  * @uses bbp_verify_nonce_request() To verify the nonce and check the request
  * @uses current_user_can() To check if the current user can edit the user
  * @uses do_action() Calls 'personal_options_update' or
@@ -1343,43 +1338,13 @@ function bbp_subscriptions_handler( $action = '' ) {
  */
 function bbp_edit_user_handler( $action = '' ) {
 
-	// Bail if action is not 'bbp-update-user'
+	// Bail if action is not `bbp-update-user`
 	if ( 'bbp-update-user' !== $action ) {
 		return;
 	}
 
 	// Get the displayed user ID
 	$user_id = bbp_get_displayed_user_id();
-
-	// Execute confirmed email change. See send_confirmation_on_profile_email().
-	if ( is_multisite() && bbp_is_user_home_edit() && isset( $_GET['newuseremail'] ) ) {
-
-		$new_email = get_option( $user_id . '_new_email' );
-
-		if ( hash_equals( $new_email['hash'], $_GET['newuseremail'] ) ) {
-			$user             = new WP_User();
-			$user->ID         = $user_id;
-			$user->user_email = esc_html( trim( $new_email['newemail'] ) );
-
-			global $wpdb;
-
-			if ( $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", bbp_get_displayed_user_field( 'user_login', 'raw' ) ) ) ) {
-				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, bbp_get_displayed_user_field( 'user_login', 'raw' ) ) );
-			}
-
-			wp_update_user( get_object_vars( $user ) );
-			delete_option( $user_id . '_new_email' );
-
-			wp_safe_redirect( add_query_arg( array( 'updated' => 'true' ), bbp_get_user_profile_edit_url( $user_id ) ) );
-			exit();
-		}
-
-	// Delete new email address from user options
-	} elseif ( is_multisite() && bbp_is_user_home_edit() && ! empty( $_GET['dismiss'] ) && ( $user_id . '_new_email' === $_GET['dismiss'] ) ) {
-		delete_option( $user_id . '_new_email' );
-		wp_safe_redirect( add_query_arg( array( 'updated' => 'true' ), bbp_get_user_profile_edit_url( $user_id ) ) );
-		exit();
-	}
 
 	// Nonce check
 	if ( ! bbp_verify_nonce_request( 'update-user_' . $user_id ) ) {
@@ -1393,13 +1358,63 @@ function bbp_edit_user_handler( $action = '' ) {
 		return;
 	}
 
+	// Empty email check
+	if ( empty( $_POST['email'] ) ) {
+		bbp_add_error( 'bbp_user_email_empty', __( '<strong>ERROR</strong>: That is not a valid email address.', 'bbpress' ), array( 'form-field' => 'email' ) );
+		return;
+	}
+
+	// Get the users current email address to use for comparisons
+	$user_email = bbp_get_displayed_user_field( 'user_email', 'raw' );
+
+	// Bail if no email change
+	if ( $user_email !== $_POST['email'] ) {
+
+		// Check that new email address is valid
+		if ( ! is_email( $_POST['email'] ) ) {
+			bbp_add_error( 'bbp_user_email_invalid', __( '<strong>ERROR</strong>: That is not a valid email address.', 'bbpress' ), array( 'form-field' => 'email' ) );
+			return;
+		}
+
+		// Check if email address is already in use
+		if ( email_exists( $_POST['email'] ) ) {
+			bbp_add_error( 'bbp_user_email_taken', __( '<strong>ERROR</strong>: That email address is already in use.', 'bbpress' ), array( 'form-field' => 'email' ) );
+			return;
+		}
+
+		// Update the option
+		$key    = $user_id . '_new_email';
+		$hash   = md5( $_POST['email'] . time() . mt_rand() );
+		$option = array(
+			'hash'     => $hash,
+			'newemail' => $_POST['email']
+		);
+		update_option( $key, $option );
+
+		// Attempt to notify the user of email address change
+		bbp_edit_user_email_send_notification( $user_id, $option );
+
+		// Set the POST email variable back to the user's email address
+		// so `edit_user()` does not attempt to update it. This is not ideal,
+		// but it's also what send_confirmation_on_profile_email() does.
+		$_POST['email'] = $user_email;
+	}
+
 	// Do action based on who's profile you're editing
-	$edit_action = bbp_is_user_home_edit() ? 'personal_options_update' : 'edit_user_profile_update';
+	$edit_action = bbp_is_user_home_edit()
+		? 'personal_options_update'
+		: 'edit_user_profile_update';
+
 	do_action( $edit_action, $user_id );
 
 	// Prevent edit_user() from wiping out the user's Toolbar on front setting
 	if ( ! isset( $_POST['admin_bar_front'] ) && _get_admin_bar_pref( 'front', $user_id ) ) {
 		$_POST['admin_bar_front'] = 1;
+	}
+
+	// Bail if errors already exist
+	if ( bbp_has_errors() ) {
+		return;
 	}
 
 	// Handle user edit
@@ -1414,19 +1429,211 @@ function bbp_edit_user_handler( $action = '' ) {
 
 		// Maybe update super admin ability
 		if ( is_multisite() && ! bbp_is_user_home_edit() ) {
-			empty( $_POST['super_admin'] ) ? revoke_super_admin( $edit_user ) : grant_super_admin( $edit_user );
+			empty( $_POST['super_admin'] )
+				? revoke_super_admin( $edit_user )
+				: grant_super_admin( $edit_user );
 		}
 
-		$redirect = add_query_arg( array( 'updated' => 'true' ), bbp_get_user_profile_edit_url( $edit_user ) );
+		// Redirect
+		$args     = array( 'updated' => 'true' );
+		$user_url = bbp_get_user_profile_edit_url( $edit_user );
+		$redirect = add_query_arg( $args, $user_url );
 
-		wp_safe_redirect( $redirect );
-		exit;
+		bbp_redirect( $redirect );
 	}
 }
 
 /**
+ * Handles user email address updating from GET requests
+ *
+ * @since bbPress (r5660)
+ *
+ * @global object $wpdb
+ * @param  string $action
+ *
+ * @uses bbp_is_user_home_edit()         To check if on the current users profile edit page
+ * @uses bbp_get_displayed_user_id()     To get the ID of the user being edited
+ * @uses bbp_get_user_profile_edit_url() To get the URL of the user being edited
+ * @uses bbp_redirect()                  To redirect away from the current page
+ * @uses hash_equals()                   To compare email hash to saved option hash
+ * @uses email_exists()                  To check if user has email address already
+ * @uses bbp_add_error()                 To add user feedback
+ * @uses wp_update_user()                To update the user with their new email address
+ * @uses bbp_verify_nonce_request()      To verify the intent of the user
+ */
+function bbp_user_email_change_handler( $action = '' ) {
+
+	// Bail if action is not `bbp-update-user-email`
+	if ( 'bbp-update-user-email' !== $action ) {
+		return;
+	}
+
+	// Bail if not on users own profile
+	if ( ! bbp_is_user_home_edit() ) {
+		return;
+	}
+
+	// Bail if not attempting to modify user email address
+	if ( empty( $_GET['newuseremail'] ) && empty( $_GET['dismiss'] ) ) {
+		return;
+	}
+
+	// Get the displayed user ID & option key
+	$user_id     = bbp_get_displayed_user_id();
+	$key         = $user_id . '_new_email';
+	$redirect_to = bbp_get_user_profile_edit_url( $user_id );
+
+	// Execute confirmed email change.
+	if ( ! empty( $_GET['newuseremail'] ) ) {
+
+		// Check for email address change option
+		$new_email = get_option( $key );
+
+		// Redirect if *no* email address change exists
+		if ( false === $new_email ) {
+			bbp_redirect( $redirect_to );
+		}
+
+		// Cleanup & redirect if *invalid* email address change exists
+		if ( empty( $new_email['hash'] ) || empty( $new_email['newemail'] ) ) {
+			delete_option( $key );
+
+			bbp_redirect( $redirect_to );
+		}
+
+		// Compare hashes, and update user if hashes match
+		if ( hash_equals( $new_email['hash'], $_GET['newuseremail'] ) ) {
+
+			// Does another user have this email address already?
+			if ( email_exists( $new_email['newemail'] ) ) {
+				delete_option( $key );
+
+				bbp_add_error( 'bbp_user_email_taken', __( '<strong>ERROR</strong>: That email address is already in use.', 'bbpress' ), array( 'form-field' => 'email' ) );
+
+			// Email address is good to change to
+			} else {
+
+				// Create a stdClass (for easy call to wp_update_user())
+				$user             = new stdClass();
+				$user->ID         = $user_id;
+				$user->user_email = esc_html( trim( $new_email['newemail'] ) );
+
+				// Attempt to update user email
+				$update_user = wp_update_user( $user );
+
+				// Error(s) editing the user, so copy them into the global
+				if ( is_wp_error( $update_user ) ) {
+					bbpress()->errors = $update_user;
+
+				// All done, so redirect and show the updated message
+				} else {
+
+					// Update signups table, if signups table & entry exists
+					// For Multisite & BuddyPress compatibility
+					global $wpdb;
+					if ( ! empty( $wpdb->signups ) && $wpdb->get_var( $wpdb->prepare( "SELECT user_login FROM {$wpdb->signups} WHERE user_login = %s", bbp_get_displayed_user_field( 'user_login', 'raw' ) ) ) ) {
+						$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->signups} SET user_email = %s WHERE user_login = %s", $user->user_email, bbp_get_displayed_user_field( 'user_login', 'raw' ) ) );
+					}
+
+					delete_option( $key );
+
+					bbp_redirect( add_query_arg( array( 'updated' => 'true' ), $redirect_to ) );
+				}
+			}
+		}
+
+	// Delete new email address from user options
+	} elseif ( ! empty( $_GET['dismiss'] ) && ( $key === $_GET['dismiss'] ) ) {
+		if ( ! bbp_verify_nonce_request( "dismiss-{$key}" ) ) {
+			bbp_add_error( 'bbp_dismiss_new_email_nonce', __( '<strong>ERROR</strong>: Are you sure you wanted to do that?', 'bbpress' ) );
+			return;
+		}
+
+		delete_option( $key );
+		bbp_redirect( $redirect_to );
+	}
+}
+
+/**
+ * Sends an email when an email address change occurs on POST requests
+ *
+ * @since bbPress (r5660)
+ *
+ * @see send_confirmation_on_profile_email()
+ *
+ * @uses bbp_parse_args()                To parse the option arguments
+ * @uses bbp_add_error()                 To provide feedback to user
+ * @uses bbp_get_displayed_user_field()  To get the user_login
+ * @uses bbp_get_user_profile_edit_url() To get the user profile edit link
+ * @uses add_query_arg()                 To add arguments the link
+ * @uses wp_mail()                       To send the notification
+ */
+function bbp_edit_user_email_send_notification( $user_id = 0, $args = '' ) {
+
+	// Parse args
+	$r = bbp_parse_args( $args, array(
+		'hash'     => '',
+		'newemail' => '',
+	) );
+
+	// Bail if any relevant parameters are empty
+	if ( empty( $user_id ) || empty( $r['hash'] ) || empty( $r['newemail'] ) ) {
+		bbp_add_error( 'bbp_user_email_invalid_hash', __( '<strong>ERROR</strong>: An error occurred while updating your email address.', 'bbpress' ), array( 'form-field' => 'email' ) );
+		return;
+	}
+
+	// Build the nonced URL to dismiss the pending change
+	$user_login  = bbp_get_displayed_user_field( 'user_login', 'raw' );
+	$user_url    = bbp_get_user_profile_edit_url( $user_id );
+	$confirm_url = add_query_arg( array(
+		'action'       => 'bbp-update-user-email',
+		'newuseremail' => $r['hash']
+	), $user_url );
+
+	$email_text = __( '%1$s
+
+Someone requested a change to the email address on your account.
+
+Please click the following link to confirm this change:
+%2$s
+
+If you did not request this, you can safely ignore and delete this notification.
+
+This email was sent to: %3$s
+
+Regards,
+The %4$s Team
+%5$s', 'bbpress' );
+
+	/**
+	 * Filter the email text sent when a user changes emails.
+	 *
+	 * The following strings have a special meaning and will get replaced dynamically:
+	 *
+	 * %1$s - The current user's username
+	 * %2$s - The link to click on to confirm the email change
+	 * %3$s - The new email
+	 * %4$s - The name of the site
+	 * %5$s - The URL to the site
+	 *
+	 * @param string $email_text Text in the email.
+	 * @param string $r          New user email that the current user has changed to.
+	 */
+	$content = apply_filters( 'bbp_user_email_update_content', $email_text, $r );
+
+	// Build the email message
+	$message = sprintf( $content, $user_login, $confirm_url, $r['newemail'], get_site_option( 'site_name' ), network_home_url() );
+
+	// Build the email subject
+	$subject = sprintf( __( '[%s] New Email Address', 'bbpress' ), wp_specialchars_decode( get_option( 'blogname' ) ) );
+
+	// Send the email
+	wp_mail( $r['newemail'], $subject, $message );
+}
+
+/**
  * Conditionally hook the core WordPress output actions to the end of the
- * default user's edit profile template.
+ * default user's edit profile template
  *
  * This allows clever plugin authors to conditionally unhook the WordPress core
  * output actions if they don't want any unexpected junk to appear there, and
@@ -1695,33 +1902,34 @@ function bbp_decrease_user_reply_count( $reply_id = 0 ) {
  *
  * This is hooked to 'bbp_template_redirect' and controls the conditions under
  * which a user can edit another user (or themselves.) If these conditions are
- * met. We assume a user cannot perform this task, and look for ways they can
+ * met, we assume a user cannot perform this task, and look for ways they can
  * earn the ability to access this template.
  *
  * @since bbPress (r3605)
  *
- * @uses bbp_is_topic_edit()
+ * @uses bbp_is_single_user_edit()
  * @uses current_user_can()
- * @uses bbp_get_topic_id()
- * @uses wp_safe_redirect()
- * @uses bbp_get_topic_permalink()
+ * @uses bbp_get_displayed_user_id()
+ * @uses bbp_redirect()
+ * @uses bbp_get_user_profile_url()
  */
 function bbp_check_user_edit() {
 
-	// Bail if not editing a topic
+	// Bail if not editing a user
 	if ( ! bbp_is_single_user_edit() ) {
 		return;
 	}
 
 	// Default to false
 	$redirect = true;
+	$user_id  = bbp_get_displayed_user_id();
 
 	// Allow user to edit their own profile
 	if ( bbp_is_user_home_edit() ) {
 		$redirect = false;
 
 	// Allow if current user can edit the displayed user
-	} elseif ( current_user_can( 'edit_user', bbp_get_displayed_user_id() ) ) {
+	} elseif ( current_user_can( 'edit_user', $user_id ) ) {
 		$redirect = false;
 
 	// Allow if user can manage network users, or edit-any is enabled
@@ -1729,11 +1937,20 @@ function bbp_check_user_edit() {
 		$redirect = false;
 	}
 
-	// Maybe redirect back to profile page
-	if ( true === $redirect ) {
-		wp_safe_redirect( bbp_get_user_profile_url( bbp_get_displayed_user_id() ) );
-		exit();
+	// Allow conclusion to be overridden
+	$redirect = (bool) apply_filters( 'bbp_check_user_edit', $redirect, $user_id );
+
+	// Bail if not redirecting
+	if ( false === $redirect ) {
+		return;
 	}
+
+	// Filter redirect URL
+	$profile_url = bbp_get_user_profile_url( $user_id );
+	$redirect_to = apply_filters( 'bbp_check_user_edit_redirect_to', $profile_url, $user_id );
+
+	// Redirect
+	bbp_redirect( $redirect_to );
 }
 
 /**
