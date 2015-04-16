@@ -91,7 +91,6 @@ function bbp_insert_topic( $topic_data = array(), $topic_meta = array() ) {
  * @uses bbp_filter_anonymous_post_data() To filter anonymous data
  * @uses bbp_set_current_anonymous_user_data() To set the anonymous user cookies
  * @uses is_wp_error() To check if the value retrieved is a {@link WP_Error}
- * @uses esc_attr() For sanitization
  * @uses bbp_is_forum_category() To check if the forum is a category
  * @uses bbp_is_forum_closed() To check if the forum is closed
  * @uses bbp_is_forum_private() To check if the forum is private
@@ -103,6 +102,13 @@ function bbp_insert_topic( $topic_data = array(), $topic_meta = array() ) {
  * @uses apply_filters() Calls 'bbp_new_topic_pre_content' with the content
  * @uses bbPress::errors::get_error_codes() To get the {@link WP_Error} errors
  * @uses wp_insert_post() To insert the topic
+ * @uses get_post_field() To get the post status
+ * @uses bbp_get_closed_status_id() To get the closed status id
+ * @uses bbp_close_topic() To close topics
+ * @uses bbp_get_trash_status_id() To get the trash status id
+ * @uses wp_trash_post() To trash topics
+ * @uses bbp_get_spam_status_id() To get the spam status id
+ * @uses add_post_meta() To add spam status meta to spam topics
  * @uses do_action() Calls 'bbp_new_topic' with the topic id, forum id,
  *                    anonymous data and reply author
  * @uses bbp_stick_topic() To stick or super stick the topic
@@ -167,7 +173,7 @@ function bbp_new_topic_handler( $action = '' ) {
 	/** Topic Title ***********************************************************/
 
 	if ( ! empty( $_POST['bbp_topic_title'] ) ) {
-		$topic_title = esc_attr( strip_tags( $_POST['bbp_topic_title'] ) );
+		$topic_title = sanitize_text_field( $_POST['bbp_topic_title'] );
 	}
 
 	// Filter and sanitize
@@ -298,7 +304,7 @@ function bbp_new_topic_handler( $action = '' ) {
 	if ( bbp_allow_topic_tags() && ! empty( $_POST['bbp_topic_tags'] ) ) {
 
 		// Escape tag input
-		$terms = esc_attr( strip_tags( $_POST['bbp_topic_tags'] ) );
+		$terms = sanitize_text_field( $_POST['bbp_topic_tags'] );
 
 		// Explode by comma
 		if ( strstr( $terms, ',' ) ) {
@@ -340,13 +346,22 @@ function bbp_new_topic_handler( $action = '' ) {
 
 	if ( ! empty( $topic_id ) && ! is_wp_error( $topic_id ) ) {
 
+		/** Close Check *******************************************************/
+
+		// If the topic is closed, close it properly
+		if ( ( get_post_field( 'post_status', $topic_id ) === bbp_get_closed_status_id() ) || ( $topic_data['post_status'] === bbp_get_closed_status_id() ) ) {
+
+			// Close the topic
+			bbp_close_topic( $topic_id );
+		}
+
 		/** Trash Check *******************************************************/
 
 		// If the forum is trash, or the topic_status is switched to
-		// trash, trash it properly
+		// trash, trash the topic properly
 		if ( ( get_post_field( 'post_status', $forum_id ) === bbp_get_trash_status_id() ) || ( $topic_data['post_status'] === bbp_get_trash_status_id() ) ) {
 
-			// Trash the reply
+			// Trash the topic
 			wp_trash_post( $topic_id );
 
 			// Force view=all
@@ -355,7 +370,7 @@ function bbp_new_topic_handler( $action = '' ) {
 
 		/** Spam Check ********************************************************/
 
-		// If reply or topic are spam, officially spam this reply
+		// If the topic is spam, officially spam this topic
 		if ( $topic_data['post_status'] === bbp_get_spam_status_id() ) {
 			add_post_meta( $topic_id, '_bbp_spam_meta_status', bbp_get_public_status_id() );
 
@@ -447,7 +462,6 @@ function bbp_new_topic_handler( $action = '' ) {
  * @uses current_user_can() To check if the current user can edit the topic
  * @uses bbp_filter_anonymous_post_data() To filter anonymous data
  * @uses is_wp_error() To check if the value retrieved is a {@link WP_Error}
- * @uses esc_attr() For sanitization
  * @uses bbp_is_forum_category() To check if the forum is a category
  * @uses bbp_is_forum_closed() To check if the forum is closed
  * @uses bbp_is_forum_private() To check if the forum is private
@@ -583,7 +597,7 @@ function bbp_edit_topic_handler( $action = '' ) {
 	/** Topic Title ***********************************************************/
 
 	if ( ! empty( $_POST['bbp_topic_title'] ) ) {
-		$topic_title = esc_attr( strip_tags( $_POST['bbp_topic_title'] ) );
+		$topic_title = sanitize_text_field( $_POST['bbp_topic_title'] );
 	}
 
 	// Filter and sanitize
@@ -639,7 +653,7 @@ function bbp_edit_topic_handler( $action = '' ) {
 	if ( bbp_allow_topic_tags() && current_user_can( 'assign_topic_tags' ) && ! empty( $_POST['bbp_topic_tags'] ) ) {
 
 		// Escape tag input
-		$terms = esc_attr( strip_tags( $_POST['bbp_topic_tags'] ) );
+		$terms = sanitize_text_field( $_POST['bbp_topic_tags'] );
 
 		// Explode by comma
 		if ( strstr( $terms, ',' ) ) {
@@ -708,7 +722,7 @@ function bbp_edit_topic_handler( $action = '' ) {
 
 		// Revision Reason
 		if ( ! empty( $_POST['bbp_topic_edit_reason'] ) ) {
-			$topic_edit_reason = esc_attr( strip_tags( $_POST['bbp_topic_edit_reason'] ) );
+			$topic_edit_reason = sanitize_text_field( $_POST['bbp_topic_edit_reason'] );
 		}
 
 		// Update revision log
@@ -1541,7 +1555,7 @@ function bbp_split_topic_handler( $action = '' ) {
 
 					// Use the new title that was passed
 					if ( ! empty( $_POST['bbp_topic_split_destination_title'] ) ) {
-						$destination_topic_title = esc_attr( strip_tags( $_POST['bbp_topic_split_destination_title'] ) );
+						$destination_topic_title = sanitize_text_field( $_POST['bbp_topic_split_destination_title'] );
 
 					// Use the source topic title
 					} else {
@@ -2701,7 +2715,7 @@ function bbp_update_topic_anonymous_reply_count( $topic_id = 0 ) {
  *
  * @since bbPress (r2782)
  *
- * @param mixed $args Supports these args:
+ * @param array $args Supports these args:
  *  - topic_id: Topic id
  *  - author_id: Author id
  *  - reason: Reason for editing
@@ -2712,7 +2726,7 @@ function bbp_update_topic_anonymous_reply_count( $topic_id = 0 ) {
  * @uses update_post_meta() To update the topic revision log meta
  * @return mixed False on failure, true on success
  */
-function bbp_update_topic_revision_log( $args = '' ) {
+function bbp_update_topic_revision_log( $args = array() ) {
 
 	// Parse arguments against default values
 	$r = bbp_parse_args( $args, array(
@@ -2745,10 +2759,17 @@ function bbp_update_topic_revision_log( $args = '' ) {
  *
  * @param int $topic_id Topic id
  * @uses bbp_get_topic() To get the topic
+ * @uses get_post_meta() To get the topic status meta
+ * @uses bbp_get_closed_status_id() to get the closed status
+ * @uses bbp_get_public_status_id() to get the public status
  * @uses do_action() Calls 'bbp_close_topic' with the topic id
  * @uses add_post_meta() To add the previous status to a meta
+ * @uses post_type_supports() To check if revisions are enabled
+ * @uses bbp_get_topic_post_type() To get the topic post type
+ * @uses remove_post_type_support() To temporarily remove topic revisions
  * @uses wp_update_post() To update the topic with the new status
- * @uses do_action() Calls 'bbp_opened_topic' with the topic id
+ * @uses add_post_type_support() To restore topic revisions
+ * @uses do_action() Calls 'bbp_closed_topic' with the topic id
  * @return mixed False or {@link WP_Error} on failure, topic id on success
  */
 function bbp_close_topic( $topic_id = 0 ) {
@@ -2759,16 +2780,22 @@ function bbp_close_topic( $topic_id = 0 ) {
 		return $topic;
 	}
 
-	// Bail if already closed
-	if ( bbp_get_closed_status_id() === $topic->post_status ) {
+	// Get previous topic status meta
+	$topic_status = get_post_meta( $topic_id, '_bbp_status', true );
+
+	// Bail if already closed and topic status meta exists
+	if ( bbp_get_closed_status_id() === $topic->post_status && ! empty( $topic_status ) ) {
 		return false;
 	}
+
+	// Set status meta public
+	$topic_status = bbp_get_public_status_id();
 
 	// Execute pre close code
 	do_action( 'bbp_close_topic', $topic_id );
 
 	// Add pre close status
-	add_post_meta( $topic_id, '_bbp_status', $topic->post_status );
+	add_post_meta( $topic_id, '_bbp_status', $topic_status );
 
 	// Set closed status
 	$topic->post_status = bbp_get_closed_status_id();
@@ -2805,7 +2832,11 @@ function bbp_close_topic( $topic_id = 0 ) {
  * @uses do_action() Calls 'bbp_open_topic' with the topic id
  * @uses get_post_meta() To get the previous status
  * @uses delete_post_meta() To delete the previous status meta
+ * @uses post_type_supports() To check if revisions are enabled
+ * @uses bbp_get_topic_post_type() To get the topic post type
+ * @uses remove_post_type_support() To temporarily remove topic revisions
  * @uses wp_update_post() To update the topic with the new status
+ * @uses add_post_type_support() To restore topic revisions
  * @uses do_action() Calls 'bbp_opened_topic' with the topic id
  * @return mixed False or {@link WP_Error} on failure, topic id on success
  */
