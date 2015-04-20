@@ -1253,12 +1253,10 @@ function bbp_forum_topics_link( $forum_id = 0 ) {
 	 * @uses bbp_get_forum() To get the forum
 	 * @uses bbp_get_forum_topic_count() To get the forum topic count
 	 * @uses bbp_get_forum_permalink() To get the forum permalink
-	 * @uses remove_query_arg() To remove args from the url
 	 * @uses bbp_get_forum_topic_count_hidden() To get the forum hidden
 	 *                                           topic count
 	 * @uses current_user_can() To check if the current user can edit others
 	 *                           topics
-	 * @uses add_query_arg() To add custom args to the url
 	 * @uses apply_filters() Calls 'bbp_get_forum_topics_link' with the
 	 *                        topics link and forum id
 	 */
@@ -1772,7 +1770,7 @@ function bbp_is_forum_hidden( $forum_id = 0, $check_ancestors = true ) {
 /**
  * Check the forum visibility ID
  *
- * @since bbPress (rX)
+ * @since bbPress (r5499)
  *
  * @param int $forum_id Optional. Forum id
  * @param bool $status_name The post status name to check
