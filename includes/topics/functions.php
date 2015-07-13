@@ -42,7 +42,7 @@ function bbp_insert_topic( $topic_data = array(), $topic_meta = array() ) {
 	), 'insert_topic' );
 
 	// Insert topic
-	$topic_id   = wp_insert_post( $topic_data );
+	$topic_id = wp_insert_post( $topic_data );
 
 	// Bail if no topic was added
 	if ( empty( $topic_id ) ) {
@@ -67,11 +67,8 @@ function bbp_insert_topic( $topic_data = array(), $topic_meta = array() ) {
 		update_post_meta( $topic_id, '_bbp_' . $meta_key, $meta_value );
 	}
 
-	// Update the forum
-	$forum_id = bbp_get_topic_forum_id( $topic_id );
-	if ( ! empty( $forum_id ) ) {
-		bbp_update_forum( array( 'forum_id' => $forum_id ) );
-	}
+	// Update the topic and hierarchy
+	bbp_update_topic( $topic_id, $topic_meta['forum_id'], array(), $topic_data['post_author'], false );
 
 	// Return new topic ID
 	return $topic_id;
@@ -1012,6 +1009,7 @@ function bbp_update_topic_walker( $topic_id, $last_active_time = '', $forum_id =
  * @param int $new_forum_id New forum id
  * @uses bbp_get_topic_id() To get the topic id
  * @uses bbp_get_forum_id() To get the forum id
+ * @uses wp_update_post() To update the topic post parent`
  * @uses bbp_get_stickies() To get the old forums sticky topics
  * @uses delete_post_meta() To delete the forum sticky meta
  * @uses update_post_meta() To update the old forum sticky meta
@@ -1031,8 +1029,19 @@ function bbp_move_topic_handler( $topic_id, $old_forum_id, $new_forum_id ) {
 	$old_forum_id = bbp_get_forum_id( $old_forum_id );
 	$new_forum_id = bbp_get_forum_id( $new_forum_id );
 
+	// Clean old and new forum caches before proceeding, to ensure subsequent
+	// calls to forum objects are using updated data.
+	bbp_clean_post_cache( $old_forum_id );
+	bbp_clean_post_cache( $new_forum_id );
+
 	// Update topic forum's ID
 	bbp_update_topic_forum_id( $topic_id, $new_forum_id );
+
+	// Update topic post parent with the new forum ID
+	wp_update_post( array(
+		'ID'          => $topic_id,
+		'post_parent' => $new_forum_id,
+	) );
 
 	/** Stickies **************************************************************/
 
@@ -2035,7 +2044,7 @@ function bbp_get_stickies( $forum_id = 0 ) {
 	$stickies = empty( $forum_id ) ? bbp_get_super_stickies() : get_post_meta( $forum_id, '_bbp_sticky_topics', true );
 	$stickies = ( empty( $stickies ) || ! is_array( $stickies ) ) ? array() : $stickies;
 
-	return apply_filters( 'bbp_get_stickies', $stickies, (int) $forum_id );
+	return apply_filters( 'bbp_get_stickies', $stickies, $forum_id );
 }
 
 /**
@@ -2319,26 +2328,32 @@ function bbp_remove_topic_from_all_subscriptions( $topic_id = 0 ) {
  *
  * @since bbPress (r3825)
  *
- * @param int $topic_id Optional. Forum id.
+ * @param int $topic_id   Optional. Topic id.
  * @param int $difference Optional. Default 1
- * @param bool $update_ancestors Optional. Default true
  * @uses bbp_get_topic_id() To get the topic id
+ * @uses bbp_get_topic_reply_count() To get the topic reply count
  * @uses update_post_meta() To update the topic's reply count meta
  * @uses apply_filters() Calls 'bbp_bump_topic_reply_count' with the reply
  *                        count, topic id, and difference
- * @return int Forum reply count
+ * @return int Topic reply count
  */
 function bbp_bump_topic_reply_count( $topic_id = 0, $difference = 1 ) {
+
+	// Bail if no bump
+	if ( empty( $difference ) ) {
+		return false;
+	}
 
 	// Get counts
 	$topic_id    = bbp_get_topic_id( $topic_id );
 	$reply_count = bbp_get_topic_reply_count( $topic_id, true );
-	$new_count   = (int) $reply_count + (int) $difference;
+	$difference  = (int) $difference;
+	$new_count   = (int) ( $reply_count + $difference );
 
 	// Update this topic id's reply count
-	update_post_meta( $topic_id, '_bbp_reply_count', (int) $new_count );
+	update_post_meta( $topic_id, '_bbp_reply_count', $new_count );
 
-	return (int) apply_filters( 'bbp_bump_topic_reply_count', (int) $new_count, $topic_id, (int) $difference );
+	return (int) apply_filters( 'bbp_bump_topic_reply_count', $new_count, $topic_id, $difference );
 }
 
 /**
@@ -2346,26 +2361,32 @@ function bbp_bump_topic_reply_count( $topic_id = 0, $difference = 1 ) {
  *
  * @since bbPress (r3825)
  *
- * @param int $topic_id Optional. Forum id.
+ * @param int $topic_id   Optional. Topic id.
  * @param int $difference Optional. Default 1
  * @uses bbp_get_topic_id() To get the topic id
  * @uses bbp_get_topic_reply_count_hidden To get the topic's hidden reply count
  * @uses update_post_meta() To update the topic's reply count meta
  * @uses apply_filters() Calls 'bbp_bump_topic_reply_count_hidden' with the
  *                        reply count, topic id, and difference
- * @return int Forum hidden reply count
+ * @return int Topic hidden reply count
  */
 function bbp_bump_topic_reply_count_hidden( $topic_id = 0, $difference = 1 ) {
+
+	// Bail if no bump
+	if ( empty( $difference ) ) {
+		return false;
+	}
 
 	// Get counts
 	$topic_id    = bbp_get_topic_id( $topic_id );
 	$reply_count = bbp_get_topic_reply_count_hidden( $topic_id, true );
-	$new_count   = (int) $reply_count + (int) $difference;
+	$difference  = (int) $difference;
+	$new_count   = (int) ( $reply_count + $difference );
 
-	// Update this topic id's hidder reply count
-	update_post_meta( $topic_id, '_bbp_reply_count_hidden', (int) $new_count );
+	// Update this topic id's hidden reply count
+	update_post_meta( $topic_id, '_bbp_reply_count_hidden', $new_count );
 
-	return (int) apply_filters( 'bbp_bump_topic_reply_count_hidden', (int) $new_count, $topic_id, (int) $difference );
+	return (int) apply_filters( 'bbp_bump_topic_reply_count_hidden', $new_count, $topic_id, $difference );
 }
 
 /** Topic Updaters ************************************************************/
@@ -2400,9 +2421,11 @@ function bbp_update_topic_forum_id( $topic_id = 0, $forum_id = 0 ) {
 		$forum_id = get_post_field( 'post_parent', $topic_id );
 	}
 
-	update_post_meta( $topic_id, '_bbp_forum_id', (int) $forum_id );
+	$forum_id = (int) $forum_id;
 
-	return apply_filters( 'bbp_update_topic_forum_id', (int) $forum_id, $topic_id );
+	update_post_meta( $topic_id, '_bbp_forum_id', $forum_id );
+
+	return (int) apply_filters( 'bbp_update_topic_forum_id', $forum_id, $topic_id );
 }
 
 /**
@@ -2419,9 +2442,9 @@ function bbp_update_topic_forum_id( $topic_id = 0, $forum_id = 0 ) {
 function bbp_update_topic_topic_id( $topic_id = 0 ) {
 	$topic_id = bbp_get_topic_id( $topic_id );
 
-	update_post_meta( $topic_id, '_bbp_topic_id', (int) $topic_id );
+	update_post_meta( $topic_id, '_bbp_topic_id', $topic_id );
 
-	return apply_filters( 'bbp_update_topic_topic_id', (int) $topic_id );
+	return apply_filters( 'bbp_update_topic_topic_id', $topic_id );
 }
 
 /**
@@ -2455,9 +2478,11 @@ function bbp_update_topic_reply_count( $topic_id = 0, $reply_count = 0 ) {
 		$reply_count = bbp_get_public_child_count( $topic_id, bbp_get_reply_post_type() );
 	}
 
-	update_post_meta( $topic_id, '_bbp_reply_count', (int) $reply_count );
+	$reply_count = (int) $reply_count;
 
-	return apply_filters( 'bbp_update_topic_reply_count', (int) $reply_count, $topic_id );
+	update_post_meta( $topic_id, '_bbp_reply_count', $reply_count );
+
+	return (int) apply_filters( 'bbp_update_topic_reply_count', $reply_count, $topic_id );
 }
 
 /**
@@ -2498,9 +2523,11 @@ function bbp_update_topic_reply_count_hidden( $topic_id = 0, $reply_count = 0 ) 
 		$reply_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_parent = %d AND post_status IN ( {$post_status} ) AND post_type = '%s';", $topic_id, bbp_get_reply_post_type() ) );
 	}
 
-	update_post_meta( $topic_id, '_bbp_reply_count_hidden', (int) $reply_count );
+	$reply_count = (int) $reply_count;
 
-	return apply_filters( 'bbp_update_topic_reply_count_hidden', (int) $reply_count, $topic_id );
+	update_post_meta( $topic_id, '_bbp_reply_count_hidden', $reply_count );
+
+	return (int) apply_filters( 'bbp_update_topic_reply_count_hidden', $reply_count, $topic_id );
 }
 
 /**
@@ -2539,12 +2566,14 @@ function bbp_update_topic_last_active_id( $topic_id = 0, $active_id = 0 ) {
 		$active_id = $topic_id;
 	}
 
+	$active_id = (int) $active_id;
+
 	// Update only if published
 	if ( bbp_get_public_status_id() === get_post_status( $active_id ) ) {
-		update_post_meta( $topic_id, '_bbp_last_active_id', (int) $active_id );
+		update_post_meta( $topic_id, '_bbp_last_active_id', $active_id );
 	}
 
-	return apply_filters( 'bbp_update_topic_last_active_id', (int) $active_id, $topic_id );
+	return (int) apply_filters( 'bbp_update_topic_last_active_id', $active_id, $topic_id );
 }
 
 /**
@@ -2620,12 +2649,14 @@ function bbp_update_topic_last_reply_id( $topic_id = 0, $reply_id = 0 ) {
 		$reply_id = 0;
 	}
 
+	$reply_id = (int) $reply_id;
+
 	// Update if reply is published
 	if ( bbp_is_reply_published( $reply_id ) ) {
-		update_post_meta( $topic_id, '_bbp_last_reply_id', (int) $reply_id );
+		update_post_meta( $topic_id, '_bbp_last_reply_id', $reply_id );
 	}
 
-	return apply_filters( 'bbp_update_topic_last_reply_id', (int) $reply_id, $topic_id );
+	return (int) apply_filters( 'bbp_update_topic_last_reply_id', $reply_id, $topic_id );
 }
 
 /**
@@ -2660,15 +2691,12 @@ function bbp_update_topic_voice_count( $topic_id = 0 ) {
 	}
 
 	// Query the DB to get voices in this topic
-	$voices = $wpdb->get_col( $wpdb->prepare( "SELECT COUNT( DISTINCT post_author ) FROM {$wpdb->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' ) OR ( ID = %d AND post_type = '%s' );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() ) );
-
-	// If there's an error, make sure we have at least have 1 voice
-	$voices = ( empty( $voices ) || is_wp_error( $voices ) ) ? 1 : $voices[0];
+	$voices = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT post_author ) FROM {$wpdb->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' ) OR ( ID = %d AND post_type = '%s' );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() ) );
 
 	// Update the voice count for this topic id
-	update_post_meta( $topic_id, '_bbp_voice_count', (int) $voices );
+	update_post_meta( $topic_id, '_bbp_voice_count', $voices );
 
-	return apply_filters( 'bbp_update_topic_voice_count', (int) $voices, $topic_id );
+	return (int) apply_filters( 'bbp_update_topic_voice_count', $voices, $topic_id );
 }
 
 /**
@@ -2704,9 +2732,9 @@ function bbp_update_topic_anonymous_reply_count( $topic_id = 0 ) {
 
 	$anonymous_replies = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( ID ) FROM {$wpdb->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' AND post_author = 0 ) OR ( ID = %d AND post_type = '%s' AND post_author = 0 );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() ) );
 
-	update_post_meta( $topic_id, '_bbp_anonymous_reply_count', (int) $anonymous_replies );
+	update_post_meta( $topic_id, '_bbp_anonymous_reply_count', $anonymous_replies );
 
-	return apply_filters( 'bbp_update_topic_anonymous_reply_count', (int) $anonymous_replies, $topic_id );
+	return (int) apply_filters( 'bbp_update_topic_anonymous_reply_count', $anonymous_replies, $topic_id );
 }
 
 /**

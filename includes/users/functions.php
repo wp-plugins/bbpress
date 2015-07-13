@@ -1428,7 +1428,7 @@ function bbp_edit_user_handler( $action = '' ) {
 	} elseif ( is_integer( $edit_user ) ) {
 
 		// Maybe update super admin ability
-		if ( is_multisite() && ! bbp_is_user_home_edit() ) {
+		if ( is_multisite() && ! bbp_is_user_home_edit() && current_user_can( 'manage_network_options' ) && is_super_admin() ) {
 			empty( $_POST['super_admin'] )
 				? revoke_super_admin( $edit_user )
 				: grant_super_admin( $edit_user );
@@ -1568,7 +1568,7 @@ function bbp_user_email_change_handler( $action = '' ) {
  * @uses add_query_arg()                 To add arguments the link
  * @uses wp_mail()                       To send the notification
  */
-function bbp_edit_user_email_send_notification( $user_id = 0, $args = '' ) {
+function bbp_edit_user_email_send_notification( $user_id = 0, $args = array() ) {
 
 	// Parse args
 	$r = bbp_parse_args( $args, array(
@@ -1786,6 +1786,11 @@ function bbp_get_user_reply_count_raw( $user_id = 0 ) {
  */
 function bbp_bump_user_topic_count( $user_id = 0, $difference = 1 ) {
 
+	// Bail if no bump
+	if ( empty( $difference ) ) {
+		return false;
+	}
+
 	// Validate user ID
 	$user_id = bbp_get_user_id( $user_id );
 	if ( empty( $user_id ) ) {
@@ -1798,8 +1803,11 @@ function bbp_bump_user_topic_count( $user_id = 0, $difference = 1 ) {
 		$count = bbp_get_user_topic_count_raw( $user_id );
 	}
 
+	$difference       = (int) $difference;
+	$user_topic_count = (int) ( $count + $difference );
+
 	// Add them up and filter them
-	$new_count = apply_filters( 'bbp_bump_user_topic_count', ( (int) $count + (int) $difference ), $user_id, $difference, $count );
+	$new_count = (int) apply_filters( 'bbp_bump_user_topic_count', $user_topic_count, $user_id, $difference, $count );
 
 	return bbp_update_user_topic_count( $user_id, $new_count );
 }
@@ -1816,6 +1824,11 @@ function bbp_bump_user_topic_count( $user_id = 0, $difference = 1 ) {
  */
 function bbp_bump_user_reply_count( $user_id = 0, $difference = 1 ) {
 
+	// Bail if no bump
+	if ( empty( $difference ) ) {
+		return false;
+	}
+
 	// Validate user ID
 	$user_id = bbp_get_user_id( $user_id );
 	if ( empty( $user_id ) ) {
@@ -1827,6 +1840,9 @@ function bbp_bump_user_reply_count( $user_id = 0, $difference = 1 ) {
 	if ( empty( $count ) ) {
 		$count = bbp_get_user_reply_count_raw( $user_id );
 	}
+
+	$difference       = (int) $difference;
+	$user_reply_count = (int) ( $count + $difference );
 
 	// Add them up and filter them
 	$new_count = apply_filters( 'bbp_bump_user_reply_count', ( (int) $count + (int) $difference ), $user_id, $difference, $count );

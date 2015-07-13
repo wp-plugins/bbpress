@@ -188,7 +188,6 @@ function bbp_create_initial_content( $args = array() ) {
 		'forum_content' => __( 'General chit-chat',                        'bbpress' ),
 		'topic_title'   => __( 'Hello World!',                             'bbpress' ),
 		'topic_content' => __( 'I am the first topic in your new forums.', 'bbpress' ),
-		'reply_title'   => __( 'Re: Hello World!',                         'bbpress' ),
 		'reply_content' => __( 'Oh, and this is what a reply looks like.', 'bbpress' ),
 	), 'create_initial_content' );
 
@@ -207,14 +206,15 @@ function bbp_create_initial_content( $args = array() ) {
 			'post_title'   => $r['topic_title'],
 			'post_content' => $r['topic_content']
 		),
-		array( 'forum_id'  => $forum_id )
+		array(
+			'forum_id'     => $forum_id
+		)
 	);
 
 	// Create the initial reply
 	$reply_id = bbp_insert_reply(
 		array(
 			'post_parent'  => $topic_id,
-			'post_title'   => $r['reply_title'],
 			'post_content' => $r['reply_content']
 		),
 		array(
