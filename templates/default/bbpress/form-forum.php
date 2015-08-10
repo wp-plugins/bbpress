@@ -42,7 +42,7 @@ if ( bbp_is_forum_edit() ) : ?>
 
 				<?php do_action( 'bbp_theme_before_forum_form_notices' ); ?>
 
-				<?php if ( !bbp_is_forum_edit() && bbp_is_forum_closed() ) : ?>
+				<?php if ( ! bbp_is_forum_edit() && bbp_is_forum_closed() ) : ?>
 
 					<div class="bbp-template-notice">
 						<ul>
@@ -90,6 +90,19 @@ if ( bbp_is_forum_edit() ) : ?>
 
 					<?php endif; ?>
 
+					<?php if ( bbp_allow_forum_mods() && current_user_can( 'assign_forum_mods' ) ) : ?>
+
+						<?php do_action( 'bbp_theme_before_forum_form_mods' ); ?>
+
+						<p>
+							<label for="bbp_forum_mods"><?php esc_html_e( 'Forum Moderators:', 'bbpress' ); ?></label><br />
+							<input type="text" value="<?php bbp_form_forum_mods(); ?>" size="40" name="bbp_forum_mods" id="bbp_forum_mods" />
+						</p>
+
+						<?php do_action( 'bbp_theme_after_forum_form_mods' ); ?>
+
+					<?php endif; ?>
+
 					<?php do_action( 'bbp_theme_before_forum_form_type' ); ?>
 
 					<p>
@@ -125,7 +138,7 @@ if ( bbp_is_forum_edit() ) : ?>
 						<?php
 							bbp_dropdown( array(
 								'select_id' => 'bbp_forum_parent_id',
-								'show_none' => esc_html__( '(No Parent)', 'bbpress' ),
+								'show_none' => esc_html__( '&mdash; No parent &mdash;', 'bbpress' ),
 								'selected'  => bbp_get_form_forum_parent(),
 								'exclude'   => bbp_get_forum_id()
 							) );

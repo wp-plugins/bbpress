@@ -535,7 +535,7 @@ function bbp_template_include_theme_compat( $template = '' ) {
 
 		// Reset post
 		bbp_theme_compat_reset_post( array(
-			'ID'             => !empty( $page->ID ) ? $page->ID : 0,
+			'ID'             => ! empty( $page->ID ) ? $page->ID : 0,
 			'post_title'     => $new_title,
 			'post_author'    => 0,
 			'post_date'      => 0,
@@ -605,7 +605,7 @@ function bbp_template_include_theme_compat( $template = '' ) {
 
 		// Reset post
 		bbp_theme_compat_reset_post( array(
-			'ID'             => !empty( $page->ID ) ? $page->ID : 0,
+			'ID'             => ! empty( $page->ID ) ? $page->ID : 0,
 			'post_title'     => bbp_get_topic_archive_title(),
 			'post_author'    => 0,
 			'post_date'      => 0,
@@ -803,19 +803,20 @@ function bbp_template_include_theme_compat( $template = '' ) {
  * Remove the canonical redirect to allow pretty pagination
  *
  * @since bbPress (r2628)
+ *
  * @param string $redirect_url Redirect url
- * @uses WP_Rewrite::using_permalinks() To check if the blog is using permalinks
+ * @uses bbp_use_pretty_urls() To check if the blog is using permalinks
  * @uses bbp_get_paged() To get the current page number
  * @uses bbp_is_single_topic() To check if it's a topic page
  * @uses bbp_is_single_forum() To check if it's a forum page
+ *
  * @return bool|string False if it's a topic/forum and their first page,
  *                      otherwise the redirect url
  */
 function bbp_redirect_canonical( $redirect_url ) {
-	global $wp_rewrite;
 
 	// Canonical is for the beautiful
-	if ( $wp_rewrite->using_permalinks() ) {
+	if ( bbp_use_pretty_urls() ) {
 
 		// If viewing beyond page 1 of several
 		if ( 1 < bbp_get_paged() ) {
@@ -875,7 +876,7 @@ function bbp_remove_all_filters( $tag, $priority = false ) {
 	if ( isset( $wp_filter[$tag] ) ) {
 
 		// Filters exist in this priority
-		if ( !empty( $priority ) && isset( $wp_filter[$tag][$priority] ) ) {
+		if ( ! empty( $priority ) && isset( $wp_filter[$tag][$priority] ) ) {
 
 			// Store filters in a backup
 			$bbp->filters->wp_filter[$tag][$priority] = $wp_filter[$tag][$priority];
@@ -927,7 +928,7 @@ function bbp_restore_all_filters( $tag, $priority = false ) {
 	if ( isset( $bbp->filters->wp_filter[$tag] ) ) {
 
 		// Filters exist in this priority
-		if ( !empty( $priority ) && isset( $bbp->filters->wp_filter[$tag][$priority] ) ) {
+		if ( ! empty( $priority ) && isset( $bbp->filters->wp_filter[$tag][$priority] ) ) {
 
 			// Store filters in a backup
 			$wp_filter[$tag][$priority] = $bbp->filters->wp_filter[$tag][$priority];

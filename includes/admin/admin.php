@@ -68,6 +68,13 @@ class BBP_Admin {
 	 */
 	public $show_separator = false;
 
+	/** Tools *****************************************************************/
+
+	/**
+	 * @var array Array of available repair tools
+	 */
+	public $tools = array();
+
 	/** Functions *************************************************************/
 
 	/**
@@ -316,7 +323,7 @@ class BBP_Admin {
 	 * @return type
 	 */
 	public static function new_install() {
-		if ( !bbp_is_install() ) {
+		if ( ! bbp_is_install() ) {
 			return;
 		}
 
@@ -359,7 +366,7 @@ class BBP_Admin {
 			}
 
 			// Toggle the section if core integration is on
-			if ( ( true === $settings_integration ) && !empty( $section['page'] ) ) {
+			if ( ( true === $settings_integration ) && ! empty( $section['page'] ) ) {
 				$page = $section['page'];
 			} else {
 				$page = 'bbpress';
@@ -372,7 +379,7 @@ class BBP_Admin {
 			foreach ( (array) $fields as $field_id => $field ) {
 
 				// Add the field
-				if ( ! empty( $field['callback'] ) && !empty( $field['title'] ) ) {
+				if ( ! empty( $field['callback'] ) && ! empty( $field['title'] ) ) {
 					add_settings_field( $field_id, $field['title'], $field['callback'], $page, $section_id, $field['args'] );
 				}
 
@@ -534,7 +541,7 @@ class BBP_Admin {
 	 * @param WP_Admin_Bar $wp_admin_bar
 	 */
 	public function admin_bar_about_link( $wp_admin_bar ) {
-		if ( is_user_logged_in() ) {
+		if ( is_user_logged_in() && current_user_can( 'bbp_about_page' ) ) {
 			$wp_admin_bar->add_menu( array(
 				'parent' => 'wp-logo',
 				'id'     => 'bbp-about',
@@ -625,7 +632,12 @@ class BBP_Admin {
 	 *
 	 * @uses wp_admin_css_color() To register the color scheme
 	 */
-	public function register_admin_style () {
+	public function register_admin_style() {
+
+		// Color schemes are not available when running out of src
+		if ( false !== strpos( $GLOBALS['wp_version'], '-src' ) ) {
+			return;
+		}
 
 		// RTL and/or minified
 		$suffix  = is_rtl() ? '-rtl' : '';
@@ -692,7 +704,6 @@ class BBP_Admin {
 	 * @uses bbp_get_topic_title()
 	 */
 	public function suggest_topic() {
-		global $wpdb;
 
 		// Bail early if no request
 		if ( empty( $_REQUEST['q'] ) ) {
@@ -709,7 +720,7 @@ class BBP_Admin {
 
 		// Try to get some topics
 		$topics = get_posts( array(
-			's'         => $wpdb->esc_like( $_REQUEST['q'] ),
+			's'         => bbp_db()->esc_like( $_REQUEST['q'] ),
 			'post_type' => bbp_get_topic_post_type()
 		) );
 
@@ -728,7 +739,6 @@ class BBP_Admin {
 	 * @since bbPress (r5014)
 	 */
 	public function suggest_user() {
-		global $wpdb;
 
 		// Bail early if no request
 		if ( empty( $_REQUEST['q'] ) ) {
@@ -745,7 +755,7 @@ class BBP_Admin {
 
 		// Try to get some users
 		$users_query = new WP_User_Query( array(
-			'search'         => '*' . $wpdb->esc_like( $_REQUEST['q'] ) . '*',
+			'search'         => '*' . bbp_db()->esc_like( $_REQUEST['q'] ) . '*',
 			'fields'         => array( 'ID', 'user_nicename' ),
 			'search_columns' => array( 'ID', 'user_nicename', 'user_email' ),
 			'orderby'        => 'ID'
@@ -947,7 +957,6 @@ class BBP_Admin {
 	 *
 	 * @since bbPress (r3689)
 	 *
-	 * @global WPDB $wpdb
 	 * @uses get_blog_option()
 	 * @uses wp_remote_get()
 	 */
@@ -957,8 +966,7 @@ class BBP_Admin {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : ''; ?>
 
 		<div class="wrap">
-			<div id="icon-edit" class="icon32 icon32-posts-topic"><br /></div>
-			<h2><?php esc_html_e( 'Update Forum', 'bbpress' ); ?></h2>
+			<h1><?php esc_html_e( 'Update Forum', 'bbpress' ); ?></h1>
 
 		<?php
 
@@ -994,19 +1002,17 @@ class BBP_Admin {
 	 *
 	 * @since bbPress (r3689)
 	 *
-	 * @global WPDB $wpdb
 	 * @uses get_blog_option()
 	 * @uses wp_remote_get()
 	 */
 	public static function network_update_screen() {
-		global $wpdb;
+		$bbp_db = bbp_db();
 
 		// Get action
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : ''; ?>
 
 		<div class="wrap">
-			<div id="icon-edit" class="icon32 icon32-posts-topic"><br /></div>
-			<h2><?php esc_html_e( 'Update Forums', 'bbpress' ); ?></h2>
+			<h1><?php esc_html_e( 'Update Forums', 'bbpress' ); ?></h1>
 
 		<?php
 
@@ -1018,7 +1024,7 @@ class BBP_Admin {
 				$n = isset( $_GET['n'] ) ? intval( $_GET['n'] ) : 0;
 
 				// Get blogs 5 at a time
-				$blogs = $wpdb->get_results( "SELECT * FROM {$wpdb->blogs} WHERE site_id = '{$wpdb->siteid}' AND spam = '0' AND deleted = '0' AND archived = '0' ORDER BY registered DESC LIMIT {$n}, 5", ARRAY_A );
+				$blogs = $bbp_db->get_results( "SELECT * FROM {$bbp_db->blogs} WHERE site_id = '{$bbp_db->siteid}' AND spam = '0' AND deleted = '0' AND archived = '0' ORDER BY registered DESC LIMIT {$n}, 5", ARRAY_A );
 
 				// No blogs so all done!
 				if ( empty( $blogs ) ) : ?>

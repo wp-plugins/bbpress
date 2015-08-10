@@ -161,6 +161,14 @@ function bbp_admin_get_settings_fields() {
 				'args'              => array()
 			),
 
+			// Allow per-forum moderators
+			'_bbp_allow_forum_mods' => array(
+				'title'             => __( 'Forum Moderators', 'bbpress' ),
+				'callback'          => 'bbp_admin_setting_callback_forum_mods',
+				'sanitize_callback' => 'intval',
+				'args'              => array()
+			),
+
 			// Allow topic tags
 			'_bbp_allow_search' => array(
 				'title'             => __( 'Search', 'bbpress' ),
@@ -601,6 +609,22 @@ function bbp_admin_setting_callback_topic_tags() {
 }
 
 /**
+ * Allow forum-mods setting field
+ *
+ * @since bbPress (r5834)
+ *
+ * @uses checked() To display the checked attribute
+ */
+function bbp_admin_setting_callback_forum_mods() {
+?>
+
+	<input name="_bbp_allow_forum_mods" id="_bbp_allow_forum_mods" type="checkbox" value="1" <?php checked( bbp_allow_forum_mods( true ) ); bbp_maybe_admin_setting_disabled( '_bbp_allow_forum_mods' ); ?> />
+	<label for="_bbp_allow_forum_mods"><?php esc_html_e( 'Allow forums to have dedicated moderators', 'bbpress' ); ?></label>
+
+<?php
+}
+
+/**
  * Allow forum wide search
  *
  * @since bbPress (r4970)
@@ -723,7 +747,7 @@ function bbp_admin_setting_callback_subtheme_id() {
 		$theme_options .= '<option value="' . esc_attr( $id ) . '"' . selected( $theme->id, $current_package, false ) . '>' . sprintf( esc_html__( '%1$s - %2$s', 'bbpress' ), esc_html( $theme->name ), esc_html( str_replace( WP_CONTENT_DIR, '', $theme->dir ) ) )  . '</option>';
 	}
 
-	if ( !empty( $theme_options ) ) : ?>
+	if ( ! empty( $theme_options ) ) : ?>
 
 		<select name="_bbp_theme_package_id" id="_bbp_theme_package_id" <?php bbp_maybe_admin_setting_disabled( '_bbp_theme_package_id' ); ?>><?php echo $theme_options ?></select>
 		<label for="_bbp_theme_package_id"><?php esc_html_e( 'will serve all bbPress templates', 'bbpress' ); ?></label>
@@ -1254,7 +1278,7 @@ function bbp_admin_settings() {
 
 	<div class="wrap">
 
-		<h2><?php esc_html_e( 'Forums Settings', 'bbpress' ) ?></h2>
+		<h1><?php esc_html_e( 'Forums Settings', 'bbpress' ) ?></h1>
 
 		<form action="options.php" method="post">
 
@@ -1502,7 +1526,7 @@ function bbp_converter_settings() {
 ?>
 
 	<div class="wrap">
-
+		<h1><?php esc_html_e( 'Forum Tools', 'bbpress' ); ?></h1>
 		<h2 class="nav-tab-wrapper"><?php bbp_tools_admin_tabs( esc_html__( 'Import Forums', 'bbpress' ) ); ?></h2>
 
 		<form action="#" method="post" id="bbp-converter-settings">
@@ -1729,7 +1753,7 @@ function bbp_form_slug_conflict_check( $slug, $default ) {
 			$bp = buddypress();
 
 			// Loop through root slugs and check for conflict
-			if ( !empty( $bp->pages ) ) {
+			if ( ! empty( $bp->pages ) ) {
 				foreach ( $bp->pages as $page => $page_data ) {
 					$page_base    = $page . '_base';
 					$page_title   = sprintf( __( '%s page', 'bbpress' ), $page_data->title );

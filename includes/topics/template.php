@@ -127,8 +127,7 @@ function bbp_show_lead_topic( $show_lead = false ) {
  * @uses bbp_get_paged() To get the current page value
  * @uses bbp_get_super_stickies() To get the super stickies
  * @uses bbp_get_stickies() To get the forum stickies
- * @uses wpdb::get_results() To execute our query and get the results
- * @uses WP_Rewrite::using_permalinks() To check if the blog is using permalinks
+ * @uses bbp_use_pretty_urls() To check if the site is using pretty URLs
  * @uses get_permalink() To get the permalink
  * @uses add_query_arg() To add custom args to the url
  * @uses apply_filters() Calls 'bbp_topics_pagination' with the pagination args
@@ -139,7 +138,6 @@ function bbp_show_lead_topic( $show_lead = false ) {
  * @return object Multidimensional array of topic information
  */
 function bbp_has_topics( $args = array() ) {
-	global $wp_rewrite;
 
 	/** Defaults **************************************************************/
 
@@ -353,7 +351,7 @@ function bbp_has_topics( $args = array() ) {
 		}
 
 		// If pretty permalinks are enabled, make our pagination pretty
-		if ( $wp_rewrite->using_permalinks() ) {
+		if ( bbp_use_pretty_urls() ) {
 
 			// User's topics
 			if ( bbp_is_single_user_topics() ) {
@@ -397,7 +395,7 @@ function bbp_has_topics( $args = array() ) {
 			}
 
 			// Use pagination base
-			$base = trailingslashit( $base ) . user_trailingslashit( $wp_rewrite->pagination_base . '/%#%/' );
+			$base = trailingslashit( $base ) . user_trailingslashit( bbp_get_paged_slug() . '/%#%/' );
 
 		// Unpretty pagination
 		} else {
@@ -419,7 +417,7 @@ function bbp_has_topics( $args = array() ) {
 		$bbp->topic_query->pagination_links = paginate_links( $bbp_topic_pagination );
 
 		// Remove first page from pagination
-		$bbp->topic_query->pagination_links = str_replace( $wp_rewrite->pagination_base . "/1/'", "'", $bbp->topic_query->pagination_links );
+		$bbp->topic_query->pagination_links = str_replace( bbp_get_paged_slug() . "/1/'", "'", $bbp->topic_query->pagination_links );
 	}
 
 	// Return object
@@ -850,8 +848,7 @@ function bbp_topic_pagination( $args = array() ) {
 	 *  - before: Before the links
 	 *  - after: After the links
 	 * @uses bbp_get_topic_id() To get the topic id
-	 * @uses WP_Rewrite::using_permalinks() To check if the blog is using
-	 *                                       permalinks
+	 * @uses bbp_use_pretty_urls() To check if the site is using pretty URLs
 	 * @uses user_trailingslashit() To add a trailing slash
 	 * @uses trailingslashit() To add a trailing slash
 	 * @uses get_permalink() To get the permalink of the topic
@@ -865,7 +862,6 @@ function bbp_topic_pagination( $args = array() ) {
 	 * @return string Pagination links
 	 */
 	function bbp_get_topic_pagination( $args = array() ) {
-		global $wp_rewrite;
 
 		// Bail if threading replies
 		if ( bbp_thread_replies() ) {
@@ -880,8 +876,8 @@ function bbp_topic_pagination( $args = array() ) {
 		), 'get_topic_pagination' );
 
 		// If pretty permalinks are enabled, make our pagination pretty
-		if ( $wp_rewrite->using_permalinks() ) {
-			$base = trailingslashit( get_permalink( $r['topic_id'] ) ) . user_trailingslashit( $wp_rewrite->pagination_base . '/%#%/' );
+		if ( bbp_use_pretty_urls() ) {
+			$base = trailingslashit( get_permalink( $r['topic_id'] ) ) . user_trailingslashit( bbp_get_paged_slug() . '/%#%/' );
 		} else {
 			$base = add_query_arg( 'paged', '%#%', get_permalink( $r['topic_id'] ) );
 		}
@@ -909,8 +905,8 @@ function bbp_topic_pagination( $args = array() ) {
 		if ( ! empty( $pagination_links ) ) {
 
 			// Remove first page from pagination
-			if ( $wp_rewrite->using_permalinks() ) {
-				$pagination_links = str_replace( $wp_rewrite->pagination_base . '/1/', '', $pagination_links );
+			if ( bbp_use_pretty_urls() ) {
+				$pagination_links = str_replace( bbp_get_paged_slug() . '/1/', '', $pagination_links );
 			} else {
 				$pagination_links = str_replace( '&#038;paged=1', '', $pagination_links );
 			}
@@ -2014,10 +2010,6 @@ function bbp_topic_last_reply_id( $topic_id = 0 ) {
 		$topic_id = bbp_get_topic_id( $topic_id );
 		$reply_id = get_post_meta( $topic_id, '_bbp_last_reply_id', true );
 
-		if ( empty( $reply_id ) ) {
-			$reply_id = $topic_id;
-		}
-
 		return (int) apply_filters( 'bbp_get_topic_last_reply_id', (int) $reply_id, $topic_id );
 	}
 
@@ -2101,7 +2093,7 @@ function bbp_topic_last_reply_url( $topic_id = 0 ) {
 	 * @uses bbp_get_topic_id() To get the topic id
 	 * @uses bbp_get_topic_last_reply_id() To get the topic last reply id
 	 * @uses bbp_get_reply_url() To get the reply url
-	 * @uses bbp_get_reply_permalink() To get the reply permalink
+	 * @uses bbp_get_topic_permalink() To get the topic permalink
 	 * @uses apply_filters() Calls 'bbp_get_topic_last_topic_url' with
 	 *                        the reply url and topic id
 	 * @return string Topic last reply url
@@ -2361,6 +2353,8 @@ function bbp_topic_voice_count( $topic_id = 0, $integer = false ) {
 /**
  * Output a the tags of a topic
  *
+ * @since bbPress (r2688)
+ *
  * @param int $topic_id Optional. Topic id
  * @param array $args See {@link bbp_get_topic_tag_list()}
  * @uses bbp_get_topic_tag_list() To get the topic tag list
@@ -2370,6 +2364,8 @@ function bbp_topic_tag_list( $topic_id = 0, $args = array() ) {
 }
 	/**
 	 * Return the tags of a topic
+	 *
+	 * @since bbPress (r2688)
 	 *
 	 * @param int $topic_id Optional. Topic id
 	 * @param array $args This function supports these arguments:
@@ -2384,14 +2380,15 @@ function bbp_topic_tag_list( $topic_id = 0, $args = array() ) {
 
 		// Bail if topic-tags are off
 		if ( ! bbp_allow_topic_tags() ) {
-			return;
+			return '';
 		}
 
 		// Parse arguments against default values
 		$r = bbp_parse_args( $args, array(
 			'before' => '<div class="bbp-topic-tags"><p>' . esc_html__( 'Tagged:', 'bbpress' ) . '&nbsp;',
 			'sep'    => ', ',
-			'after'  => '</p></div>'
+			'after'  => '</p></div>',
+			'none'   => ''
 		), 'get_topic_tag_list' );
 
 		$topic_id = bbp_get_topic_id( $topic_id );
@@ -2402,19 +2399,21 @@ function bbp_topic_tag_list( $topic_id = 0, $args = array() ) {
 			// Get pre-spam terms
 			$terms = get_post_meta( $topic_id, '_bbp_spam_topic_tags', true );
 
-			// If terms exist, explode them and compile the return value
+			// If terms exist, implode them and compile the return value
 			if ( ! empty( $terms ) ) {
-				$terms  = implode( $r['sep'], $terms );
-				$retval = $r['before'] . $terms . $r['after'];
-
-			// No terms so return emty string
-			} else {
-				$retval = '';
+				$terms = $r['before'] . implode( $r['sep'], $terms ) . $r['after'];
 			}
 
 		// Topic is not spam so display a clickable term list
 		} else {
-			$retval = get_the_term_list( $topic_id, bbp_get_topic_tag_tax_id(), $r['before'], $r['sep'], $r['after'] );
+			$terms = get_the_term_list( $topic_id, bbp_get_topic_tag_tax_id(), $r['before'], $r['sep'], $r['after'] );
+		}
+
+		// No terms so return none string
+		if ( ! empty( $terms ) ) {
+			$retval = $terms;
+		} else {
+			$retval = $r['none'];
 		}
 
 		return $retval;
@@ -2639,7 +2638,6 @@ function bbp_topic_edit_url( $topic_id = 0 ) {
 	 * @return string Topic edit url
 	 */
 	function bbp_get_topic_edit_url( $topic_id = 0 ) {
-		global $wp_rewrite;
 
 		$topic = bbp_get_topic( $topic_id );
 		if ( empty( $topic ) ) {
@@ -2650,13 +2648,16 @@ function bbp_topic_edit_url( $topic_id = 0 ) {
 		$topic_link = bbp_remove_view_all( bbp_get_topic_permalink( $topic_id ) );
 
 		// Pretty permalinks
-		if ( $wp_rewrite->using_permalinks() ) {
+		if ( bbp_use_pretty_urls() ) {
 			$url = trailingslashit( $topic_link ) . bbp_get_edit_rewrite_id();
-			$url = trailingslashit( $url );
+			$url = user_trailingslashit( $url );
 
 		// Unpretty permalinks
 		} else {
-			$url = add_query_arg( array( bbp_get_topic_post_type() => $topic->post_name, bbp_get_edit_rewrite_id() => '1' ), $topic_link );
+			$url = add_query_arg( array(
+				bbp_get_topic_post_type() => $topic->post_name,
+				bbp_get_edit_rewrite_id() => '1'
+			), $topic_link );
 		}
 
 		// Maybe add view=all
@@ -3766,7 +3767,6 @@ function bbp_topic_tag_edit_link( $tag = '' ) {
 	 * @return string Term Name
 	 */
 	function bbp_get_topic_tag_edit_link( $tag = '' ) {
-		global $wp_rewrite;
 
 		// Get the term
 		if ( ! empty( $tag ) ) {
@@ -3780,7 +3780,7 @@ function bbp_topic_tag_edit_link( $tag = '' ) {
 		if ( ! empty( $term->term_id ) ) {
 
 			// Pretty
-			if ( $wp_rewrite->using_permalinks() ) {
+			if ( bbp_use_pretty_urls() ) {
 				$retval = user_trailingslashit( trailingslashit( bbp_get_topic_tag_link() ) . bbp_get_edit_rewrite_id() );
 
 			// Ugly
@@ -3956,6 +3956,9 @@ function bbp_form_topic_tags() {
 	 */
 	function bbp_get_form_topic_tags() {
 
+		// Default return value
+		$topic_tags = '';
+
 		// Get _POST data
 		if ( ( bbp_is_topic_form_post_request() || bbp_is_reply_form_post_request() ) && isset( $_POST['bbp_topic_tags'] ) ) {
 			$topic_tags = wp_unslash( $_POST['bbp_topic_tags'] );
@@ -3968,7 +3971,7 @@ function bbp_form_topic_tags() {
 
 				// Post is a topic
 				case bbp_get_topic_post_type() :
-					$topic_id = get_the_ID();
+					$topic_id = bbp_get_topic_id( get_the_ID() );
 					break;
 
 				// Post is a reply
@@ -3984,34 +3987,14 @@ function bbp_form_topic_tags() {
 				if ( bbp_is_topic_spam( $topic_id ) ) {
 
 					// Get pre-spam terms
-					$new_terms = get_post_meta( $topic_id, '_bbp_spam_topic_tags', true );
-
-					// If terms exist, explode them and compile the return value
-					if ( empty( $new_terms ) ) {
-						$new_terms = '';
-					}
+					$spam_terms = get_post_meta( $topic_id, '_bbp_spam_topic_tags', true );
+					$topic_tags = ( ! empty( $spam_terms ) ) ? implode( ', ', $spam_terms ) : '';
 
 				// Topic is not spam so get real terms
 				} else {
-					$terms = array_filter( (array) get_the_terms( $topic_id, bbp_get_topic_tag_tax_id() ) );
-
-					// Loop through them
-					foreach ( $terms as $term ) {
-						$new_terms[] = $term->name;
-					}
+					$topic_tags = bbp_get_topic_tag_names( $topic_id );
 				}
-
-			// Define local variable(s)
-			} else {
-				$new_terms = '';
 			}
-
-			// Set the return value
-			$topic_tags = ( ! empty( $new_terms ) ) ? implode( ', ', $new_terms ) : '';
-
-		// No data
-		} else {
-			$topic_tags = '';
 		}
 
 		return apply_filters( 'bbp_get_form_topic_tags', $topic_tags );

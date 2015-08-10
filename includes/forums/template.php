@@ -464,6 +464,50 @@ function bbp_forum_row_actions() {
 }
 
 /**
+ * Output value of forum mods field
+ *
+ * @since bbPress (r5837)
+ * @uses bbp_get_form_forum_mods() To get the value of forum mods field
+ */
+function bbp_form_forum_mods() {
+	echo bbp_get_form_forum_mods();
+}
+	/**
+	 * Return value of forum mods field
+	 *
+	 * @since bbPress (r5837)
+	 *
+	 * @uses bbp_is_forum_edit() To check if it's the forum edit page
+	 * @uses apply_filters() Calls 'bbp_get_form_forum_mods' with the mods
+	 *
+	 * @return string Value of forum mods field
+	 */
+	function bbp_get_form_forum_mods() {
+
+		// Get _POST data
+		if ( bbp_is_forum_form_post_request() && isset( $_POST['bbp_forum_mods'] ) ) {
+			$forum_mods = wp_unslash( $_POST['bbp_forum_mods'] );
+
+		// Get edit data
+		} elseif ( bbp_is_single_forum() || bbp_is_forum_edit() ) {
+
+			// Get the forum ID
+			$forum_id = bbp_get_forum_id( get_the_ID() );
+
+			// Forum exists
+			if ( ! empty( $forum_id ) ) {
+				$forum_mods = bbp_get_forum_mod_names( $forum_id );
+			}
+
+		// No data
+		} else {
+			$forum_mods = '';
+		}
+
+		return apply_filters( 'bbp_get_form_forum_mods', $forum_mods );
+	}
+
+/**
  * Output the forums last active ID
  *
  * @since bbPress (r2860)
@@ -1044,10 +1088,6 @@ function bbp_forum_last_reply_id( $forum_id = 0 ) {
 	function bbp_get_forum_last_reply_id( $forum_id = 0 ) {
 		$forum_id = bbp_get_forum_id( $forum_id );
 		$reply_id = get_post_meta( $forum_id, '_bbp_last_reply_id', true );
-
-		if ( empty( $reply_id ) ) {
-			$reply_id = bbp_get_forum_last_topic_id( $forum_id );
-		}
 
 		return (int) apply_filters( 'bbp_get_forum_last_reply_id', (int) $reply_id, $forum_id );
 	}
@@ -2175,6 +2215,134 @@ function bbp_single_forum_description( $args = array() ) {
 
 		// Return filtered result
 		return apply_filters( 'bbp_get_single_forum_description', $retstr, $r, $args );
+	}
+
+/** Moderators ****************************************************************/
+
+/**
+ * Output the unique id of the forum moderators taxonomy
+ *
+ * @since bbPress (r5834)
+ *
+ * @uses bbp_get_forum_mod_tax_id() To get the forum modorator taxonomy ID
+ */
+function bbp_forum_mod_tax_id() {
+	echo bbp_get_forum_mod_tax_id();
+}
+	/**
+	 * Return the unique id of the forum moderators taxonomy
+	 *
+	 * @since bbPress (r5834)
+	 *
+	 * @uses apply_filters() Calls 'bbp_get_forum_mod_tax_id' with the forum
+	 *                        moderator taxonomy id
+	 * @return string The unique forum moderators taxonomy
+	 */
+	function bbp_get_forum_mod_tax_id() {
+		return apply_filters( 'bbp_get_forum_mod_tax_id', bbpress()->forum_mod_tax_id );
+	}
+
+/**
+ * Return array of labels used by the forum-mod taxonomy
+ *
+ * @since bbPress (r5834)
+ *
+ * @uses apply_filters() Calls 'bbp_get_forum_mod_tax_id' with the forum
+ *                        moderator taxonomy labels
+ * @return array
+ */
+function bbp_get_forum_mod_tax_labels() {
+	return apply_filters( 'bbp_get_forum_mod_tax_labels', array(
+		'name'                       => __( 'Forum Moderators',     'bbpress' ),
+		'singular_name'	             => __( 'Forum Moderator',      'bbpress' ),
+		'search_items'               => __( 'Search Moderators',    'bbpress' ),
+		'popular_items'              => __( 'Popular Moderators',   'bbpress' ),
+		'all_items'                  => __( 'All Moderators',       'bbpress' ),
+		'edit_item'                  => __( 'Edit Moderator',       'bbpress' ),
+		'update_item'                => __( 'Update Moderator',     'bbpress' ),
+		'add_new_item'               => __( 'Add New Moderator',    'bbpress' ),
+		'new_item_name'              => __( 'New Moderator Name',   'bbpress' ),
+		'view_item'                  => __( 'View Forum Moderator', 'bbpress' ),
+		'separate_items_with_commas' => __( 'Separate moderator names with commas', 'bbpress' ),
+	) );
+}
+
+/**
+ * Output a the moderators of a forum
+ *
+ * @since bbPress (r5834)
+ *
+ * @param int   $forum_id Optional. Topic id
+ * @param array $args     See {@link bbp_get_forum_mod_list()}
+ * @uses bbp_get_topic_tag_list() To get the forum mod list
+ */
+function bbp_forum_mod_list( $forum_id = 0, $args = array() ) {
+	echo bbp_get_forum_mod_list( $forum_id, $args );
+}
+	/**
+	 * Return the moderators of a forum
+	 *
+	 * @since bbPress (r5834)
+	 *
+	 * @param int   $forum_id Optional. Forum id
+	 * @param array $args     This function supports these arguments:
+	 *  - before: Before the tag list
+	 *  - sep: Tag separator
+	 *  - after: After the tag list
+	 * @uses bbp_get_forum_id()  To get the forum id
+	 * @uses get_the_term_list() To get the moderator list
+	 *
+	 * @return string Moderator list of the forum
+	 */
+	function bbp_get_forum_mod_list( $forum_id = 0, $args = array() ) {
+
+		// Bail if forum-mods are off
+		if ( ! bbp_allow_forum_mods() ) {
+			return '';
+		}
+
+		// Parse arguments against default values
+		$r = bbp_parse_args( $args, array(
+			'before' => '<div class="bbp-forum-mods"><p>' . esc_html__( 'Moderators:', 'bbpress' ) . '&nbsp;',
+			'sep'    => ', ',
+			'after'  => '</p></div>',
+			'none'   => ''
+		), 'get_forum_mod_list' );
+
+		// Bail if forum ID is invalid
+		$forum_id = bbp_get_forum_id( $forum_id );
+		if ( empty( $forum_id ) ) {
+			return '';
+		}
+
+		// Get forum moderators
+		$moderators = bbp_get_forum_mods( $forum_id );
+		if ( ! empty( $moderators ) ) {
+
+			// In admin, use nicenames
+			if ( is_admin() ) {
+
+				// @todo link to filtering forums by moderator
+				$users = wp_list_pluck( $moderators, 'name' );
+
+			// In theme, use display names & profile links
+			} else {
+				$users    = array();
+				$term_ids = wp_list_pluck( $moderators, 'term_id' );
+				foreach ( $term_ids as $term_id ) {
+					$user_id = bbp_get_term_taxonomy_user_id( $term_id );
+					$users[] = bbp_get_user_profile_link( $user_id );
+				}
+			}
+
+			$retval = $r['before'] . implode( $r['sep'], $users ) . $r['after'];
+
+		// No forum moderators
+		} else {
+			$retval = $r['none'];
+		}
+
+		return $retval;
 	}
 
 /** Forms *********************************************************************/

@@ -5,7 +5,7 @@
  *
  * bbPress is forum software with a twist from the creators of WordPress.
  *
- * $Id: bbpress.php 5641 2015-03-17 02:14:13Z johnjamesjacoby $
+ * $Id: bbpress.php 5834 2015-07-15 15:59:23Z johnjamesjacoby $
  *
  * @package bbPress
  * @subpackage Main
@@ -223,9 +223,10 @@ final class bbPress {
 
 		// Post type identifiers
 		$this->forum_post_type   = apply_filters( 'bbp_forum_post_type',  'forum'     );
+		$this->forum_mod_tax_id  = apply_filters( 'bbp_forum_mod_tax_id', 'forum-mod' );
 		$this->topic_post_type   = apply_filters( 'bbp_topic_post_type',  'topic'     );
-		$this->reply_post_type   = apply_filters( 'bbp_reply_post_type',  'reply'     );
 		$this->topic_tag_tax_id  = apply_filters( 'bbp_topic_tag_tax_id', 'topic-tag' );
+		$this->reply_post_type   = apply_filters( 'bbp_reply_post_type',  'reply'     );
 
 		// Status identifiers
 		$this->spam_status_id    = apply_filters( 'bbp_spam_post_status',    'spam'    );
@@ -276,7 +277,7 @@ final class bbPress {
 		$this->domain         = 'bbpress';      // Unique identifier for retrieving translated strings
 		$this->extend         = new stdClass(); // Plugins add data here
 		$this->errors         = new WP_Error(); // Feedback
-		
+
 		/** Deprecated ********************************************************/
 
 		$this->tab_index      = apply_filters( 'bbp_default_tab_index', 100 );
@@ -293,64 +294,65 @@ final class bbPress {
 
 		/** Core **************************************************************/
 
-		require( $this->includes_dir . 'core/sub-actions.php'        );
-		require( $this->includes_dir . 'core/functions.php'          );
-		require( $this->includes_dir . 'core/cache.php'              );
-		require( $this->includes_dir . 'core/options.php'            );
-		require( $this->includes_dir . 'core/capabilities.php'       );
-		require( $this->includes_dir . 'core/update.php'             );
-		require( $this->includes_dir . 'core/template-functions.php' );
-		require( $this->includes_dir . 'core/template-loader.php'    );
-		require( $this->includes_dir . 'core/theme-compat.php'       );
+		require $this->includes_dir . 'core/abstraction.php';
+		require $this->includes_dir . 'core/sub-actions.php';
+		require $this->includes_dir . 'core/functions.php';
+		require $this->includes_dir . 'core/cache.php';
+		require $this->includes_dir . 'core/options.php';
+		require $this->includes_dir . 'core/capabilities.php';
+		require $this->includes_dir . 'core/update.php';
+		require $this->includes_dir . 'core/template-functions.php';
+		require $this->includes_dir . 'core/template-loader.php';
+		require $this->includes_dir . 'core/theme-compat.php';
 
 		/** Components ********************************************************/
 
 		// Common
-		require( $this->includes_dir . 'common/ajax.php'          );
-		require( $this->includes_dir . 'common/classes.php'       );
-		require( $this->includes_dir . 'common/functions.php'     );
-		require( $this->includes_dir . 'common/formatting.php'    );
-		require( $this->includes_dir . 'common/template.php'      );
-		require( $this->includes_dir . 'common/widgets.php'       );
-		require( $this->includes_dir . 'common/shortcodes.php'    );
+		require $this->includes_dir . 'common/ajax.php';
+		require $this->includes_dir . 'common/classes.php';
+		require $this->includes_dir . 'common/functions.php';
+		require $this->includes_dir . 'common/formatting.php';
+		require $this->includes_dir . 'common/template.php';
+		require $this->includes_dir . 'common/widgets.php';
+		require $this->includes_dir . 'common/shortcodes.php';
 
 		// Forums
-		require( $this->includes_dir . 'forums/capabilities.php'  );
-		require( $this->includes_dir . 'forums/functions.php'     );
-		require( $this->includes_dir . 'forums/template.php'      );
+		require $this->includes_dir . 'forums/capabilities.php';
+		require $this->includes_dir . 'forums/functions.php';
+		require $this->includes_dir . 'forums/template.php';
 
 		// Topics
-		require( $this->includes_dir . 'topics/capabilities.php'  );
-		require( $this->includes_dir . 'topics/functions.php'     );
-		require( $this->includes_dir . 'topics/template.php'      );
+		require $this->includes_dir . 'topics/capabilities.php';
+		require $this->includes_dir . 'topics/functions.php';
+		require $this->includes_dir . 'topics/template.php';
 
 		// Replies
-		require( $this->includes_dir . 'replies/capabilities.php' );
-		require( $this->includes_dir . 'replies/functions.php'    );
-		require( $this->includes_dir . 'replies/template.php'     );
+		require $this->includes_dir . 'replies/capabilities.php';
+		require $this->includes_dir . 'replies/functions.php';
+		require $this->includes_dir . 'replies/template.php';
 
 		// Search
-		require( $this->includes_dir . 'search/functions.php'     );
-		require( $this->includes_dir . 'search/template.php'      );
+		require $this->includes_dir . 'search/functions.php';
+		require $this->includes_dir . 'search/template.php';
 
 		// Users
-		require( $this->includes_dir . 'users/capabilities.php'   );
-		require( $this->includes_dir . 'users/functions.php'      );
-		require( $this->includes_dir . 'users/template.php'       );
-		require( $this->includes_dir . 'users/options.php'        );
+		require $this->includes_dir . 'users/capabilities.php';
+		require $this->includes_dir . 'users/functions.php';
+		require $this->includes_dir . 'users/template.php';
+		require $this->includes_dir . 'users/options.php';
 
 		/** Hooks *************************************************************/
 
-		require( $this->includes_dir . 'core/extend.php'  );
-		require( $this->includes_dir . 'core/actions.php' );
-		require( $this->includes_dir . 'core/filters.php' );
+		require $this->includes_dir . 'core/extend.php';
+		require $this->includes_dir . 'core/actions.php';
+		require $this->includes_dir . 'core/filters.php';
 
 		/** Admin *************************************************************/
 
 		// Quick admin check and load if needed
 		if ( is_admin() ) {
-			require( $this->includes_dir . 'admin/admin.php'   );
-			require( $this->includes_dir . 'admin/actions.php' );
+			require $this->includes_dir . 'admin/admin.php';
+			require $this->includes_dir . 'admin/actions.php';
 		}
 	}
 
@@ -635,7 +637,7 @@ final class bbPress {
 		 */
 		global $wp_post_statuses;
 
-		if ( !empty( $wp_post_statuses['trash'] ) ) {
+		if ( ! empty( $wp_post_statuses['trash'] ) ) {
 
 			// User can view trash so set internal to false
 			if ( current_user_can( 'view_trash' ) ) {
@@ -650,14 +652,27 @@ final class bbPress {
 	}
 
 	/**
-	 * Register the topic tag taxonomy
+	 * Register the topic tag and forum moderator taxonomies
 	 *
-	 * @since bbPress (r2464)
+	 * @since bbPress (r2464) Added bbp_get_topic_tag_tax_id() taxonomy
+	 * @since bbPress (r5834) Added bbp_get_forum_mod_tax_id() taxonomy
+	 *
 	 * @uses register_taxonomy() To register the taxonomy
+	 * @uses bbp_get_topic_post_type() To get the topic post type
+	 * @uses bbp_get_topic_tag_tax_labels() To get the topic tag taxonomy labels
+	 * @uses bbp_get_topic_tag_tax_rewrite() To get the topic tag taxonomy slug
+	 * @uses bbp_get_topic_tag_caps() To get topic tag capabilities
+	 * @uses bbp_allow_topic_tags() To check if topic tags are allowed
+	 * @uses current_user_can() To check if the current user can edit/delete tags
+	 * @uses bbp_get_forum_post_type() To get the forum post type
+	 * @uses bbp_get_forum_mod_tax_labels() To get the forum moderator taxonomy label
+	 * @uses bbp_get_forum_mod_caps() To check the forum moderator capabilities
+	 * @uses bbp_allow_forum_mods() To check if forum moderators are allowed
+	 * @uses current_user_can() To check if the current user can edit/delete forums
 	 */
 	public static function register_taxonomies() {
 
-		// Register the topic-tag taxonomy
+		// Register the topic-tag taxonomy.
 		register_taxonomy(
 			bbp_get_topic_tag_tax_id(),
 			bbp_get_topic_post_type(),
@@ -671,7 +686,25 @@ final class bbPress {
 				'hierarchical'          => false,
 				'show_in_nav_menus'     => false,
 				'public'                => true,
-				'show_ui'               => bbp_allow_topic_tags() && current_user_can( 'bbp_topic_tags_admin' )
+				'show_ui'               => bbp_allow_topic_tags() && current_user_can( 'bbp_topic_tags_admin' ),
+			)
+		) );
+
+		// Register the forum-mod taxonomy.
+		register_taxonomy(
+			bbp_get_forum_mod_tax_id(),
+			bbp_get_forum_post_type(),
+			apply_filters( 'bbp_register_forum_moderator_taxonomy', array(
+				'labels'                => bbp_get_forum_mod_tax_labels(),
+				'capabilities'          => bbp_get_forum_mod_caps(),
+				'update_count_callback' => '_update_post_term_count',
+				'query_var'             => false,
+				'show_tagcloud'         => true,
+				'hierarchical'          => false,
+				'show_in_menu'          => true,
+				'show_in_nav_menus'     => false,
+				'public'                => false,
+				'show_ui'               => bbp_allow_forum_mods() && current_user_can( 'bbp_forum_mods_admin' ),
 			)
 		) );
 	}

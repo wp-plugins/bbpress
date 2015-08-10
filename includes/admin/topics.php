@@ -78,8 +78,9 @@ class BBP_Topics_Admin {
 		add_action( 'load-edit.php',  array( $this, 'toggle_topic'        ) );
 		add_action( 'admin_notices',  array( $this, 'toggle_topic_notice' ) );
 
-		// Anonymous metabox actions
-		add_action( 'add_meta_boxes', array( $this, 'author_metabox'      ) );
+		// Metabox actions
+		add_action( 'add_meta_boxes', array( $this, 'author_metabox'  ) );
+		add_action( 'add_meta_boxes', array( $this, 'replies_metabox' ) );
 
 		// Add ability to filter topics and replies per forum
 		add_filter( 'restrict_manage_posts', array( $this, 'filter_dropdown'  ) );
@@ -98,7 +99,7 @@ class BBP_Topics_Admin {
 	 * @return boolean
 	 */
 	private function bail() {
-		if ( !isset( get_current_screen()->post_type ) || ( $this->post_type !== get_current_screen()->post_type ) ) {
+		if ( ! isset( get_current_screen()->post_type ) || ( $this->post_type !== get_current_screen()->post_type ) ) {
 			return true;
 		}
 
@@ -226,7 +227,7 @@ class BBP_Topics_Admin {
 			'content' =>
 				'<p>' . __( 'Select the attributes that your topic should have:', 'bbpress' ) . '</p>' .
 				'<ul>' .
-					'<li>' . __( '<strong>Forum</strong> dropdown determines the parent forum that the topic belongs to. Select the forum or category from the dropdown, or leave the default (No Forum) to post the topic without an assigned forum.', 'bbpress' ) . '</li>' .
+					'<li>' . __( '<strong>Forum</strong> dropdown determines the parent forum that the topic belongs to. Select the forum or category from the dropdown, or leave the default "No forum" to post the topic without an assigned forum.', 'bbpress' ) . '</li>' .
 					'<li>' . __( '<strong>Topic Type</strong> dropdown indicates the sticky status of the topic. Selecting the super sticky option would stick the topic to the front of your forums, i.e. the topic index, sticky option would stick the topic to its respective forum. Selecting normal would not stick the topic anywhere.', 'bbpress' ) . '</li>' .
 				'</ul>'
 		) );
@@ -300,7 +301,7 @@ class BBP_Topics_Admin {
 		}
 
 		// Nonce check
-		if ( empty( $_POST['bbp_topic_metabox'] ) || !wp_verify_nonce( $_POST['bbp_topic_metabox'], 'bbp_topic_metabox_save' ) ) {
+		if ( empty( $_POST['bbp_topic_metabox'] ) || ! wp_verify_nonce( $_POST['bbp_topic_metabox'], 'bbp_topic_metabox_save' ) ) {
 			return $topic_id;
 		}
 
@@ -310,18 +311,18 @@ class BBP_Topics_Admin {
 		}
 
 		// Get the forum ID
-		$forum_id = !empty( $_POST['parent_id'] ) ? (int) $_POST['parent_id'] : 0;
+		$forum_id = ! empty( $_POST['parent_id'] ) ? (int) $_POST['parent_id'] : 0;
 
 		// Get topic author data
 		$anonymous_data = bbp_filter_anonymous_post_data();
 		$author_id      = bbp_get_topic_author_id( $topic_id );
-		$is_edit        = (bool) isset( $_POST['save'] );
+		$is_edit        = ( isset( $_POST['hidden_post_status'] ) && ( $_POST['hidden_post_status'] !== 'draft' ) );
 
 		// Formally update the topic
 		bbp_update_topic( $topic_id, $forum_id, $anonymous_data, $author_id, $is_edit );
 
 		// Stickies
-		if ( !empty( $_POST['bbp_stick_topic'] ) && in_array( $_POST['bbp_stick_topic'], array( 'stick', 'super', 'unstick' ) ) ) {
+		if ( ! empty( $_POST['bbp_stick_topic'] ) && in_array( $_POST['bbp_stick_topic'], array( 'stick', 'super', 'unstick' ) ) ) {
 
 			// What's the haps?
 			switch ( $_POST['bbp_stick_topic'] ) {
@@ -389,6 +390,46 @@ class BBP_Topics_Admin {
 	}
 
 	/**
+	 * Add the replies metabox
+	 *
+	 * Allows viewing & moderating of replies to a topic, based on the way
+	 * comments are visible on a blog post.
+	 *
+	 * @since bbPress (r5886)
+	 *
+	 * @uses bbp_get_topic() To get the topic
+	 * @uses bbp_get_reply() To get the reply
+	 * @uses bbp_get_topic_post_type() To get the topic post type
+	 * @uses bbp_get_reply_post_type() To get the reply post type
+	 * @uses add_meta_box() To add the metabox
+	 * @uses do_action() Calls 'bbp_author_metabox' with the topic/reply
+	 *                    id
+	 */
+	public function replies_metabox() {
+
+		if ( $this->bail() ) {
+			return;
+		}
+
+		// Bail if post_type is not a reply
+		if ( empty( $_GET['action'] ) || ( 'edit' !== $_GET['action'] ) ) {
+			return;
+		}
+
+		// Add the metabox
+		add_meta_box(
+			'bbp_topic_replies_metabox',
+			__( 'Replies', 'bbpress' ),
+			'bbp_topic_replies_metabox',
+			$this->post_type,
+			'normal',
+			'high'
+		);
+
+		do_action( 'bbp_topic_replies_metabox', get_the_ID() );
+	}
+
+	/**
 	 * Add some general styling to the admin area
 	 *
 	 * @since bbPress (r2464)
@@ -411,6 +452,17 @@ class BBP_Topics_Admin {
 			strong.label {
 				display: inline-block;
 				width: 60px;
+			}
+
+			.column-bbp_topic_reply_author, 
+			.column-bbp_forum_topic_author {
+				width: 25% !important;
+			}
+
+			.column-bbp_topic_reply_author .avatar,
+			.column-bbp_forum_topic_author .avatar {
+				float: left;
+				margin-right: 10px;
 			}
 
 			.column-bbp_forum_topic_count,
@@ -497,7 +549,7 @@ class BBP_Topics_Admin {
 		}
 
 		// Only proceed if GET is a topic toggle action
-		if ( bbp_is_get_request() && !empty( $_GET['action'] ) && in_array( $_GET['action'], array( 'bbp_toggle_topic_close', 'bbp_toggle_topic_stick', 'bbp_toggle_topic_spam', 'bbp_toggle_topic_approve' ) ) && !empty( $_GET['topic_id'] ) ) {
+		if ( bbp_is_get_request() && ! empty( $_GET['action'] ) && in_array( $_GET['action'], array( 'bbp_toggle_topic_close', 'bbp_toggle_topic_stick', 'bbp_toggle_topic_spam', 'bbp_toggle_topic_approve' ) ) && ! empty( $_GET['topic_id'] ) ) {
 			$action    = $_GET['action'];            // What action is taking place?
 			$topic_id  = (int) $_GET['topic_id'];    // What's the topic id?
 			$success   = false;                      // Flag
@@ -545,7 +597,7 @@ class BBP_Topics_Admin {
 					check_admin_referer( 'stick-topic_' . $topic_id );
 
 					$is_sticky = bbp_is_topic_sticky( $topic_id );
-					$is_super  = ( false === $is_sticky ) && !empty( $_GET['super'] ) && ( "1" === $_GET['super'] )
+					$is_super  = ( false === $is_sticky ) && ! empty( $_GET['super'] ) && ( "1" === $_GET['super'] )
 						? true
 						: false;
 					$message   = ( true  === $is_sticky )
@@ -613,7 +665,7 @@ class BBP_Topics_Admin {
 		if ( bbp_is_get_request() && ! empty( $_GET['bbp_topic_toggle_notice'] ) && in_array( $_GET['bbp_topic_toggle_notice'], array( 'opened', 'closed', 'super_sticky', 'stuck', 'unstuck', 'spammed', 'unspammed', 'approved', 'unapproved' ) ) && ! empty( $_GET['topic_id'] ) ) {
 			$notice     = $_GET['bbp_topic_toggle_notice'];         // Which notice?
 			$topic_id   = (int) $_GET['topic_id'];                  // What's the topic id?
-			$is_failure = !empty( $_GET['failed'] ) ? true : false; // Was that a failure?
+			$is_failure = ! empty( $_GET['failed'] ) ? true : false; // Was that a failure?
 
 			// Bais if no topic_id or notice
 			if ( empty( $notice ) || empty( $topic_id ) ) {
@@ -767,7 +819,7 @@ class BBP_Topics_Admin {
 			case 'bbp_topic_forum' :
 
 				// Output forum name
-				if ( !empty( $forum_id ) ) {
+				if ( ! empty( $forum_id ) ) {
 
 					// Forum Title
 					$forum_title = bbp_get_forum_title( $forum_id );
@@ -779,7 +831,7 @@ class BBP_Topics_Admin {
 					echo $forum_title;
 
 				} else {
-					esc_html_e( '(No Forum)', 'bbpress' );
+					esc_html_e( '&mdash; No forum &mdash;', 'bbpress' );
 				}
 
 				break;
@@ -811,7 +863,7 @@ class BBP_Topics_Admin {
 			// Freshness
 			case 'bbp_topic_freshness' :
 				$last_active = bbp_get_topic_last_active_time( $topic_id, false );
-				if ( !empty( $last_active ) ) {
+				if ( ! empty( $last_active ) ) {
 					echo esc_html( $last_active );
 				} else {
 					esc_html_e( 'No Replies', 'bbpress' ); // This should never happen
@@ -947,14 +999,14 @@ class BBP_Topics_Admin {
 		}
 
 		// Add Empty Spam button
-		if ( !empty( $_GET['post_status'] ) && ( bbp_get_spam_status_id() === $_GET['post_status'] ) && current_user_can( 'moderate' ) ) {
+		if ( ! empty( $_GET['post_status'] ) && ( bbp_get_spam_status_id() === $_GET['post_status'] ) && current_user_can( 'moderate' ) ) {
 			wp_nonce_field( 'bulk-destroy', '_destroy_nonce' );
 			$title = esc_attr__( 'Empty Spam', 'bbpress' );
 			submit_button( $title, 'button-secondary apply', 'delete_all', false );
 		}
 
 		// Get which forum is selected
-		$selected = !empty( $_GET['bbp_forum_id'] ) ? $_GET['bbp_forum_id'] : '';
+		$selected = ! empty( $_GET['bbp_forum_id'] ) ? $_GET['bbp_forum_id'] : '';
 
 		// Show the forums dropdown
 		bbp_dropdown( array(
@@ -981,7 +1033,7 @@ class BBP_Topics_Admin {
 		}
 
 		// Add post_parent query_var if one is present
-		if ( !empty( $_GET['bbp_forum_id'] ) ) {
+		if ( ! empty( $_GET['bbp_forum_id'] ) ) {
 			$query_vars['meta_key']   = '_bbp_forum_id';
 			$query_vars['meta_type']  = 'NUMERIC';
 			$query_vars['meta_value'] = $_GET['bbp_forum_id'];

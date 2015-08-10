@@ -54,9 +54,6 @@ add_filter( 'wp_insert_post_data', 'bbp_fix_post_author', 30, 2 );
 // Force comments_status on bbPress post types
 add_filter( 'comments_open', 'bbp_force_comment_status' );
 
-// Add post_parent__in to posts_where
-add_filter( 'posts_where', 'bbp_query_post_parent__in', 10, 2 );
-
 // Remove forums roles from list of all roles
 add_filter( 'editable_roles', 'bbp_filter_blog_editable_roles' );
 
@@ -257,9 +254,10 @@ add_filter( 'posts_request', '_bbp_has_replies_where', 10, 2 );
 // Capabilities
 add_filter( 'bbp_map_meta_caps', 'bbp_map_primary_meta_caps',   10, 4 ); // Primary caps
 add_filter( 'bbp_map_meta_caps', 'bbp_map_forum_meta_caps',     10, 4 ); // Forums
+add_filter( 'bbp_map_meta_caps', 'bbp_map_forum_mod_meta_caps', 10, 4 ); // Forum mods
 add_filter( 'bbp_map_meta_caps', 'bbp_map_topic_meta_caps',     10, 4 ); // Topics
-add_filter( 'bbp_map_meta_caps', 'bbp_map_reply_meta_caps',     10, 4 ); // Replies
 add_filter( 'bbp_map_meta_caps', 'bbp_map_topic_tag_meta_caps', 10, 4 ); // Topic tags
+add_filter( 'bbp_map_meta_caps', 'bbp_map_reply_meta_caps',     10, 4 ); // Replies
 
 /** Deprecated ****************************************************************/
 

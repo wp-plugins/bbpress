@@ -39,7 +39,11 @@ function bbp_get_reply_caps() {
  * @param array $args Arguments
  * @uses get_post() To get the post
  * @uses get_post_type_object() To get the post type object
+ * @uses bbp_get_public_status_id() To get the public status id
+ * @uses bbp_is_user_forum_mod() To check if the user is a forum moderator
+ * @uses bbp_get_reply_forum_id() To get the repliy forum id
  * @uses apply_filters() Filter mapped results
+ *
  * @return array Actual capabilities for meta capability
  */
 function bbp_map_reply_meta_caps( $caps = array(), $cap = '', $user_id = 0, $args = array() ) {
@@ -60,9 +64,9 @@ function bbp_map_reply_meta_caps( $caps = array(), $cap = '', $user_id = 0, $arg
 
 				// Get the post
 				$_post = get_post( $args[0] );
-				if ( !empty( $_post ) ) {
+				if ( ! empty( $_post ) ) {
 
-					// Get caps for post type object
+					// Get post type object
 					$post_type = get_post_type_object( $_post->post_type );
 
 					// Post is public
@@ -115,9 +119,9 @@ function bbp_map_reply_meta_caps( $caps = array(), $cap = '', $user_id = 0, $arg
 
 			// Get the post
 			$_post = get_post( $args[0] );
-			if ( !empty( $_post ) ) {
+			if ( ! empty( $_post ) ) {
 
-				// Get caps for post type object
+				// Get post type object
 				$post_type = get_post_type_object( $_post->post_type );
 				$caps      = array();
 
@@ -126,10 +130,14 @@ function bbp_map_reply_meta_caps( $caps = array(), $cap = '', $user_id = 0, $arg
 					$caps[] = 'do_not_allow';
 
 				// User is author so allow edit if not in admin
-				} elseif ( !is_admin() && ( (int) $user_id === (int) $_post->post_author ) ) {
+				} elseif ( ! is_admin() && ( (int) $user_id === (int) $_post->post_author ) ) {
 					$caps[] = $post_type->cap->edit_posts;
 
-				// Unknown, so map to edit_others_posts
+				// User is a per-forum moderator, make sure they can spectate.
+				} elseif ( bbp_allow_forum_mods() && bbp_is_user_forum_mod( $user_id, bbp_get_reply_forum_id( $_post->ID ) ) ) {
+					$caps = array( 'spectate' );
+
+				// Fallback to edit_others_posts.
 				} else {
 					$caps[] = $post_type->cap->edit_others_posts;
 				}
@@ -143,9 +151,9 @@ function bbp_map_reply_meta_caps( $caps = array(), $cap = '', $user_id = 0, $arg
 
 			// Get the post
 			$_post = get_post( $args[0] );
-			if ( !empty( $_post ) ) {
+			if ( ! empty( $_post ) ) {
 
-				// Get caps for post type object
+				// Get post type object
 				$post_type = get_post_type_object( $_post->post_type );
 				$caps      = array();
 
@@ -156,6 +164,10 @@ function bbp_map_reply_meta_caps( $caps = array(), $cap = '', $user_id = 0, $arg
 				// Moderators can always edit forum content
 				} elseif ( user_can( $user_id, 'moderate' ) ) {
 					$caps[] = 'moderate';
+
+				// User is author so allow edit if not in admin
+				} elseif ( ! is_admin() && ( (int) $user_id === (int) $_post->post_author ) ) {
+					$caps[] = $post_type->cap->delete_posts;
 
 				// Unknown so map to delete_others_posts
 				} else {

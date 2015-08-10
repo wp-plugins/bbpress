@@ -146,11 +146,13 @@ class BBP_Akismet {
 		/** Post **************************************************************/
 
 		if ( ! empty( $post_data['post_parent'] ) ) {
+
 			// Use post parent for permalink
 			$post_permalink = get_permalink( $post_data['post_parent'] );
 
 			// Use post parent to get datetime of last reply on this topic
-			if ( $reply_id = bbp_get_topic_last_reply_id( $post_data['post_parent'] ) ) {
+			$reply_id = bbp_get_topic_last_reply_id( $post_data['post_parent'] );
+			if ( ! empty( $reply_id ) ) {
 				$user_data['last_active'] = get_post_field( 'post_date', $reply_id );
 			}
 		}
@@ -219,7 +221,6 @@ class BBP_Akismet {
 	 *
 	 * @param int $post_id
 	 *
-	 * @global WP_Query $wpdb
 	 * @global string $akismet_api_host
 	 * @global string $akismet_api_port
 	 * @global object $current_user
@@ -396,7 +397,7 @@ class BBP_Akismet {
 		foreach ( $_SERVER as $key => $value ) {
 
 			// Key should not be ignored
-			if ( !in_array( $key, $ignore ) && is_string( $value ) ) {
+			if ( ! in_array( $key, $ignore ) && is_string( $value ) ) {
 				$post_data[$key] = $value;
 
 			// Key should be ignored
@@ -421,7 +422,7 @@ class BBP_Akismet {
 		$response = $this->http_post( $query_string, $akismet_api_host, $path, $akismet_api_port );
 
 		// Check the high-speed cam
-		if ( !empty( $response[1] ) ) {
+		if ( ! empty( $response[1] ) ) {
 			$post_data['bbp_akismet_result'] = $response[1];
 		} else {
 			$post_data['bbp_akismet_result'] = esc_html__( 'No response', 'bbpress' );
@@ -461,13 +462,13 @@ class BBP_Akismet {
 		}
 
 		// Set up Akismet last post data
-		if ( !empty( $this->last_post ) ) {
+		if ( ! empty( $this->last_post ) ) {
 			$as_submitted = $this->last_post['bbp_post_as_submitted'];
 		}
 
 		// wp_insert_post() might be called in other contexts. Ensure this is
 		// the same topic/reply as was checked by BBP_Akismet::check_post()
-		if ( is_object( $_post ) && !empty( $this->last_post ) && is_array( $as_submitted ) ) {
+		if ( is_object( $_post ) && ! empty( $this->last_post ) && is_array( $as_submitted ) ) {
 
 			// Get user data
 			$userdata       = get_userdata( $_post->post_author );
@@ -596,7 +597,7 @@ class BBP_Akismet {
 	 *
 	 * @uses bbp_get_reply_id() To get the reply_id
 	 * @uses bbp_get_topic_id() To get the topic_id
-	 * @uses wp_get_object_terms() To a post's current terms
+	 * @uses bbp_get_topic_tag_names() To a post's current terms
 	 * @uses update_post_meta() To add spam terms to post meta
 	 *
 	 * @return array Array of existing topic terms
@@ -608,10 +609,10 @@ class BBP_Akismet {
 		$topic_id = bbp_get_topic_id( $topic_id );
 
 		// Get any pre-existing terms
-		$existing_terms = wp_get_object_terms( $topic_id, bbp_get_topic_tag_tax_id(), array( 'fields' => 'names' ) );
+		$existing_terms = bbp_get_topic_tag_names( $topic_id );
 
 		// Save the terms for later in case the reply gets hammed
-		if ( !empty( $terms ) ) {
+		if ( ! empty( $terms ) ) {
 			update_post_meta( $reply_id, '_bbp_akismet_spam_terms', $terms );
 		}
 
@@ -648,7 +649,7 @@ class BBP_Akismet {
 		$akismet_ua    .= 'Akismet/' . constant( 'AKISMET_VERSION' );
 
 		// Use specific IP (if provided)
-		if ( !empty( $ip ) && long2ip( ip2long( $ip ) ) ) {
+		if ( ! empty( $ip ) && long2ip( ip2long( $ip ) ) ) {
 			$http_host = $ip;
 		}
 
@@ -757,7 +758,7 @@ class BBP_Akismet {
 
 		<div class="akismet-history" style="margin: 13px 0;">
 
-			<?php if ( !empty( $history ) ) : ?>
+			<?php if ( ! empty( $history ) ) : ?>
 
 				<table>
 					<tbody>

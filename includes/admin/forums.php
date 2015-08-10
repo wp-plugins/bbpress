@@ -63,10 +63,6 @@ class BBP_Forums_Admin {
 		// Messages
 		add_filter( 'post_updated_messages', array( $this, 'updated_messages' ) );
 
-		// Metabox actions
-		add_action( 'add_meta_boxes',        array( $this, 'attributes_metabox'      ) );
-		add_action( 'save_post',             array( $this, 'attributes_metabox_save' ) );
-
 		// Forum Column headers.
 		add_filter( 'manage_' . $this->post_type . '_posts_columns',        array( $this, 'column_headers' )        );
 
@@ -74,9 +70,16 @@ class BBP_Forums_Admin {
 		add_action( 'manage_' . $this->post_type . '_posts_custom_column',  array( $this, 'column_data'    ), 10, 2 );
 		add_filter( 'page_row_actions',                                     array( $this, 'row_actions'    ), 10, 2 );
 
+		// Metabox actions
+		add_action( 'add_meta_boxes', array( $this, 'attributes_metabox'      ) );
+		add_action( 'save_post',      array( $this, 'attributes_metabox_save' ) );
+
 		// Check if there are any bbp_toggle_forum_* requests on admin_init, also have a message displayed
 		add_action( 'load-edit.php',  array( $this, 'toggle_forum'        ) );
 		add_action( 'admin_notices',  array( $this, 'toggle_forum_notice' ) );
+
+		// Forum moderators AJAX; run at -1 to preempt built-in tag search
+		add_action( 'wp_ajax_ajax-tag-search', array( $this, 'ajax_tag_search'         ), -1 );
 
 		// Contextual Help
 		add_action( 'load-edit.php',     array( $this, 'edit_help' ) );
@@ -91,7 +94,7 @@ class BBP_Forums_Admin {
 	 * @return boolean
 	 */
 	private function bail() {
-		if ( !isset( get_current_screen()->post_type ) || ( $this->post_type != get_current_screen()->post_type ) ) {
+		if ( ! isset( get_current_screen()->post_type ) || ( $this->post_type != get_current_screen()->post_type ) ) {
 			return true;
 		}
 
@@ -216,7 +219,7 @@ class BBP_Forums_Admin {
 					'<li>' . __( '<strong>Type</strong> indicates if the forum is a category or forum. Categories generally contain other forums.',                                                                                'bbpress' ) . '</li>' .
 					'<li>' . __( '<strong>Status</strong> allows you to close a forum to new topics and forums.',                                                                                                                  'bbpress' ) . '</li>' .
 					'<li>' . __( '<strong>Visibility</strong> lets you pick the scope of each forum and what users are allowed to access it.',                                                                                     'bbpress' ) . '</li>' .
-					'<li>' . __( '<strong>Parent</strong> dropdown determines the parent forum. Select the forum or category from the dropdown, or leave the default (No Parent) to create the forum at the root of your forums.', 'bbpress' ) . '</li>' .
+					'<li>' . __( '<strong>Parent</strong> dropdown determines the parent forum. Select the forum or category from the dropdown, or leave the default "No parent" to create the forum at the root of your forums.', 'bbpress' ) . '</li>' .
 					'<li>' . __( '<strong>Order</strong> allows you to order your forums numerically.',                                                                                                                            'bbpress' ) . '</li>' .
 				'</ul>'
 		) );
@@ -262,6 +265,79 @@ class BBP_Forums_Admin {
 	}
 
 	/**
+	 * Return user nicename suggestions instead of tag suggestions
+	 *
+	 * @since bbPress (r5834)
+	 *
+	 * @uses bbp_get_forum_mod_tax_id() To get the forum moderator taxonomy id
+	 * @uses sanitize_key() To sanitize the taxonomy id
+	 * @uses get_taxonomy() To get the forum moderator taxonomy
+	 * @uses current_user_can() To check if the current user add/edit forum moderators
+	 * @uses get_users() To get an array of users
+	 * @uses user_nicename() To get the users nice name
+	 *
+	 * @return Return early if not a request for forum moderators tax
+	 */
+	public function ajax_tag_search() {
+
+		// Only do AJAX if this is a forum moderators tax search.
+		if ( ! isset( $_GET['tax'] ) || ( bbp_get_forum_mod_tax_id() !== $_GET['tax'] ) ) {
+			return;
+		}
+
+		$taxonomy = sanitize_key( $_GET['tax'] );
+		$tax      = get_taxonomy( $taxonomy );
+		if ( empty( $tax ) ) {
+			wp_die( 0 );
+		}
+
+		// Check permissions.
+		if ( ! current_user_can( $tax->cap->assign_terms ) ) {
+			wp_die( -1 );
+		}
+
+		$s = stripslashes( $_GET['q'] );
+
+		// Replace tag delimiter with a comma if needed.
+		$comma = _x( ',', 'tag delimiter', 'bbpress' );
+		if ( ',' !== $comma ) {
+			$s = str_replace( $comma, ',', $s );
+		}
+
+		if ( false !== strpos( $s, ',' ) ) {
+			$s = explode( ',', $s );
+			$s = $s[ count( $s ) - 1 ];
+		}
+
+		// Search on at least 2 characters.
+		$s = trim( $s );
+		if ( strlen( $s ) < 2 ) {
+			wp_die(); // Require 2 chars for matching.
+		}
+
+		// Get users.
+		$results = array();
+		$users   = get_users( array(
+			'blog_id'        => 0, // All users.
+			'fields'         => array( 'user_nicename' ),
+			'search'         => '*' . $s . '*',
+			'search_columns' => array( 'user_nicename' ),
+			'orderby'        => 'user_nicename',
+		) );
+
+		// Format the users into a nice array.
+		if ( ! empty( $users ) ) {
+			foreach ( array_values( $users ) as $details ) {
+				$results[] = $details->user_nicename;
+			}
+		}
+
+		// Echo results for AJAX.
+		echo join( $results, "\n" );
+		wp_die();
+	}
+
+	/**
 	 * Pass the forum attributes for processing
 	 *
 	 * @since bbPress (r2746)
@@ -300,7 +376,7 @@ class BBP_Forums_Admin {
 		}
 
 		// Nonce check
-		if ( empty( $_POST['bbp_forum_metabox'] ) || !wp_verify_nonce( $_POST['bbp_forum_metabox'], 'bbp_forum_metabox_save' ) ) {
+		if ( empty( $_POST['bbp_forum_metabox'] ) || ! wp_verify_nonce( $_POST['bbp_forum_metabox'], 'bbp_forum_metabox_save' ) ) {
 			return $forum_id;
 		}
 
@@ -315,7 +391,7 @@ class BBP_Forums_Admin {
 		}
 
 		// Parent ID
-		$parent_id = ( !empty( $_POST['parent_id'] ) && is_numeric( $_POST['parent_id'] ) ) ? (int) $_POST['parent_id'] : 0;
+		$parent_id = ( ! empty( $_POST['parent_id'] ) && is_numeric( $_POST['parent_id'] ) ) ? (int) $_POST['parent_id'] : 0;
 
 		// Update the forum meta bidness
 		bbp_update_forum( array(
@@ -348,7 +424,7 @@ class BBP_Forums_Admin {
 		<style type="text/css" media="screen">
 		/*<![CDATA[*/
 
-			#misc-publishing-actions,
+			#minor-publishing,
 			#save-post {
 				display: none;
 			}
@@ -372,6 +448,7 @@ class BBP_Forums_Admin {
 			}
 
 			.column-author,
+			.column-bbp_forum_mods,
 			.column-bbp_reply_author,
 			.column-bbp_topic_author {
 				width: 10% !important;
@@ -436,7 +513,7 @@ class BBP_Forums_Admin {
 		}
 
 		// Only proceed if GET is a forum toggle action
-		if ( bbp_is_get_request() && !empty( $_GET['action'] ) && in_array( $_GET['action'], array( 'bbp_toggle_forum_close' ) ) && !empty( $_GET['forum_id'] ) ) {
+		if ( bbp_is_get_request() && ! empty( $_GET['action'] ) && in_array( $_GET['action'], array( 'bbp_toggle_forum_close' ) ) && ! empty( $_GET['forum_id'] ) ) {
 			$action    = $_GET['action'];            // What action is taking place?
 			$forum_id  = (int) $_GET['forum_id'];    // What's the forum id?
 			$success   = false;                      // Flag
@@ -504,10 +581,10 @@ class BBP_Forums_Admin {
 		}
 
 		// Only proceed if GET is a forum toggle action
-		if ( bbp_is_get_request() && !empty( $_GET['bbp_forum_toggle_notice'] ) && in_array( $_GET['bbp_forum_toggle_notice'], array( 'opened', 'closed' ) ) && !empty( $_GET['forum_id'] ) ) {
+		if ( bbp_is_get_request() && ! empty( $_GET['bbp_forum_toggle_notice'] ) && in_array( $_GET['bbp_forum_toggle_notice'], array( 'opened', 'closed' ) ) && ! empty( $_GET['forum_id'] ) ) {
 			$notice     = $_GET['bbp_forum_toggle_notice'];         // Which notice?
 			$forum_id   = (int) $_GET['forum_id'];                  // What's the forum id?
-			$is_failure = !empty( $_GET['failed'] ) ? true : false; // Was that a failure?
+			$is_failure = ! empty( $_GET['failed'] ) ? true : false; // Was that a failure?
 
 			// Bail if no forum_id or notice
 			if ( empty( $notice ) || empty( $forum_id ) ) {
@@ -565,15 +642,22 @@ class BBP_Forums_Admin {
 			return $columns;
 		}
 
-		$columns = array (
+		// Set list table column headers
+		$columns = array(
 			'cb'                    => '<input type="checkbox" />',
-			'title'                 => __( 'Forum',     'bbpress' ),
-			'bbp_forum_topic_count' => __( 'Topics',    'bbpress' ),
-			'bbp_forum_reply_count' => __( 'Replies',   'bbpress' ),
-			'author'                => __( 'Creator',   'bbpress' ),
-			'bbp_forum_created'     => __( 'Created' ,  'bbpress' ),
-			'bbp_forum_freshness'   => __( 'Freshness', 'bbpress' )
+			'title'                 => __( 'Forum',      'bbpress' ),
+			'bbp_forum_topic_count' => __( 'Topics',     'bbpress' ),
+			'bbp_forum_reply_count' => __( 'Replies',    'bbpress' ),
+			'author'                => __( 'Creator',    'bbpress' ),
+			'bbp_forum_mods'        => __( 'Moderators', 'bbpress' ),
+			'bbp_forum_created'     => __( 'Created' ,   'bbpress' ),
+			'bbp_forum_freshness'   => __( 'Freshness',  'bbpress' )
 		);
+
+		// Remove forum mods column if not enabled
+		if ( ! bbp_allow_forum_mods() ) {
+			unset( $columns['bbp_forum_mods'] );
+		}
 
 		return apply_filters( 'bbp_admin_forums_column_headers', $columns );
 	}
@@ -610,6 +694,14 @@ class BBP_Forums_Admin {
 				bbp_forum_reply_count( $forum_id );
 				break;
 
+			case 'bbp_forum_mods' :
+				bbp_forum_mod_list( $forum_id, array(
+					'before' => '',
+					'after'  => '',
+					'none'   => esc_html__( '&mdash;', 'bbpress' )
+				) );
+				break;
+
 			case 'bbp_forum_created':
 				printf( '%1$s <br /> %2$s',
 					get_the_date(),
@@ -620,7 +712,7 @@ class BBP_Forums_Admin {
 
 			case 'bbp_forum_freshness' :
 				$last_active = bbp_get_forum_last_active_time( $forum_id, false );
-				if ( !empty( $last_active ) ) {
+				if ( ! empty( $last_active ) ) {
 					echo esc_html( $last_active );
 				} else {
 					esc_html_e( 'No Topics', 'bbpress' );

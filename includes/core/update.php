@@ -67,7 +67,7 @@ function bbp_is_activation( $basename = '' ) {
 	}
 
 	// Bail if not activating
-	if ( empty( $action ) || !in_array( $action, array( 'activate', 'activate-selected' ) ) ) {
+	if ( empty( $action ) || ! in_array( $action, array( 'activate', 'activate-selected' ) ) ) {
 		return false;
 	}
 
@@ -79,7 +79,7 @@ function bbp_is_activation( $basename = '' ) {
 	}
 
 	// Set basename if empty
-	if ( empty( $basename ) && !empty( $bbp->basename ) ) {
+	if ( empty( $basename ) && ! empty( $bbp->basename ) ) {
 		$basename = $bbp->basename;
 	}
 
@@ -116,7 +116,7 @@ function bbp_is_deactivation( $basename = '' ) {
 	}
 
 	// Bail if not deactivating
-	if ( empty( $action ) || !in_array( $action, array( 'deactivate', 'deactivate-selected' ) ) ) {
+	if ( empty( $action ) || ! in_array( $action, array( 'deactivate', 'deactivate-selected' ) ) ) {
 		return false;
 	}
 
@@ -128,7 +128,7 @@ function bbp_is_deactivation( $basename = '' ) {
 	}
 
 	// Set basename if empty
-	if ( empty( $basename ) && !empty( $bbp->basename ) ) {
+	if ( empty( $basename ) && ! empty( $bbp->basename ) ) {
 		$basename = $bbp->basename;
 	}
 
@@ -191,12 +191,19 @@ function bbp_create_initial_content( $args = array() ) {
 		'reply_content' => __( 'Oh, and this is what a reply looks like.', 'bbpress' ),
 	), 'create_initial_content' );
 
+	// Use the same time for each post
+	$current_time = time();
+	$forum_time = date( 'Y-m-d H:i:s', $current_time - 60 * 60 * 80 );
+	$topic_time = date( 'Y-m-d H:i:s', $current_time - 60 * 60 * 60 );
+	$reply_time = date( 'Y-m-d H:i:s', $current_time - 60 * 60 * 40 );
+
 	// Create the initial forum
 	$forum_id = bbp_insert_forum( array(
 		'post_parent'  => $r['forum_parent'],
 		'post_status'  => $r['forum_status'],
 		'post_title'   => $r['forum_title'],
-		'post_content' => $r['forum_content']
+		'post_content' => $r['forum_content'],
+		'post_date'    => $forum_time
 	) );
 
 	// Create the initial topic
@@ -204,7 +211,8 @@ function bbp_create_initial_content( $args = array() ) {
 		array(
 			'post_parent'  => $forum_id,
 			'post_title'   => $r['topic_title'],
-			'post_content' => $r['topic_content']
+			'post_content' => $r['topic_content'],
+			'post_date'    => $topic_time
 		),
 		array(
 			'forum_id'     => $forum_id
@@ -215,7 +223,8 @@ function bbp_create_initial_content( $args = array() ) {
 	$reply_id = bbp_insert_reply(
 		array(
 			'post_parent'  => $topic_id,
-			'post_content' => $r['reply_content']
+			'post_content' => $r['reply_content'],
+			'post_date'    => $reply_time
 		),
 		array(
 			'forum_id'     => $forum_id,

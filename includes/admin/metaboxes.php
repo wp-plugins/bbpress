@@ -356,7 +356,7 @@ function bbp_forum_metabox() {
 			// Output-related
 			'select_id'          => 'parent_id',
 			'options_only'       => false,
-			'show_none'          => __( '&mdash; No parent &mdash;', 'bbpress' ),
+			'show_none'          => __( '&mdash; No forum &mdash;', 'bbpress' ),
 			'disable_categories' => false,
 			'disabled'           => ''
 		) ); ?>
@@ -391,6 +391,7 @@ function bbp_topic_metabox() {
 
 	// Post ID
 	$post_id = get_the_ID();
+	$status  = get_post_status( $post_id );
 
 	/** Type ******************************************************************/
 
@@ -410,6 +411,7 @@ function bbp_topic_metabox() {
 
 	<p>
 		<strong class="label"><?php esc_html_e( 'Status:', 'bbpress' ); ?></strong>
+		<input type="hidden" name="hidden_post_status" id="hidden_post_status" value="<?php echo esc_attr( ( 'auto-draft' === $status ) ? 'draft' : $status ); ?>" />
 		<label class="screen-reader-text" for="bbp_open_close_topic"><?php esc_html_e( 'Select whether to open or close the topic.', 'bbpress' ); ?></label>
 		<?php bbp_form_topic_status_dropdown( array( 'select_id' => 'post_status', 'topic_id' => $post_id ) ); ?>
 	</p>
@@ -466,6 +468,7 @@ function bbp_reply_metabox() {
 
 	// Post ID
 	$post_id = get_the_ID();
+	$status  = get_post_status( $post_id );
 
 	// Get some meta
 	$reply_topic_id = bbp_get_reply_topic_id( $post_id );
@@ -478,6 +481,7 @@ function bbp_reply_metabox() {
 
 	<p>
 		<strong class="label"><?php esc_html_e( 'Status:', 'bbpress' ); ?></strong>
+		<input type="hidden" name="hidden_post_status" id="hidden_post_status" value="<?php echo esc_attr( ( 'auto-draft' === $status ) ? 'draft' : $status ); ?>" />
 		<label class="screen-reader-text" for="post_status"><?php esc_html_e( 'Select what status to give the reply.', 'bbpress' ); ?></label>
 		<?php bbp_form_reply_status_dropdown( array( 'select_id' => 'post_status', 'reply_id' => $post_id ) ); ?>
 	</p>
@@ -506,7 +510,7 @@ function bbp_reply_metabox() {
 				// Output-related
 				'select_id'          => 'bbp_forum_id',
 				'options_only'       => false,
-				'show_none'          => __( '&mdash; No parent &mdash;', 'bbpress' ),
+				'show_none'          => __( '&mdash; No reply &mdash;', 'bbpress' ),
 				'disable_categories' => current_user_can( 'edit_forums' ),
 				'disabled'           => ''
 			) ); ?>
@@ -541,6 +545,40 @@ function bbp_reply_metabox() {
 	<?php
 	wp_nonce_field( 'bbp_reply_metabox_save', 'bbp_reply_metabox' );
 	do_action( 'bbp_reply_metabox', $post_id );
+}
+
+/**
+ * Output the topic replies metabox
+ *
+ * @since bbPress (r5886)
+ *
+ * @param type $topic
+ *
+ * @return type
+ */
+function bbp_topic_replies_metabox( $topic = false ) {
+
+	// Bail if no topic to load replies for
+	if ( empty( $topic ) ) {
+		return;
+	}
+
+	// Pull in the list table class
+	if ( ! class_exists( 'BBP_Topic_Replies_List_Table' ) ) {
+		include_once bbpress()->admin->admin_dir . '/list-tables/topic-replies.php';
+	}
+
+	// Load up the list table
+	$replies_list_table = new BBP_Topic_Replies_List_Table();
+	$replies_list_table->prepare_items( $topic->ID ); ?>
+
+	<form id="bbp-topic-replies" method="get">
+		<input type="hidden" name="page" value="<?php echo esc_attr( $_REQUEST['page'] ); ?>" />
+
+		<?php $replies_list_table->display(); ?>
+	</form>
+
+	<?php
 }
 
 /** Users *********************************************************************/

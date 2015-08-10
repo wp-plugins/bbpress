@@ -267,7 +267,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		$forum_ids = bbp_get_group_forum_ids( $group_id );
 
 		// Get the first forum ID
-		if ( !empty( $forum_ids ) ) {
+		if ( ! empty( $forum_ids ) ) {
 			$forum_id = (int) is_array( $forum_ids ) ? $forum_ids[0] : $forum_ids;
 		}
 
@@ -294,7 +294,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 					<?php
 						bbp_dropdown( array(
 							'select_id' => 'bbp_group_forum_id',
-							'show_none' => __( '(No Forum)', 'bbpress' ),
+							'show_none' => __( '&mdash; No forum &mdash;', 'bbpress' ),
 							'selected'  => $forum_id
 						) );
 					?>
@@ -344,9 +344,9 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			return;
  		}
 
-		$edit_forum = !empty( $_POST['bbp-edit-group-forum'] ) ? true : false;
+		$edit_forum = ! empty( $_POST['bbp-edit-group-forum'] ) ? true : false;
 		$forum_id   = 0;
-		$group_id   = !empty( $group_id ) ? $group_id : bp_get_current_group_id();
+		$group_id   = ! empty( $group_id ) ? $group_id : bp_get_current_group_id();
 
 		// Keymasters have the ability to reconfigure forums
 		if ( bbp_is_user_keymaster() ) {
@@ -358,7 +358,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 		}
 
 		// Normalize group forum relationships now
-		if ( !empty( $forum_ids ) ) {
+		if ( ! empty( $forum_ids ) ) {
 
 			// Loop through forums, and make sure they exist
 			foreach ( $forum_ids as $forum_id ) {
@@ -413,7 +413,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			$new_forum_args = array( 'forum_id' => $forum_id );
 
 			// If in admin, also include the group ID
-			if ( is_admin() && !empty( $group_id ) ) {
+			if ( is_admin() && ! empty( $group_id ) ) {
 				$new_forum_args['group_id'] = $group_id;
 			}
 
@@ -509,11 +509,11 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			$group_id = bp_get_new_group_id();
 		}
 
-		$create_forum = !empty( $_POST['bbp-create-group-forum'] ) ? true : false;
+		$create_forum = ! empty( $_POST['bbp-create-group-forum'] ) ? true : false;
 		$forum_id     = 0;
 		$forum_ids    = bbp_get_group_forum_ids( $group_id );
 
-		if ( !empty( $forum_ids ) ) {
+		if ( ! empty( $forum_ids ) ) {
 			$forum_id = (int) is_array( $forum_ids ) ? $forum_ids[0] : $forum_ids;
 		}
 
@@ -522,7 +522,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			case true  :
 
 				// Bail if initial content was already created
-				if ( !empty( $forum_id ) ) {
+				if ( ! empty( $forum_id ) ) {
 					return;
 				}
 
@@ -561,7 +561,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			case false :
 
 				// Forum was created but is now being undone
-				if ( !empty( $forum_id ) ) {
+				if ( ! empty( $forum_id ) ) {
 
 					// Delete the forum
 					wp_delete_post( $forum_id, true );
@@ -617,7 +617,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 		// Validate forum_id
 		$forum_id = bbp_get_forum_id( $forum_args['forum_id'] );
-		$group_id = !empty( $forum_args['group_id'] ) ? $forum_args['group_id'] : bp_get_current_group_id();
+		$group_id = ! empty( $forum_args['group_id'] ) ? $forum_args['group_id'] : bp_get_current_group_id();
 
 		bbp_add_forum_id_to_group( $group_id, $forum_id );
 		bbp_add_group_id_to_forum( $forum_id, $group_id );
@@ -644,7 +644,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 		// Validate forum_id
 		$forum_id = bbp_get_forum_id( $forum_args['forum_id'] );
-		$group_id = !empty( $forum_args['group_id'] ) ? $forum_args['group_id'] : bp_get_current_group_id();
+		$group_id = ! empty( $forum_args['group_id'] ) ? $forum_args['group_id'] : bp_get_current_group_id();
 
 		bbp_remove_forum_id_from_group( $group_id, $forum_id );
 		bbp_remove_group_id_from_forum( $forum_id, $group_id );
@@ -842,12 +842,12 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 						$bbp->current_topic_id       = get_the_ID();
 
 						// Merge
-						if ( !empty( $_GET['action'] ) && 'merge' === $_GET['action'] ) :
+						if ( ! empty( $_GET['action'] ) && 'merge' === $_GET['action'] ) :
 							bbp_set_query_name( 'bbp_topic_merge' );
 							bbp_get_template_part( 'form', 'topic-merge' );
 
 						// Split
-						elseif ( !empty( $_GET['action'] ) && 'split' === $_GET['action'] ) :
+						elseif ( ! empty( $_GET['action'] ) && 'split' === $_GET['action'] ) :
 							bbp_set_query_name( 'bbp_topic_split' );
 							bbp_get_template_part( 'form', 'topic-split' );
 
@@ -898,7 +898,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 						$bbp->current_reply_id       = get_the_ID();
 
 						// Move
-						if ( !empty( $_GET['action'] ) && ( 'move' === $_GET['action'] ) ) :
+						if ( ! empty( $_GET['action'] ) && ( 'move' === $_GET['action'] ) ) :
 							bbp_set_query_name( 'bbp_reply_move' );
 							bbp_get_template_part( 'form', 'reply-move' );
 
@@ -998,7 +998,6 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * @since bbPress (r3653)
 	 */
 	public function new_reply_redirect_to( $redirect_url = '', $redirect_to = '', $reply_id = 0 ) {
-		global $wp_rewrite;
 
 		if ( bp_is_group() ) {
 			$topic_id       = bbp_get_reply_topic_id( $reply_id );
@@ -1014,7 +1013,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 
 			// Include pagination
 			} else {
-				$redirect_url = trailingslashit( $topic_url ) . trailingslashit( $wp_rewrite->pagination_base ) . trailingslashit( $reply_page ) . $reply_hash;
+				$redirect_url = trailingslashit( $topic_url ) . trailingslashit( bbp_get_paged_slug() ) . trailingslashit( $reply_page ) . $reply_hash;
 			}
 
 			// Add topic view query arg back to end if it is set
@@ -1339,7 +1338,6 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * @since bbPress (r4266)
 	 *
 	 * @param array $args
-	 * @global $wp_rewrite
 	 * @uses bbp_get_forum_id()
 	 * @uses maybe_map_permalink_to_group
 	 * @return array
@@ -1351,9 +1349,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			return $args;
 		}
 
-		global $wp_rewrite;
-
-		$args['base'] = trailingslashit( $new ) . $wp_rewrite->pagination_base . '/%#%/';
+		$args['base'] = trailingslashit( $new ) . bbp_get_paged_slug() . '/%#%/';
 
 		return $args;
 	}
@@ -1364,7 +1360,6 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 	 * @since bbPress (r4266)
 	 *
 	 * @param array $args
-	 * @global $wp_rewrite
 	 * @uses bbp_get_topic_id()
 	 * @uses maybe_map_permalink_to_group
 	 * @return array
@@ -1375,9 +1370,7 @@ class BBP_Forums_Group_Extension extends BP_Group_Extension {
 			return $args;
 		}
 
-		global $wp_rewrite;
-
-		$args['base'] = trailingslashit( $new ) . $wp_rewrite->pagination_base . '/%#%/';
+		$args['base'] = trailingslashit( $new ) . bbp_get_paged_slug() . '/%#%/';
 
 		return $args;
 	}

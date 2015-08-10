@@ -961,6 +961,12 @@ function bbp_update_topic_walker( $topic_id, $last_active_time = '', $forum_id =
 		// Get the forum ID if none was passed
 		if ( empty( $forum_id )  ) {
 			$forum_id = bbp_get_topic_forum_id( $topic_id );
+
+			// Make every effort to get forum id
+			// https://bbpress.trac.wordpress.org/ticket/2529
+			if ( empty( $forum_id ) && ( current_filter() === 'bbp_deleted_topic' ) ) {
+				$forum_id = get_post_field( 'post_parent', $topic_id );
+			}
 		}
 
 		// Set the active_id based on topic_id/reply_id
@@ -1194,7 +1200,7 @@ function bbp_merge_topic_handler( $action = '' ) {
 		return;
 
 	// Source topic not found
-	} elseif ( !$source_topic = bbp_get_topic( $source_topic_id ) ) {
+	} elseif ( ! $source_topic = bbp_get_topic( $source_topic_id ) ) {
 		bbp_add_error( 'bbp_merge_topic_source_not_found', __( '<strong>ERROR</strong>: The topic you want to merge was not found.', 'bbpress' ) );
 		return;
 	}
@@ -1215,7 +1221,7 @@ function bbp_merge_topic_handler( $action = '' ) {
 	}
 
 	// Destination topic not found
-	if ( !$destination_topic = bbp_get_topic( $destination_topic_id ) ) {
+	if ( ! $destination_topic = bbp_get_topic( $destination_topic_id ) ) {
 		bbp_add_error( 'bbp_merge_topic_destination_not_found', __( '<strong>ERROR</strong>: The topic you want to merge to was not found.', 'bbpress' ) );
 	}
 
@@ -1471,8 +1477,6 @@ function bbp_split_topic_handler( $action = '' ) {
 		return;
 	}
 
-	global $wpdb;
-
 	// Prevent debug notices
 	$from_reply_id = $destination_topic_id = 0;
 	$destination_topic_title = '';
@@ -1677,7 +1681,9 @@ function bbp_split_topic_handler( $action = '' ) {
 
 	// get_posts() is not used because it doesn't allow us to use '>='
 	// comparision without a filter.
-	$replies = (array) $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->posts} WHERE {$wpdb->posts}.post_date >= %s AND {$wpdb->posts}.post_parent = %d AND {$wpdb->posts}.post_type = %s ORDER BY {$wpdb->posts}.post_date ASC", $from_reply->post_date, $source_topic->ID, bbp_get_reply_post_type() ) );
+	$bbp_db  = bbp_db();
+	$query   = $bbp_db->prepare( "SELECT * FROM {$bbp_db->posts} WHERE {$bbp_db->posts}.post_date >= %s AND {$bbp_db->posts}.post_parent = %d AND {$bbp_db->posts}.post_type = %s ORDER BY {$bbp_db->posts}.post_date ASC", $from_reply->post_date, $source_topic->ID, bbp_get_reply_post_type() );
+	$replies = (array) $bbp_db->get_results( $query );
 
 	// Make sure there are replies to loop through
 	if ( ! empty( $replies ) && ! is_wp_error( $replies ) ) {
@@ -1871,7 +1877,7 @@ function bbp_edit_topic_tag_handler( $action = '' ) {
 			}
 
 			// No tag name was provided
-			if ( empty( $_POST['tag-name'] ) || !$name = $_POST['tag-name'] ) {
+			if ( empty( $_POST['tag-name'] ) || ! $name = $_POST['tag-name'] ) {
 				bbp_add_error( 'bbp_manage_topic_tag_update_name', __( '<strong>ERROR</strong>: You need to enter a tag name.', 'bbpress' ) );
 				return;
 			}
@@ -1911,13 +1917,13 @@ function bbp_edit_topic_tag_handler( $action = '' ) {
 			}
 
 			// No tag name was provided
-			if ( empty( $_POST['tag-existing-name'] ) || !$name = $_POST['tag-existing-name'] ) {
+			if ( empty( $_POST['tag-existing-name'] ) || ! $name = $_POST['tag-existing-name'] ) {
 				bbp_add_error( 'bbp_manage_topic_tag_merge_name', __( '<strong>ERROR</strong>: You need to enter a tag name.', 'bbpress' ) );
 				return;
 			}
 
 			// If term does not exist, create it
-			if ( !$tag = term_exists( $name, bbp_get_topic_tag_tax_id() ) ) {
+			if ( ! $tag = term_exists( $name, bbp_get_topic_tag_tax_id() ) ) {
 				$tag = wp_insert_term( $name, bbp_get_topic_tag_tax_id() );
 			}
 
@@ -2177,7 +2183,7 @@ function bbp_toggle_topic_handler( $action = '' ) {
 			$is_spam  = bbp_is_topic_spam( $topic_id );
 			$success  = true === $is_spam ? bbp_unspam_topic( $topic_id ) : bbp_spam_topic( $topic_id );
 			$failure  = true === $is_spam ? __( '<strong>ERROR</strong>: There was a problem unmarking the topic as spam.', 'bbpress' ) : __( '<strong>ERROR</strong>: There was a problem marking the topic as spam.', 'bbpress' );
-			$view_all = !$is_spam;
+			$view_all = ! $is_spam;
 
 			break;
 
@@ -2508,7 +2514,6 @@ function bbp_update_topic_reply_count( $topic_id = 0, $reply_count = 0 ) {
  * @return int Topic hidden reply count
  */
 function bbp_update_topic_reply_count_hidden( $topic_id = 0, $reply_count = 0 ) {
-	global $wpdb;
 
 	// If it's a reply, then get the parent (topic id)
 	if ( bbp_is_reply( $topic_id ) ) {
@@ -2519,8 +2524,11 @@ function bbp_update_topic_reply_count_hidden( $topic_id = 0, $reply_count = 0 ) 
 
 	// Get replies of topic
 	if ( empty( $reply_count ) ) {
-		$post_status = "'" . implode( "','", array( bbp_get_trash_status_id(), bbp_get_spam_status_id(), bbp_get_pending_status_id() ) ) . "'";
-		$reply_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_parent = %d AND post_status IN ( {$post_status} ) AND post_type = '%s';", $topic_id, bbp_get_reply_post_type() ) );
+		$statuses    = array( bbp_get_trash_status_id(), bbp_get_spam_status_id(), bbp_get_pending_status_id() );
+		$post_status = "'" . implode( "','", $statuses ) . "'";
+		$bbp_db      = bbp_db();
+		$query       = $bbp_db->prepare( "SELECT COUNT(ID) FROM {$bbp_db->posts} WHERE post_parent = %d AND post_status IN ( {$post_status} ) AND post_type = '%s';", $topic_id, bbp_get_reply_post_type() );
+		$reply_count = $bbp_db->get_var( $query );
 	}
 
 	$reply_count = (int) $reply_count;
@@ -2672,14 +2680,13 @@ function bbp_update_topic_last_reply_id( $topic_id = 0, $reply_id = 0 ) {
  * @uses bbp_get_reply_post_type() To get the reply post type
  * @uses bbp_get_topic_post_type() To get the topic post type
  * @uses wpdb::prepare() To prepare our sql query
- * @uses wpdb::get_col() To execute our query and get the column back
+ * @uses wpdb::get_var() To execute our query and get the column back
  * @uses update_post_meta() To update the topic voice count meta
  * @uses apply_filters() Calls 'bbp_update_topic_voice_count' with the voice
  *                        count and topic id
  * @return int Voice count
  */
 function bbp_update_topic_voice_count( $topic_id = 0 ) {
-	global $wpdb;
 
 	// If it's a reply, then get the parent (topic id)
 	if ( bbp_is_reply( $topic_id ) ) {
@@ -2691,7 +2698,9 @@ function bbp_update_topic_voice_count( $topic_id = 0 ) {
 	}
 
 	// Query the DB to get voices in this topic
-	$voices = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT post_author ) FROM {$wpdb->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' ) OR ( ID = %d AND post_type = '%s' );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() ) );
+	$bbp_db = bbp_db();
+	$query  = $bbp_db->prepare( "SELECT COUNT( DISTINCT post_author ) FROM {$bbp_db->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' ) OR ( ID = %d AND post_type = '%s' );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() );
+	$voices = (int) $bbp_db->get_var( $query );
 
 	// Update the voice count for this topic id
 	update_post_meta( $topic_id, '_bbp_voice_count', $voices );
@@ -2712,14 +2721,13 @@ function bbp_update_topic_voice_count( $topic_id = 0 ) {
  * @uses bbp_get_reply_post_type() To get the reply post type
  * @uses bbp_get_topic_post_type() To get the topic post type
  * @uses wpdb::prepare() To prepare our sql query
- * @uses wpdb::get_col() To execute our query and get the column back
+ * @uses wpdb::get_var() To execute our query and get the column back
  * @uses update_post_meta() To update the topic anonymous reply count meta
  * @uses apply_filters() Calls 'bbp_update_topic_anonymous_reply_count' with the
  *                        anonymous reply count and topic id
  * @return int Anonymous reply count
  */
 function bbp_update_topic_anonymous_reply_count( $topic_id = 0 ) {
-	global $wpdb;
 
 	// If it's a reply, then get the parent (topic id)
 	if ( bbp_is_reply( $topic_id ) ) {
@@ -2730,11 +2738,14 @@ function bbp_update_topic_anonymous_reply_count( $topic_id = 0 ) {
 		return;
 	}
 
-	$anonymous_replies = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( ID ) FROM {$wpdb->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' AND post_author = 0 ) OR ( ID = %d AND post_type = '%s' AND post_author = 0 );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() ) );
+	// Query the DB to get anonymous replies in this topic
+	$bbp_db  = bbp_db();
+	$query   = $bbp_db->prepare( "SELECT COUNT( ID ) FROM {$bbp_db->posts} WHERE ( post_parent = %d AND post_status = '%s' AND post_type = '%s' AND post_author = 0 ) OR ( ID = %d AND post_type = '%s' AND post_author = 0 );", $topic_id, bbp_get_public_status_id(), bbp_get_reply_post_type(), $topic_id, bbp_get_topic_post_type() );
+	$replies = (int) $bbp_db->get_var( $query );
 
-	update_post_meta( $topic_id, '_bbp_anonymous_reply_count', $anonymous_replies );
+	update_post_meta( $topic_id, '_bbp_anonymous_reply_count', $replies );
 
-	return (int) apply_filters( 'bbp_update_topic_anonymous_reply_count', $anonymous_replies, $topic_id );
+	return (int) apply_filters( 'bbp_update_topic_anonymous_reply_count', $replies, $topic_id );
 }
 
 /**
@@ -3677,22 +3688,36 @@ function bbp_get_topics_per_rss_page( $default = 25 ) {
 /**
  * Get topic tags for a specific topic ID
  *
- * @since bbPress (r4165)
+ * @since bbPress (r5836)
  *
  * @param int $topic_id
+ *
+ * @return string
+ */
+function bbp_get_topic_tags( $topic_id = 0 ) {
+	$topic_id   = bbp_get_topic_id( $topic_id );
+	$terms      = (array) get_the_terms( $topic_id, bbp_get_topic_tag_tax_id() );
+	$topic_tags = array_filter( $terms );
+
+	return apply_filters( 'bbp_get_topic_tags', $topic_tags, $topic_id );
+}
+
+/**
+ * Get topic tags for a specific topic ID
+ *
+ * @since bbPress (r4165)
+ *
+ * @param int    $topic_id
  * @param string $sep
+ *
  * @return string
  */
 function bbp_get_topic_tag_names( $topic_id = 0, $sep = ', ' ) {
-	$topic_id   = bbp_get_topic_id( $topic_id );
-	$topic_tags = array_filter( (array) get_the_terms( $topic_id, bbp_get_topic_tag_tax_id() ) );
-	$terms      = array();
-	foreach ( $topic_tags as $term ) {
-		$terms[] = $term->name;
-	}
-	$terms = ! empty( $terms ) ? implode( $sep, $terms ) : '';
+	$topic_tags = bbp_get_topic_tags( $topic_id );
+	$pluck      = wp_list_pluck( $topic_tags, 'name' );
+	$terms      = ! empty( $pluck ) ? implode( $sep, $pluck ) : '';
 
-	return apply_filters( 'bbp_get_topic_tags', $terms, $topic_id );
+	return apply_filters( 'bbp_get_topic_tag_names', $terms, $topic_id, $sep );
 }
 
 /** Autoembed *****************************************************************/
@@ -3722,7 +3747,7 @@ function bbp_topic_content_autoembed() {
  * @uses bbp_is_single_topic()
  * @uses bbp_user_can_view_forum()
  * @uses bbp_get_topic_forum_id()
- * @uses bbp_show_load_topic()
+ * @uses bbp_show_lead_topic()
  * @uses bbp_topic_permalink()
  * @uses bbp_topic_title()
  * @uses bbp_get_topic_reply_count()
