@@ -272,9 +272,10 @@ function bbp_has_replies( $args = array() ) {
 			// Remove first page from pagination
 			if ( bbp_use_pretty_urls() ) {
 				$bbp->reply_query->pagination_links = str_replace( bbp_get_paged_slug() . '/1/', '', $bbp->reply_query->pagination_links );
-			} else {
-				$bbp->reply_query->pagination_links = str_replace( '&#038;paged=1', '', $bbp->reply_query->pagination_links );
 			}
+			//else {
+			//	$bbp->reply_query->pagination_links = str_replace( '&#038;paged=1', '', $bbp->reply_query->pagination_links );
+			//}
 		}
 	}
 
