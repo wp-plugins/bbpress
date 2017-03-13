@@ -1462,7 +1462,7 @@ function bbp_query_post_parent__in( $where, $object = '' ) {
 	global $wp;
 
 	// Noop if WP core supports this already
-	if ( in_array( 'post_parent__in', $wp->private_query_vars ) ) {
+	if ( empty($wp) || in_array( 'post_parent__in', $wp->private_query_vars ) ) {
 		return $where;
 	}
 
